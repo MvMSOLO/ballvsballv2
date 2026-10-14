@@ -154,6 +154,7 @@ function ProfilePage() {
             : <span>{(shownName || "G").charAt(0).toUpperCase()}</span>}
           <span className="profile-avatar-ring" />
         </div>
+        {/* Supplied SVG frames keep a transparent portrait center so the profile image underneath shows through. */}
         {frameSrc && <img className={"profile-frame-art profile-frame-art-" + activeFrame} src={frameSrc} alt="" aria-hidden="true" />}
         {activeFrame === "none" && <span className="profile-avatar-default-orbit" aria-hidden="true" />}
       </div>
