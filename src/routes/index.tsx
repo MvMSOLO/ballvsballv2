@@ -118,7 +118,6 @@ export type ArenaRouteMode = "free-roam" | "duel" | "admin";
 export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } = {}) {
   const adminMode = mode === "admin";
   const availablePacks = useMemo(() => allPacks(), []);
-  const availableBalls = useMemo(() => availablePacks.flatMap((pack) => pack.balls), [availablePacks]);
   const hostRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<World | null>(null);
   const sessionRef = useRef<Session | null>(null);
@@ -340,15 +339,6 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     setAdminPaused(false);
   }, []);
 
-  const resetAdminDuel = useCallback(() => {
-    sessionRef.current = null;
-    rewardedSessionRef.current = null;
-    previousHpRef.current = null;
-    setView(null);
-    setAdminPaused(false);
-    setNotice("Admin controls reset. Choose the next matchup.");
-  }, []);
-
   const updateStickFromPointer = useCallback((e: ReactPointerEvent<HTMLDivElement>) => {
     if (stickPointerRef.current !== e.pointerId) return;
     const rect = e.currentTarget.getBoundingClientRect();
@@ -548,7 +538,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "3D renderer could not start on this device.");
     }
-  }, [quality]);
+  }, [quality, adminMode]);
 
   const flow = view?.flow;
   const selected = view?.offers[view.picked];
