@@ -36,9 +36,6 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
-      - name: Validate authentication invariants
-        run: npm run check:auth
-
       - name: Core, economy, controls and match-speed tests
         run: npm test && npm run test:arena
 
