@@ -896,3 +896,22 @@ button:focus-visible, input:focus-visible { outline: 3px solid #67e8f9; outline-
 @media(max-width:980px){.game-nav{top:calc(61px + env(safe-area-inset-top));gap:6px;padding:4px 6px}.game-nav .hub-icon-link{width:39px;height:39px;min-height:39px}.hub-logo{width:26px;height:26px}}
 @media(max-width:640px){.game-nav{top:calc(55px + env(safe-area-inset-top));gap:5px;padding:4px 6px;border-radius:14px}.game-nav .hub-icon-link{width:34px;height:34px;min-height:34px;border-radius:10px}.hub-logo{width:23px;height:23px}}
 @media(prefers-reduced-motion:reduce){.hub-logo-orbit,.hub-logo-core,.hub-logo-login .hub-logo-line{animation:none!important}.game-nav .hub-icon-link{transition:none}}
+
+
+/* Angular esports visual language: hard edges, techno type, sharp HUD */
+.game-nav{gap:7px;padding:6px 10px;border:1px solid #5ce9ff55;border-radius:3px;background:linear-gradient(105deg,#06101ceF,#0c1b2bea 52%,#160f28ee);box-shadow:0 0 0 1px #081522,0 8px 30px #0009,inset 0 1px #b9f7ff1a;clip-path:polygon(0 0,calc(100% - 13px) 0,100% 13px,100% 100%,13px 100%,0 calc(100% - 13px));}
+.game-nav .hub-icon-link{border-radius:2px;clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,9px 100%,0 calc(100% - 9px));background:linear-gradient(145deg,#132a3ceF,#07111eeF);border:1px solid #67e8f944;box-shadow:inset 0 0 0 1px #ffffff08;position:relative}
+.game-nav .hub-icon-link::after{content:"";position:absolute;right:3px;top:3px;width:5px;height:5px;background:#67e8f9;clip-path:polygon(0 0,100% 0,100% 100%);opacity:.8}
+.game-nav .hub-icon-link:hover,.game-nav .hub-icon-link:focus-visible{transform:translateY(-3px) skewX(-2deg);border-color:#d6fbff;background:linear-gradient(145deg,#15506a,#14142d);box-shadow:0 0 18px #22d3ee44,inset 0 0 18px #22d3ee13}
+.hub-logo{width:30px;height:30px;filter:drop-shadow(0 0 5px #67e8f944)}
+.hub-logo-orbit{fill:#67e8f908;stroke:#67e8f96b;stroke-width:1.1;stroke-dasharray:7 3;transform-origin:24px 24px;animation:hub-orbit 9s linear infinite}
+.hub-logo-line{fill:none;stroke:#9aefff;stroke-width:2.25;stroke-linecap:square;stroke-linejoin:bevel;transition:stroke-width .2s ease}
+.hub-logo-core{fill:#67e8f91c;stroke:#c7fbff;stroke-width:1.8;stroke-linecap:square;stroke-linejoin:bevel;filter:drop-shadow(0 0 4px #67e8f9a6);transform-origin:24px 24px;animation:hub-core-pulse 2.2s steps(2,end) infinite}
+.hub-logo-shop .hub-logo-core,.hub-logo-ranks .hub-logo-core{fill:#67e8f9;stroke:#e4fdff}
+.hub-logo-inventory .hub-logo-core{fill:#60a5fa;stroke:#a5f3fc}
+.hub-logo-settings .hub-logo-core{transform-origin:24px 24px;animation:hub-gear-turn 12s linear infinite}
+.hub-icon-link:hover .hub-logo-orbit{stroke:#d6fbff;animation-duration:2.8s}
+.hub-icon-link:hover .hub-logo-core{animation-duration:.7s}
+@media(max-width:980px){.game-nav{gap:5px;padding:4px 6px}.game-nav .hub-icon-link{border-radius:2px}}
+@media(max-width:640px){.game-nav{gap:4px;padding:4px 5px;border-radius:2px}.game-nav .hub-icon-link{width:34px;height:34px;min-height:34px;border-radius:2px}.hub-logo{width:23px;height:23px}}
+@media(prefers-reduced-motion:reduce){.hub-logo-orbit,.hub-logo-core,.hub-logo-login .hub-logo-line{animation:none!important}.game-nav .hub-icon-link{transition:none}}
