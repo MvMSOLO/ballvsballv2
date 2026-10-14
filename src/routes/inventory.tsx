@@ -3,22 +3,48 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { BallDef } from "@/sim/types";
 import { allPacks } from "@/packs/registry";
 import { defaultSave, loadSave, writeSave, EXPLOSIONS, FLYERS, type Save } from "@/economy/save";
+import { syncArenaSave } from "@/economy/persistence";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { authEnabled } from "@/lib/auth/client";
 import { PortalShell } from "@/components/portal-shell";
 
 export const Route = createFileRoute("/inventory")({ component: InventoryPage });
 function titleCase(value: string) { return value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()); }
 
 function InventoryPage() {
+  const { user, isPending } = useCurrentUserState();
+  const cloudSync = authEnabled && Boolean(user && !user.isDevFallback);
   const balls = useMemo(() => allPacks().flatMap((pack) => pack.balls), []);
   const ballMap = useMemo(() => new Map<string, BallDef>(balls.map((ball) => [ball.id, ball])), [balls]);
   const [save, setSave] = useState<Save>(() => defaultSave());
   const [filter, setFilter] = useState("all");
   const [notice, setNotice] = useState("");
-  useEffect(() => { setSave(loadSave()); }, []);
+  useEffect(() => {
+    const local = loadSave();
+    setSave(local);
+    if (cloudSync) {
+      void syncArenaSave(local).then((merged) => {
+        setSave(merged);
+      }).catch(() => setNotice("Cloud save could not be loaded; local collection is still available."));
+    }
+  }, [cloudSync, isPending]);
 
   function persist(next: Save) {
     setSave(next);
-    try { writeSave(next); setNotice("Collection updated."); } catch { setNotice("Could not save changes on this device."); }
+    try {
+      writeSave(next);
+    } catch {
+      setNotice("Could not save changes on this device.");
+      return;
+    }
+    if (cloudSync) {
+      void syncArenaSave(next).then((merged) => {
+        setSave(merged);
+        setNotice("Collection updated and synced to your account.");
+      }).catch(() => setNotice("Collection updated locally; cloud sync failed."));
+    } else {
+      setNotice("Collection updated on this device.");
+    }
   }
   function toggleFavorite(id: string) {
     if (!save.owned.includes(id)) return;
