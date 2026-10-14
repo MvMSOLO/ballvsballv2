@@ -1070,3 +1070,175 @@ h1,h2,h3,h4,.portal-brand strong,.portal-page-heading h1,.portal-section-heading
 .admin-alert{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;margin:0 0 14px;border:1px solid;border-radius:12px;font-size:10px;line-height:1.5}.admin-alert strong{flex-shrink:0;font-size:8px;letter-spacing:.1em}.admin-alert.error{border-color:#ff6e7c50;color:#ff9ba5;background:#ff6e7c0c}.admin-alert.success{border-color:#4ae6a34a;color:#82efbb;background:#4ae6a30b}.admin-activity-panel{margin-top:16px}.admin-activity-list{display:grid}.admin-activity-row{display:grid;grid-template-columns:8px minmax(0,1fr) auto;align-items:start;gap:12px;padding:13px 0;border-top:1px solid #ffffff0d}.admin-activity-dot{width:7px;height:7px;margin-top:5px;border-radius:50%;background:#ffc56d;box-shadow:0 0 10px #ffc56d55}.admin-activity-row>div{min-width:0}.admin-activity-row strong{font-size:9px;letter-spacing:.08em}.admin-activity-row p{margin:5px 0;color:#aeb9c9;font-size:10px;line-height:1.5}.admin-activity-row small{color:#65758a;font-size:8px;overflow-wrap:anywhere}.admin-activity-row time{color:#78879a;font-size:8px;text-align:right;white-space:nowrap}.admin-footer-note{color:#7e8ca0;font-size:9px;line-height:1.6;margin:14px 2px}.admin-gate{max-width:560px;margin:0 auto;padding:26px}.admin-gate h2{margin:10px 0;font-family:var(--font-display)}.admin-gate p{color:#9aa9bc;font-size:12px;line-height:1.6}
 @media(max-width:960px){.admin-layout{grid-template-columns:1fr}.admin-player-list{max-height:400px}.admin-hero{flex-direction:column}.admin-hero-side{width:100%;min-width:0}.admin-stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.admin-hero,.admin-player-panel,.admin-detail-panel,.admin-activity-panel{padding:14px}.admin-stats-grid{gap:7px}.admin-stat{padding:12px}.admin-stat small{font-size:7px}.admin-player-row{gap:7px;padding:9px 6px}.admin-player-avatar{flex-basis:30px;width:30px;height:30px}.admin-player-main strong{font-size:10px}.admin-player-main small{font-size:8px}.admin-player-status small{font-size:8px}.admin-action-button{min-height:88px;padding:10px}.admin-action-button>span{font-size:8px}.admin-two-fields{grid-template-columns:minmax(0,1fr)}.admin-set-button{margin:-2px 0 12px!important}.admin-activity-row{grid-template-columns:7px minmax(0,1fr)}.admin-activity-row time{grid-column:2;text-align:left}.admin-alert{flex-direction:column;gap:4px}}
+
+
+/* ARENA IMPACT PASS — angular esports surfaces, sharper hierarchy, restrained motion. */
+:root {
+  --font-display: "Orbitron", "Chakra Petch", sans-serif;
+  --arena-cyan: #61f4ff;
+  --arena-blue: #4f9dff;
+  --arena-violet: #9b7bff;
+  --arena-line: #61f4ff35;
+}
+.portal-page {
+  background:
+    radial-gradient(ellipse at 8% 4%, #064d6260 0, transparent 34%),
+    radial-gradient(ellipse at 92% 20%, #30206a50 0, transparent 30%),
+    #05080f;
+}
+.portal-ambient {
+  opacity: .38;
+  background-image:
+    linear-gradient(#61f4ff0b 1px, transparent 1px),
+    linear-gradient(90deg, #61f4ff0b 1px, transparent 1px),
+    linear-gradient(135deg, transparent 49.8%, #61f4ff08 50%, transparent 50.2%);
+  background-size: 36px 36px, 36px 36px, 100% 100%;
+}
+.portal-topbar {
+  border-bottom: 1px solid #61f4ff24;
+  background: linear-gradient(180deg, #05080fe8, #05080f9c);
+  backdrop-filter: blur(18px);
+}
+.portal-brand-orb {
+  border-radius: 3px 12px 3px 12px;
+  clip-path: polygon(0 0, 76% 0, 100% 24%, 100% 100%, 24% 100%, 0 76%);
+  background: linear-gradient(135deg, #082f49, #087f8c 55%, #536bff);
+  box-shadow: 0 0 26px #22d3ee38, inset 0 0 0 1px #a5f3fc6b;
+}
+.portal-brand strong, .portal-page-heading h1, .portal-section-heading h2,
+.admin-hero h1, .profile-identity h2 {
+  font-family: "Orbitron", "Chakra Petch", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: -.035em;
+}
+.portal-nav { gap: 5px; }
+.portal-nav-link {
+  position: relative;
+  border-radius: 2px 9px 2px 9px;
+  border-color: transparent;
+  letter-spacing: .13em;
+  transition: color .18s, background .18s, border-color .18s, transform .18s;
+}
+.portal-nav-link:hover, .portal-nav-link.active {
+  color: var(--arena-cyan);
+  border-color: #61f4ff45;
+  background: linear-gradient(120deg, #61f4ff13, #9b7bff0c);
+  box-shadow: inset 0 -2px #61f4ff9c, 0 0 22px #22d3ee0c;
+}
+.portal-content { position: relative; }
+.portal-back, .portal-kicker, .admin-kicker {
+  font-family: "Chakra Petch", "Rajdhani", sans-serif;
+  letter-spacing: .2em;
+}
+.portal-page-heading h1 {
+  text-shadow: 0 0 30px #61f4ff12;
+}
+.portal-panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 3px 17px 3px 17px;
+  border-color: #61f4ff2c;
+  background:
+    linear-gradient(135deg, #101c2cf2, #080f1af2 72%),
+    #080f1a;
+  box-shadow: inset 0 1px #ffffff0b, 0 20px 70px #0007;
+}
+.portal-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .65;
+  background:
+    linear-gradient(var(--arena-cyan), var(--arena-cyan)) left top / 30px 1px no-repeat,
+    linear-gradient(var(--arena-cyan), var(--arena-cyan)) left top / 1px 30px no-repeat,
+    linear-gradient(var(--arena-violet), var(--arena-violet)) right bottom / 30px 1px no-repeat,
+    linear-gradient(var(--arena-violet), var(--arena-violet)) right bottom / 1px 30px no-repeat;
+}
+.portal-button, .portal-signin, .google-auth-button,
+.admin-action-button, .admin-set-button, .admin-reset-button {
+  border-radius: 2px 11px 2px 11px;
+  letter-spacing: .11em;
+  transition: transform .18s ease, filter .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.portal-button:not(:disabled):hover, .portal-signin:hover,
+.admin-action-button:not(:disabled):hover, .admin-set-button:not(:disabled):hover {
+  transform: translateY(-2px);
+  filter: brightness(1.12);
+  box-shadow: 0 0 24px #61f4ff16;
+}
+.shop-ball-card, .profile-frame-card, .admin-target-card, .admin-player-row {
+  border-radius: 3px 14px 3px 14px;
+  border-color: #61f4ff22;
+  background: linear-gradient(145deg, #101d2ef2, #080e18f5);
+}
+.shop-ball-card:hover, .profile-frame-card:hover, .admin-player-row:hover {
+  border-color: #61f4ff80;
+  box-shadow: 0 12px 36px #0005, 0 0 24px #22d3ee0c;
+}
+.shop-ball-orb {
+  box-shadow: 0 0 30px #61f4ff12, inset -12px -14px 20px #02061750;
+}
+.shop-feature-icon, .profile-role-chip, .admin-control-title > span {
+  border-radius: 3px 10px 3px 10px;
+}
+.admin-hero {
+  border-color: #61f4ff40;
+  background:
+    linear-gradient(120deg, #61f4ff0e, transparent 45%),
+    radial-gradient(ellipse at 100% 0, #9b7bff16, transparent 42%),
+    linear-gradient(135deg, #101b2a, #080d15);
+}
+.admin-kicker, .admin-control-title > span { color: var(--arena-cyan); }
+.admin-control-title > span { border-color: #61f4ff3b; }
+.admin-action-button, .admin-set-button {
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+.lobby-panel, .match-hud {
+  border-radius: 4px 24px 4px 24px;
+  border-color: #61f4ff40;
+  background:
+    linear-gradient(130deg, #0b1d2ded, #090f1beF 68%),
+    #080e18;
+  box-shadow: 0 30px 100px #0206178c, inset 0 1px #ffffff10, 0 0 35px #22d3ee0a;
+}
+.lobby-panel::before, .match-hud::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 84px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--arena-cyan), transparent);
+  box-shadow: 0 0 20px #61f4ff55;
+  pointer-events: none;
+}
+.lobby-panel h1, .match-head > strong {
+  font-family: "Orbitron", "Chakra Petch", sans-serif;
+  text-transform: uppercase;
+}
+.primary-button {
+  border-radius: 2px 14px 2px 14px;
+  background: linear-gradient(110deg, #61f4ff, #5ba5ff 72%, #9b7bff);
+  box-shadow: 0 8px 32px #22d3ee26, inset 0 1px #ffffff90;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+}
+.secondary-button, .lobby-button {
+  border-radius: 2px 12px 2px 12px;
+  border-color: #61f4ff30;
+}
+.ball-card { border-radius: 3px 13px 3px 13px; }
+.ball-card.selected { border-color: var(--arena-cyan); box-shadow: inset 0 0 0 1px #61f4ff5c, 0 0 28px #22d3ee16; }
+@keyframes arena-edge-breathe {
+  0%, 100% { box-shadow: inset 0 1px #ffffff0b, 0 20px 70px #0007; }
+  50% { box-shadow: inset 0 1px #ffffff10, 0 20px 70px #0007, 0 0 28px #22d3ee0a; }
+}
+.portal-panel.profile-hero-premium, .admin-hero { animation: arena-edge-breathe 5.5s ease-in-out infinite; }
+@media (max-width: 760px) {
+  .portal-nav { gap: 2px; }
+  .portal-nav-link { padding: 9px 7px; font-size: 8px; }
+  .portal-panel { border-radius: 3px 12px 3px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-panel.profile-hero-premium, .admin-hero { animation: none !important; }
+}
