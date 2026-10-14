@@ -7,6 +7,9 @@ import { advanceSession, applyCommand, createSession, publicView, renderFrame, v
 import { allPacks, enabledBalls } from "../packs/registry";
 import { playerMoveInput } from "../game/controls";
 import { loadSave, writeSave } from "../economy/save";
+import { syncArenaSave } from "@/economy/persistence";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { authEnabled } from "@/lib/auth/client";
 import { sfx, setMuted, unlockAudio } from "../audio/synth";
 
 export const Route = createFileRoute("/")({ component: BallArenaPage });
@@ -116,6 +119,9 @@ const RIVALS = [
 export type ArenaRouteMode = "free-roam" | "duel" | "admin";
 
 export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } = {}) {
+  const { user: currentUser } = useCurrentUserState();
+  const cloudSyncRef = useRef(false);
+  cloudSyncRef.current = authEnabled && Boolean(currentUser && !currentUser.isDevFallback);
   const adminMode = mode === "admin";
   const availablePacks = useMemo(() => allPacks(), []);
   const hostRef = useRef<HTMLDivElement>(null);
@@ -366,13 +372,26 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   }, []);
 
   useEffect(() => {
+    let active = true;
     const saved = loadSave();
     setCoins(saved.coins);
     setDiamonds(saved.diamonds);
+    diamondsRef.current = saved.diamonds;
     setAudioMuted(!saved.settings.sound);
     setMuted(!saved.settings.sound);
     if (saved.settings.quality !== "auto") setQuality(saved.settings.quality);
-  }, []);
+    if (cloudSyncRef.current) {
+      void syncArenaSave(saved).then((merged) => {
+        if (!active) return;
+        setCoins(merged.coins);
+        setDiamonds(merged.diamonds);
+        diamondsRef.current = merged.diamonds;
+      }).catch(() => {
+        if (active) setNotice("Cloud save unavailable; continuing with local progress.");
+      });
+    }
+    return () => { active = false; };
+  }, [currentUser?.id]);
 
   useEffect(() => {
     if (!notice) return;
@@ -480,6 +499,13 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
               if (s.matchWinner === 0) saved.wins += 1;
               writeSave(saved);
               setCoins(saved.coins);
+              if (cloudSyncRef.current) {
+                void syncArenaSave(saved).then((merged) => {
+                  setCoins(merged.coins);
+                  setDiamonds(merged.diamonds);
+                  diamondsRef.current = merged.diamonds;
+                }).catch(() => setNotice("Match saved locally, but cloud sync failed."));
+              }
             } catch { setNotice("Match finished, but progress could not be saved on this device."); }
           }
           if (now - lastUiRef.current > 100) {
