@@ -42,6 +42,15 @@ export class UnauthorizedError extends Error {
   }
 }
 
+/** Session is valid but the account is blocked by owner moderation. */
+export class BannedAccountError extends Error {
+  readonly status = 403;
+  constructor(reason: string) {
+    super(`Account banned: ${reason}`);
+    this.name = "BannedAccountError";
+  }
+}
+
 export type VerifiedUser = { id: string; email: string | null };
 
 /**
@@ -93,5 +102,14 @@ export async function requireUserId(bearerToken?: string): Promise<string> {
   }
   const user = await getSessionUser(bearerToken);
   if (!user) throw new UnauthorizedError();
+  const { getSql } = await import("@/lib/db");
+  const db = await getSql();
+  const moderation = await db.query<{ is_banned: boolean; ban_reason: string }>(
+    "select is_banned, ban_reason from player_admin_controls where user_id = $1 limit 1",
+    [user.id],
+  );
+  if (moderation[0]?.is_banned) {
+    throw new BannedAccountError(moderation[0].ban_reason || "This account has been banned.");
+  }
   return user.id;
 }

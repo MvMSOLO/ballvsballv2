@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 
+const OWNER_EMAIL = "mirzayevavazbek15@gmail.com";
+
 const LINKS = [
   { href: "/profile", label: "PROFILE", key: "profile" },
   { href: "/shop", label: "SHOP", key: "shop" },
@@ -22,6 +24,7 @@ export function PortalShell({ active, title, description, children }: {
       </a>
       <nav className="portal-nav" aria-label="Main navigation">
         {LINKS.map((item) => <a key={item.key} href={item.href} className={"portal-nav-link" + (active === item.key ? " active" : "")} aria-current={active === item.key ? "page" : undefined}>{item.label}</a>)}
+        {!isPending && user && !user.isDevFallback && user.primaryEmail?.trim().toLowerCase() === OWNER_EMAIL && <a href="/admin" className={"portal-nav-link portal-admin-nav" + (active === "admin" ? " active" : "")} aria-current={active === "admin" ? "page" : undefined}>ADMIN</a>}
       </nav>
       <div className="portal-session">
         {isPending ? <span className="portal-session-state">CHECKING SESSION…</span> : user ? <div className="portal-account"><UserButton /></div> : <a className="portal-signin" href="/login">SIGN IN ↗</a>}

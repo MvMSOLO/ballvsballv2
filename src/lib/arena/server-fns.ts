@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { buyOwnedBall, computeRewards, fulfillOrder, mergeCloud } from "../../economy/logic";
-import { migrateSave, type Save } from "../../economy/save";
+import { defaultSave, migrateSave, type Save } from "../../economy/save";
 import { allPacks } from "../../packs/registry";
 
 const NAME = z.string().regex(/^[a-zA-Z0-9_]{3,16}$/);
@@ -40,6 +40,25 @@ async function sql() {
   return getSql();
 }
 
+const INFINITE_BALANCE = 2_000_000_000;
+
+/** Currency flags are authoritative in player_admin_controls, never in the client blob. */
+async function applyAdminCurrencyFlags(db: Awaited<ReturnType<typeof sql>>, userId: string, input: Save): Promise<Save> {
+  const rows = await db.query<{ infinite_coins: boolean; infinite_diamonds: boolean }>(
+    "select infinite_coins, infinite_diamonds from player_admin_controls where user_id = $1 limit 1",
+    [userId],
+  );
+  const infiniteCoins = Boolean(rows[0]?.infinite_coins);
+  const infiniteDiamonds = Boolean(rows[0]?.infinite_diamonds);
+  return {
+    ...input,
+    adminInfiniteCoins: infiniteCoins,
+    adminInfiniteDiamonds: infiniteDiamonds,
+    coins: infiniteCoins ? INFINITE_BALANCE : input.coins,
+    diamonds: infiniteDiamonds ? INFINITE_BALANCE : input.diamonds,
+  };
+}
+
 export const syncSave = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((input: unknown) => {
@@ -60,6 +79,7 @@ export const syncSave = createServerFn({ method: "POST" })
     merged.coins = Math.min(5_000_000, Math.max(0, merged.coins));
     merged.diamonds = Math.min(200_000, Math.max(0, merged.diamonds));
     merged.trophies = Math.min(100_000, Math.max(0, merged.trophies));
+    merged = await applyAdminCurrencyFlags(db, context.userId, merged);
     const blob = JSON.stringify(merged);
     await db`
       insert into saves (user_id, version, blob, coins, diamonds, xp)
@@ -107,7 +127,7 @@ export const recordMatch = createServerFn({ method: "POST" })
     if (now - prevAt < 8000) return { ok: false as const, reason: "rate" };
     const db = await sql();
     const rows = await db<{ blob: string }>`select blob from saves where user_id = ${context.userId}`;
-    const current = readSave(rows[0]?.blob) ?? migrateSave({});
+    const current = await applyAdminCurrencyFlags(db, context.userId, readSave(rows[0]?.blob) ?? migrateSave({}));
     const reward = computeRewards(data.win, data.heartsLeft, {
       ranked: data.ranked,
       boost: current.boostUntil > now,
@@ -118,7 +138,7 @@ export const recordMatch = createServerFn({ method: "POST" })
     const id = `${context.userId}:${data.seed}:${current.matches + 1}`;
     const existing = await db<{ id: string }>`select id from matches where id = ${id} and user_id = ${context.userId}`;
     if (existing.length) return { ok: true as const, duplicate: true, reward };
-    const next: Save = {
+    let next: Save = {
       ...current,
       coins: current.coins + reward.coins,
       diamonds: current.diamonds + reward.diamonds,
@@ -129,6 +149,7 @@ export const recordMatch = createServerFn({ method: "POST" })
       wins: current.wins + (data.win ? 1 : 0),
       damageDealt: current.damageDealt + Math.round(data.damage),
     };
+    next = await applyAdminCurrencyFlags(db, context.userId, next);
     const blob = JSON.stringify(next);
     await db`
       insert into matches (id, user_id, seed, win, opponent, ball, trophies, coins, xp)
@@ -158,15 +179,16 @@ export const fulfillPurchase = createServerFn({ method: "POST" })
     const db = await sql();
     const seen = await db<{ id: string }>`select id from orders where id = ${data.orderId} and user_id = ${context.userId}`;
     const rows = await db<{ blob: string }>`select blob from saves where user_id = ${context.userId}`;
-    const current = readSave(rows[0]?.blob) ?? migrateSave({});
+    const current = await applyAdminCurrencyFlags(db, context.userId, readSave(rows[0]?.blob) ?? migrateSave({}));
     if (seen.length) return { status: "duplicate" as const, blob: JSON.stringify(current) };
     const result = fulfillOrder(current, data.sku, data.orderId);
     if (result.status === "unknown") return { status: "unknown" as const, blob: JSON.stringify(current) };
-    const blob = JSON.stringify(result.save);
+    const next = await applyAdminCurrencyFlags(db, context.userId, result.save);
+    const blob = JSON.stringify(next);
     await db`insert into orders (id, user_id, sku, status) values (${data.orderId}, ${context.userId}, ${data.sku}, ${"test_fulfilled"})`;
     await db`
       insert into saves (user_id, version, blob, coins, diamonds, xp)
-      values (${context.userId}, ${result.save.v}, ${blob}, ${result.save.coins}, ${result.save.diamonds}, ${result.save.xp})
+      values (${context.userId}, ${next.v}, ${blob}, ${next.coins}, ${next.diamonds}, ${next.xp})
       on conflict (user_id) do update set blob = excluded.blob, coins = excluded.coins, diamonds = excluded.diamonds, xp = excluded.xp, updated_at = now()
     `;
     return { status: result.status, blob };
@@ -295,7 +317,11 @@ export const loadCloudSave = createServerFn({ method: "GET" })
       "select blob from saves where user_id = $1",
       [context.userId],
     );
-    return { blob: rows[0]?.blob ?? null };
+    if (!rows[0]?.blob) return { blob: null };
+    const current = readSave(rows[0].blob);
+    if (!current) return { blob: rows[0].blob };
+    const canonical = await applyAdminCurrencyFlags(db, context.userId, current);
+    return { blob: JSON.stringify(canonical) };
   });
 
 /** Purchase one explicitly priced catalog ball using the server's current wallet. */
@@ -308,7 +334,7 @@ export const purchaseBall = createServerFn({ method: "POST" })
       "select blob from saves where user_id = $1",
       [context.userId],
     );
-    const current = readSave(rows[0]?.blob) ?? migrateSave({});
+    const current = await applyAdminCurrencyFlags(db, context.userId, readSave(rows[0]?.blob) ?? migrateSave({}));
     const ball = allPacks().flatMap((pack) => pack.balls).find((item) => item.id === data.ballId);
     if (!ball) return { status: "unknown" as const, blob: JSON.stringify(current) };
 
@@ -320,7 +346,7 @@ export const purchaseBall = createServerFn({ method: "POST" })
       };
     }
 
-    const next = result.save;
+    const next = await applyAdminCurrencyFlags(db, context.userId, result.save);
     const blob = JSON.stringify(next);
     await db.query(
       "insert into saves (user_id, version, blob, coins, diamonds, xp) values ($1, $2, $3, $4, $5, $6) " +
@@ -407,23 +433,28 @@ export const purchaseProfileBadge = createServerFn({ method: "POST" })
     );
     if (!saves[0]?.blob) return { ok: false as const, reason: "save" as const };
 
-    const current = readSave(saves[0].blob);
-    if (!current) return { ok: false as const, reason: "save" as const };
+    const parsedCurrent = readSave(saves[0].blob);
+    if (!parsedCurrent) return { ok: false as const, reason: "save" as const };
+    const current = await applyAdminCurrencyFlags(db, context.userId, parsedCurrent);
     const price = PROFILE_BADGE_PRICES[data.badgeId];
-    if (current.diamonds < price) return { ok: false as const, reason: "diamonds" as const };
+    if (!current.adminInfiniteDiamonds && current.diamonds < price) return { ok: false as const, reason: "diamonds" as const };
 
-    const next = { ...current, diamonds: current.diamonds - price };
+    const next = await applyAdminCurrencyFlags(
+      db,
+      context.userId,
+      current.adminInfiniteDiamonds ? current : { ...current, diamonds: current.diamonds - price },
+    );
     const nextBlob = JSON.stringify(next);
     // Optimistic compare-and-update ensures two concurrent requests cannot spend
     // the same wallet snapshot. Entitlement is inserted only if the debit wins.
     const granted = await db.query<{ badge_id: string }>(
       "with debited as (" +
-        " update saves set version = $1, blob = $2, diamonds = $3, updated_at = now()" +
+        " update saves set version = $1, blob = $2, coins = $8, diamonds = $3, updated_at = now()" +
         " where user_id = $4 and blob = $5 and diamonds >= $6 returning user_id" +
         ") insert into profile_badges (user_id, badge_id, grant_source)" +
         " select user_id, $7, 'purchase' from debited" +
         " on conflict (user_id, badge_id) do nothing returning badge_id",
-      [next.v, nextBlob, next.diamonds, context.userId, saves[0].blob, price, data.badgeId],
+      [next.v, nextBlob, next.diamonds, context.userId, saves[0].blob, price, data.badgeId, next.coins],
     );
     if (!granted.length) return { ok: false as const, reason: "race" as const };
     return { ok: true as const, alreadyOwned: false as const, blob: nextBlob };

@@ -180,7 +180,7 @@ function ProfilePage() {
     <section className="profile-frame-vault portal-panel">
       <div className="portal-section-heading profile-frame-heading">
         <div><span className="portal-kicker">COSMETIC SYSTEM // ACCOUNT-BOUND</span><h2>Frame vault</h2></div>
-        <span className="profile-frame-wallet">◈ {save.diamonds.toLocaleString()} GEMS</span>
+        <span className="profile-frame-wallet">◈ {save.adminInfiniteDiamonds ? "∞" : save.diamonds.toLocaleString()} GEMS</span>
       </div>
       <p className="profile-vault-intro">Unlock animated identity frames with in-game gems. Purchases are saved to your signed-in account; no real-money checkout is used.</p>
       <div className="profile-frame-grid">

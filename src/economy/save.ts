@@ -53,6 +53,9 @@ export interface Save {
   v: number;
   coins: number;
   diamonds: number;
+  /** Server-controlled owner overrides; the server overwrites these from moderation records. */
+  adminInfiniteCoins: boolean;
+  adminInfiniteDiamonds: boolean;
   fragments: number;
   xp: number;
   owned: string[];
@@ -164,6 +167,8 @@ export function defaultSave(): Save {
     v: 2,
     coins: CONFIG.starterCoins,
     diamonds: CONFIG.starterDiamonds,
+    adminInfiniteCoins: false,
+    adminInfiniteDiamonds: false,
     fragments: 0,
     xp: 0,
     owned: [...CONFIG.starterBalls],
@@ -267,6 +272,8 @@ export function migrateSave(raw: unknown): Save {
     v: 2,
     coins: Math.max(0, num(o.coins, base.coins)),
     diamonds: Math.max(0, num(o.diamonds, base.diamonds)),
+    adminInfiniteCoins: bool(o.adminInfiniteCoins, false),
+    adminInfiniteDiamonds: bool(o.adminInfiniteDiamonds, false),
     fragments: Math.max(0, num(o.fragments, base.fragments)),
     xp: Math.max(0, num(o.xp, base.xp)),
     owned,
