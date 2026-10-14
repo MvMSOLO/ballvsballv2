@@ -50,7 +50,7 @@ function LoginPage() {
       <form className="na-sheet sheet-center" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
         <p className="eyebrow">BALL ARENA</p>
         <h1>Save the colosseum</h1>
-        <p className="muted">Guest progress stays on this device until you sign in. The larger wallet wins if both exist.</p>
+        <p className="muted">Guest progress stays on this device. New accounts can import it; existing accounts load their cloud save.</p>
         {authEnabled ? (
           <>
             <div className="seg">
