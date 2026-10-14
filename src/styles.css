@@ -923,3 +923,17 @@ body,button,input,select,textarea{font-family:"Rajdhani",sans-serif}
 h1,h2,h3,h4,.portal-brand strong,.portal-page-heading h1,.portal-section-heading h2,.crate-copy h2,.shop-ball-card h3,.rank-player>strong{font-family:"Orbitron",sans-serif;letter-spacing:.015em}
 .game-nav .hub-icon-link{font-family:"Orbitron",sans-serif}
 .portal-kicker,.portal-page-heading .portal-kicker,.portal-nav-link,.portal-signin,.portal-button,.portal-section-heading .portal-kicker,.rank-table-head{font-family:"Chakra Petch",sans-serif;letter-spacing:.12em}
+
+
+/* Google OAuth CTA — sharp-edged esports treatment */
+.google-auth-button{position:relative;display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:56px;padding:0 17px;overflow:hidden;border:1px solid #68e8ff9c;border-radius:2px;background:linear-gradient(105deg,#112b3d 0%,#0a1725 58%,#17122a 100%);color:#f3fbff;font:700 13px "Chakra Petch",sans-serif;letter-spacing:.12em;text-align:center;cursor:pointer;clip-path:polygon(0 0,calc(100% - 15px) 0,100% 15px,100% 100%,15px 100%,0 calc(100% - 15px));box-shadow:0 0 0 1px #06111d,0 0 24px #22d3ee12,inset 0 1px #ffffff12;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease,background .2s ease}
+.google-auth-button::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(#67e8f9,#818cf8);box-shadow:0 0 14px #67e8f9}
+.google-auth-button::after{content:"";position:absolute;right:5px;top:5px;width:7px;height:7px;background:#67e8f9;clip-path:polygon(0 0,100% 0,100% 100%)}
+.google-auth-button:hover:not(:disabled),.google-auth-button:focus-visible{transform:translateY(-2px);border-color:#d4fbff;background:linear-gradient(105deg,#16435a,#0b1b2b 58%,#21183a);box-shadow:0 0 0 1px #67e8f92b,0 0 28px #22d3ee2a,inset 0 0 20px #22d3ee0b;outline:none}
+.google-auth-button:active:not(:disabled){transform:translateY(0) scale(.99)}
+.google-auth-button:disabled{opacity:.62;cursor:wait}
+.google-auth-mark{width:21px;height:21px;flex:0 0 auto;filter:drop-shadow(0 0 5px #fff2)}
+.google-auth-arrow{margin-left:auto;color:#67e8f9;font-size:18px;line-height:1}
+.google-auth-button span:nth-child(2){flex:1}
+@media(max-width:480px){.google-auth-button{min-height:52px;padding:0 13px;font-size:11px;letter-spacing:.09em;gap:9px}.google-auth-mark{width:19px;height:19px}}
+@media(prefers-reduced-motion:reduce){.google-auth-button{transition:none}}
