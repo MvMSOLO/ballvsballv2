@@ -1023,8 +1023,8 @@ function doZone(f: Fight, self: number, a: Extract<Action, { type: "spawnZone" }
     f.mass[z] = 1;
     f.hp[z] = 1;
     f.maxHp[z] = 1;
-    let dx = f.vx[self];
-    let dy = f.vy[self];
+    const dx = f.vx[self];
+    const dy = f.vy[self];
     const dl = Math.hypot(dx, dy) || 1;
     f.vx[z] = dx / dl;
     f.vy[z] = dy / dl;
@@ -1307,7 +1307,7 @@ function normalize(f: Fight, i: number, dt: number): void {
     f.vy[i] = 0;
     return;
   }
-  let sp = Math.hypot(f.vx[i], f.vy[i]);
+  const sp = Math.hypot(f.vx[i], f.vy[i]);
   if (sp < 0.08) {
     const ang = rngNext(f.rng) * Math.PI * 2;
     f.vx[i] = Math.cos(ang) * ts;
