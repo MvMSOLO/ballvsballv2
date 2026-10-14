@@ -1,20 +1,51 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { defaultSave, loadSave, writeSave, type Save, type SaveSettings } from "@/economy/save";
+import { syncArenaSave } from "@/economy/persistence";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { authEnabled } from "@/lib/auth/client";
 import { PortalShell } from "@/components/portal-shell";
 
 export const Route = createFileRoute("/settings")({ component: SettingsPage });
 function SettingsPage() {
+  const { user, isPending } = useCurrentUserState();
+  const cloudSync = authEnabled && Boolean(user && !user.isDevFallback);
+  const saveTimer = useRef<number | undefined>(undefined);
   const [save, setSave] = useState<Save>(() => defaultSave());
   const [notice, setNotice] = useState("");
-  useEffect(() => { setSave(loadSave()); }, []);
+  useEffect(() => {
+    const local = loadSave();
+    setSave(local);
+    if (cloudSync) {
+      void syncArenaSave(local).then(setSave).catch(() => setNotice("Cloud settings unavailable; local preferences are loaded."));
+    }
+  }, [cloudSync, isPending]);
+  useEffect(() => () => {
+    if (saveTimer.current !== undefined) window.clearTimeout(saveTimer.current);
+  }, []);
   function update<K extends keyof SaveSettings>(key: K, value: SaveSettings[K]) {
     const next = { ...save, settings: { ...save.settings, [key]: value } };
     setSave(next);
-    try { writeSave(next); setNotice("Settings saved on this device."); } catch { setNotice("Settings could not be saved."); }
+    try {
+      writeSave(next);
+      setNotice(cloudSync ? "Settings saved locally · syncing account…" : "Settings saved on this device.");
+    } catch {
+      setNotice("Settings could not be saved.");
+      return;
+    }
+    if (cloudSync) {
+      if (saveTimer.current !== undefined) window.clearTimeout(saveTimer.current);
+      saveTimer.current = window.setTimeout(() => {
+        void syncArenaSave(next).then((merged) => {
+          setSave(merged);
+          setNotice("Settings saved and synced to your account.");
+        }).catch(() => setNotice("Settings saved locally, but cloud sync failed."));
+      }, 650);
+    }
   }
   function resetProgress() {
     if (!window.confirm("Reset local game progress on this device? This cannot be undone.")) return;
+    if (saveTimer.current !== undefined) window.clearTimeout(saveTimer.current);
     try { window.localStorage.removeItem("ball-arena-save"); } catch { /* ignore */ }
     const next = defaultSave();
     setSave(next);
@@ -40,6 +71,6 @@ function SettingsPage() {
       </div>
       {notice && <p className="portal-notice" role="status">{notice}</p>}
     </section>
-    <section className="portal-panel danger-panel"><div><span className="portal-kicker">LOCAL DATA</span><h2>Reset this device</h2><p>This clears the locally stored wallet, collection, match history, and settings for this browser. It does not delete your server account.</p></div><button className="portal-button danger" onClick={resetProgress}>RESET LOCAL PROGRESS</button></section>
+    <section className="portal-panel danger-panel"><div><span className="portal-kicker">LOCAL DATA</span><h2>Reset this device</h2><p>This clears the locally stored wallet, collection, match history, and settings for this browser. Account-synced progress can return on a later sync.</p></div><button className="portal-button danger" onClick={resetProgress}>RESET LOCAL PROGRESS</button></section>
   </PortalShell>;
 }
