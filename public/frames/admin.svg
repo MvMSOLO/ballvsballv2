@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" role="img" aria-label="ADMIN animated red-black profile frame">
+<defs>
+ <linearGradient id="lava" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#210006"/><stop offset=".25" stop-color="#ff1236"/><stop offset=".48" stop-color="#ff8547"/><stop offset=".55" stop-color="#fff0e4"/><stop offset=".72" stop-color="#ff193c"/><stop offset="1" stop-color="#170005"/></linearGradient>
+ <linearGradient id="obsidian" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#4a101b"/><stop offset=".45" stop-color="#09080b"/><stop offset="1" stop-color="#000"/>
+  <animateTransform attributeName="gradientTransform" type="rotate" from="0 .5 .5" to="360 .5 .5" dur="8s" repeatCount="indefinite"/></linearGradient>
+ <linearGradient id="plate" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#430712"/><stop offset=".5" stop-color="#09070b"/><stop offset="1" stop-color="#000"/></linearGradient>
+ <radialGradient id="heat"><stop stop-color="#ff1538" stop-opacity=".5"/><stop offset="1" stop-color="#ff1538" stop-opacity="0"/></radialGradient>
+ <filter id="glow" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="11"/></filter>
+ <g id="spike"><path d="M-8 -116L-3 -143L0 -168L4 -142L9 -116Z" fill="#080609" stroke="#ff173a" stroke-width="2"/><path d="M0 -159L3 -137L0 -121Z" fill="#7a0b20"/></g>
+ <g id="spark"><path d="M0 -5L2 0L0 5L-2 0Z" fill="#fff0ea" filter="url(#glow)"/></g>
+</defs>
+<circle cx="200" cy="190" r="184" fill="url(#heat)" opacity=".6"><animate attributeName="opacity" values=".25;.9;.25" dur="1.8s" repeatCount="indefinite"/></circle>
+<g fill="none" stroke="#ff1236" stroke-linejoin="round" opacity=".55">
+ <polygon points="200,18 356,290 44,290" stroke-width="1.4" stroke-dasharray="2 7"/>
+ <polygon points="200,360 44,91 356,91" stroke-width="1.3" stroke-dasharray="4 8"/>
+ <circle cx="200" cy="190" r="177" stroke-width="1.7" stroke-dasharray="16 5 2 7"/>
+ <animateTransform attributeName="transform" type="rotate" from="0 200 190" to="360 200 190" dur="60s" repeatCount="indefinite"/>
+</g>
+<circle cx="200" cy="190" r="143" fill="none" stroke="#ff1236" stroke-width="20" opacity=".22" filter="url(#soft)"><animate attributeName="opacity" values=".12;.5;.12" dur="2s" repeatCount="indefinite"/></circle>
+<circle cx="200" cy="190" r="132" fill="none" stroke="#ff6d28" stroke-width="10" opacity=".7" filter="url(#glow)"/>
+<circle cx="200" cy="190" r="127" fill="none" stroke="url(#lava)" stroke-width="5" stroke-dasharray="36 9 3 8"><animateTransform attributeName="transform" type="rotate" from="0 200 190" to="360 200 190" dur="4.4s" repeatCount="indefinite"/></circle>
+<circle cx="200" cy="190" r="115" fill="none" stroke="url(#obsidian)" stroke-width="15"/>
+<circle cx="200" cy="190" r="105" fill="none" stroke="#ff173a" stroke-width="2" stroke-dasharray="3 8 22 6"><animateTransform attributeName="transform" type="rotate" from="360 200 190" to="0 200 190" dur="13s" repeatCount="indefinite"/></circle>
+<g transform="translate(200 190)" opacity=".9"><g><use href="#spike" transform="rotate(0)"/><use href="#spike" transform="rotate(30)"/><use href="#spike" transform="rotate(60)"/><use href="#spike" transform="rotate(90)"/><use href="#spike" transform="rotate(120)"/><use href="#spike" transform="rotate(150)"/><use href="#spike" transform="rotate(180)"/><use href="#spike" transform="rotate(210)"/><use href="#spike" transform="rotate(240)"/><use href="#spike" transform="rotate(270)"/><use href="#spike" transform="rotate(300)"/><use href="#spike" transform="rotate(330)"/><animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="54s" repeatCount="indefinite"/></g></g>
+<path d="M104 110C72 85 71 47 95 23C95 58 123 72 158 91L169 105Z" fill="url(#obsidian)" stroke="#ff1236" stroke-width="2.3"/>
+<path d="M296 110C328 85 329 47 305 23C305 58 277 72 242 91L231 105Z" fill="url(#obsidian)" stroke="#ff1236" stroke-width="2.3"/>
+<path d="M112 99C96 76 96 55 101 42M288 99C304 76 304 55 299 42" stroke="#ffb0a0" stroke-width="1.2" opacity=".8" fill="none"/>
+<g fill="none" stroke="#fff0e7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+ <path d="M281 62L294 56L300 64L313 61L309 77L323 84L309 99"/>
+ <path d="M317 285L306 286L302 300L291 306L298 318L287 330"/>
+ <path d="M91 271L78 267L84 254L69 247L80 232L66 221"/>
+ <path d="M81 123L94 128L91 141L105 148" opacity=".8"/>
+</g>
+<g fill="#ff6a34" filter="url(#glow)">
+ <circle cx="328" cy="166" r="2.5"><animateMotion dur="2.8s" repeatCount="indefinite" path="M0 0Q-12 -25 4 -70"/><animate attributeName="opacity" values="0;1;0" dur="2.8s" repeatCount="indefinite"/></circle>
+ <circle cx="76" cy="206" r="2"><animateMotion dur="3.5s" repeatCount="indefinite" path="M0 0Q14 -25 -3 -60"/><animate attributeName="opacity" values="0;1;0" dur="3.5s" repeatCount="indefinite"/></circle>
+ <circle cx="291" cy="316" r="2.2"><animateMotion dur="3.1s" repeatCount="indefinite" path="M0 0Q-7 -20 3 -52"/><animate attributeName="opacity" values="0;1;0" dur="3.1s" repeatCount="indefinite"/></circle>
+</g>
+<g transform="translate(200 356)">
+ <animateTransform attributeName="transform" type="translate" values="200 356;200 352;200 356" dur="1.7s" repeatCount="indefinite"/>
+ <path d="M-109 -17L-91 -29L91 -29L109 -17L109 17L91 29L-91 29L-109 17Z" fill="url(#plate)" stroke="url(#lava)" stroke-width="5" stroke-linejoin="round" filter="url(#glow)"/>
+ <path d="M-96 -14L-84 -22L84 -22L96 -14L96 14L84 22L-84 22L-96 14Z" fill="none" stroke="#ff173a" stroke-opacity=".65"/>
+ <path d="M-125 0L-111 -9L-111 9Z M125 0L111 -9L111 9Z" fill="#ff173a" filter="url(#glow)"/>
+ <text x="0" y="7" font-family="Orbitron,Arial,sans-serif" font-size="23" font-weight="900" letter-spacing="5" text-anchor="middle" fill="#ff334f" stroke="#29020a" stroke-width="1" paint-order="stroke fill">ADMIN</text>
+ <text x="0" y="7" font-family="Orbitron,Arial,sans-serif" font-size="23" font-weight="900" letter-spacing="5" text-anchor="middle" fill="none" stroke="#fff0e7" stroke-opacity=".75" stroke-width=".7">ADMIN</text>
+</g>
+</svg>
