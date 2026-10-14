@@ -344,3 +344,132 @@ export const purchaseBall = createServerFn({ method: "POST" })
     );
     return { status: "ok" as const, blob };
   });
+
+
+// ── Account-bound profile frames ─────────────────────────────────────────────
+// These are cosmetic entitlements only. The ADMIN frame does not grant app or
+// moderation permissions; prices are server-owned and charged from cloud gems.
+const PROFILE_BADGE_PRICES = { vip: 80, admin: 280 } as const;
+const OWNER_EMAIL = "mirzayevavazbek15@gmail.com";
+
+export const getProfileBadgeState = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
+  .handler(async ({ context }) => {
+    const db = await sql();
+    const users = await db.query<{ email: string; email_verified: boolean }>(
+      'select email, "emailVerified" as email_verified from "user" where id = $1 limit 1',
+      [context.userId],
+    );
+    const ownerClaims = await db.query<{ user_id: string }>(
+      "select user_id from owner_badge_claims where claim_id = $1 limit 1",
+      ["mvm-owner-frame-v1"],
+    );
+    const owned = await db.query<{ badge_id: string }>(
+      "select badge_id from profile_badges where user_id = $1",
+      [context.userId],
+    );
+    const emailOwner = Boolean(
+      users[0]?.email_verified && users[0]?.email?.toLowerCase() === OWNER_EMAIL,
+    );
+    return {
+      vip: owned.some((row) => row.badge_id === "vip"),
+      admin: owned.some((row) => row.badge_id === "admin"),
+      owner: emailOwner || ownerClaims.some((row) => row.user_id === context.userId),
+    };
+  });
+
+export const purchaseProfileBadge = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: unknown) =>
+    z.object({ badgeId: z.enum(["vip", "admin"]) }).parse(input),
+  )
+  .handler(async ({ context, data }) => {
+    const db = await sql();
+    const currentEntitlements = await db.query<{ badge_id: string }>(
+      "select badge_id from profile_badges where user_id = $1 and badge_id = $2 limit 1",
+      [context.userId, data.badgeId],
+    );
+    if (currentEntitlements.length) {
+      const currentRows = await db.query<{ blob: string }>(
+        "select blob from saves where user_id = $1 limit 1",
+        [context.userId],
+      );
+      return {
+        ok: true as const,
+        alreadyOwned: true as const,
+        blob: currentRows[0]?.blob ?? "",
+      };
+    }
+
+    const saves = await db.query<{ blob: string }>(
+      "select blob from saves where user_id = $1 limit 1",
+      [context.userId],
+    );
+    if (!saves[0]?.blob) return { ok: false as const, reason: "save" as const };
+
+    const current = readSave(saves[0].blob);
+    if (!current) return { ok: false as const, reason: "save" as const };
+    const price = PROFILE_BADGE_PRICES[data.badgeId];
+    if (current.diamonds < price) return { ok: false as const, reason: "diamonds" as const };
+
+    const next = { ...current, diamonds: current.diamonds - price };
+    const nextBlob = JSON.stringify(next);
+    // Optimistic compare-and-update ensures two concurrent requests cannot spend
+    // the same wallet snapshot. Entitlement is inserted only if the debit wins.
+    const granted = await db.query<{ badge_id: string }>(
+      "with debited as (" +
+        " update saves set version = $1, blob = $2, diamonds = $3, updated_at = now()" +
+        " where user_id = $4 and blob = $5 and diamonds >= $6 returning user_id" +
+        ") insert into profile_badges (user_id, badge_id, grant_source)" +
+        " select user_id, $7, 'purchase' from debited" +
+        " on conflict (user_id, badge_id) do nothing returning badge_id",
+      [next.v, nextBlob, next.diamonds, context.userId, saves[0].blob, price, data.badgeId],
+    );
+    if (!granted.length) return { ok: false as const, reason: "race" as const };
+    return { ok: true as const, alreadyOwned: false as const, blob: nextBlob };
+  });
+
+export const redeemOwnerBadge = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: unknown) =>
+    z.object({ code: z.string().trim().min(1).max(80) }).parse(input),
+  )
+  .handler(async ({ context, data }) => {
+    const db = await sql();
+    const users = await db.query<{ email: string; email_verified: boolean }>(
+      'select email, "emailVerified" as email_verified from "user" where id = $1 limit 1',
+      [context.userId],
+    );
+    if (users[0]?.email_verified && users[0]?.email?.toLowerCase() === OWNER_EMAIL) {
+      return { ok: true as const, alreadyOwner: true as const };
+    }
+
+    // Keep the redeem code out of client bundles and source control. Configure
+    // MVM_OWNER_REDEEM_CODE as a Vercel environment variable for production.
+    const expectedCode = process.env.MVM_OWNER_REDEEM_CODE?.trim();
+    if (!expectedCode) return { ok: false as const, reason: "disabled" as const };
+    if (data.code !== expectedCode) return { ok: false as const, reason: "invalid" as const };
+
+    const claimed = await db.query<{ user_id: string }>(
+      "select user_id from owner_badge_claims where claim_id = $1 limit 1",
+      ["mvm-owner-frame-v1"],
+    );
+    if (claimed.length) {
+      return claimed[0].user_id === context.userId
+        ? { ok: true as const, alreadyOwner: true as const }
+        : { ok: false as const, reason: "claimed" as const };
+    }
+
+    await db.query(
+      "insert into owner_badge_claims (claim_id, user_id) values ($1, $2) on conflict (claim_id) do nothing",
+      ["mvm-owner-frame-v1", context.userId],
+    );
+    const verifiedClaim = await db.query<{ user_id: string }>(
+      "select user_id from owner_badge_claims where claim_id = $1 limit 1",
+      ["mvm-owner-frame-v1"],
+    );
+    if (verifiedClaim[0]?.user_id !== context.userId) {
+      return { ok: false as const, reason: "claimed" as const };
+    }
+    return { ok: true as const, alreadyOwner: false as const };
+  });
