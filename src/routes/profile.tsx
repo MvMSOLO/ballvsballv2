@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { levelOf, loadSave, writeSave, defaultSave, type Save } from "@/economy/save";
-import { setUsername, syncSave } from "@/lib/arena/server-fns";
+import { setUsername } from "@/lib/arena/server-fns";
+import { syncArenaSave } from "@/economy/persistence";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { authEnabled } from "@/lib/auth/client";
 import { PortalShell } from "@/components/portal-shell";
@@ -21,7 +22,15 @@ function ProfilePage() {
     setSave(local);
     setName(local.username === "Guest" && user?.displayName ? user.displayName.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 16) || "Guest" : local.username);
     setCountry(local.country || "UZ");
-  }, [user?.displayName]);
+    const connected = Boolean(user && !user.isDevFallback && authEnabled);
+    if (connected) {
+      void syncArenaSave(local).then((merged) => {
+        setSave(merged);
+        setName(merged.username === "Guest" && user?.displayName ? user.displayName.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 16) || "Guest" : merged.username);
+        setCountry(merged.country || "UZ");
+      }).catch(() => setNotice("Cloud profile is unavailable; showing saved local progress."));
+    }
+  }, [user?.displayName, user?.id, user?.isDevFallback, isPending]);
 
   function persist(next: Save) {
     setSave(next);
@@ -48,7 +57,17 @@ function ProfilePage() {
       }
       const next = { ...save, username: cleanName, country, avatar: { ...save.avatar, title: save.avatar.title || "Rookie" } };
       persist(next);
-      if (connected) await syncSave({ data: { blob: JSON.stringify(next) } }).catch(() => undefined);
+      if (connected) {
+        try {
+          const merged = await syncArenaSave(next);
+          persist(merged);
+          setName(merged.username);
+          setCountry(merged.country);
+        } catch {
+          setNotice("Profile saved locally, but cloud sync failed. Try again later.");
+          return;
+        }
+      }
       setNotice(connected ? "Profile saved and cloud profile synced." : "Profile saved on this device. Sign in to connect cloud progress.");
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Profile could not be saved.");
