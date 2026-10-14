@@ -129,14 +129,14 @@ function HubLogo({ kind }: { kind: HubLogoKind }) {
           <stop offset="100%" stopColor="#c4b5fd" />
         </linearGradient>
       </defs>
-      <circle className="hub-logo-orbit" cx="24" cy="24" r="19" />
-      {kind === "profile" && <><circle className="hub-logo-core" cx="24" cy="17" r="6" /><path className="hub-logo-line" d="M12 37c1.4-7 5.5-10.5 12-10.5S34.6 30 36 37" /></>}
-      {kind === "shop" && <><path className="hub-logo-line" d="M8 11h5l4.5 22h18l5-16H15" /><circle className="hub-logo-core" cx="21" cy="39" r="2.6" /><circle className="hub-logo-core" cx="34" cy="39" r="2.6" /><path className="hub-logo-line" d="M22 20v7m7-7v7" /></>}
-      {kind === "inventory" && <><path className="hub-logo-line" d="m24 8 15 8v16l-15 8-15-8V16z" /><path className="hub-logo-line" d="m9 16 15 9 15-9M24 25v15" /><path className="hub-logo-core" d="m18 12 15 8" /></>}
-      {kind === "ranks" && <><path className="hub-logo-line" d="M16 9h16v10c0 7-3.5 11-8 11s-8-4-8-11z" /><path className="hub-logo-line" d="M16 13H9v5c0 5 3 8 9 8m14-13h7v5c0 5-3 8-9 8M24 30v7m-8 3h16" /><path className="hub-logo-core" d="m24 13 2.1 4.2 4.6.7-3.3 3.2.8 4.6-4.2-2.2-4.2 2.2.8-4.6-3.3-3.2 4.6-.7z" /></>}
-      {kind === "settings" && <><path className="hub-logo-line" d="m20 7 8 0 1.4 4.2 3.8 2.2 4.2-1.1 4 7-3.2 3.1v4.4l3.2 3.1-4 7-4.2-1.1-3.8 2.2L28 43h-8l-1.4-4.2-3.8-2.2-4.2 1.1-4-7 3.2-3.1v-4.4L6.6 20l4-7 4.2 1.1 3.8-2.2z" /><circle className="hub-logo-core" cx="24" cy="24" r="6" /></>}
-      {kind === "account" && <><path className="hub-logo-line" d="M24 7 38 13v10c0 9-5.5 14-14 18-8.5-4-14-9-14-18V13z" /><circle className="hub-logo-core" cx="24" cy="19" r="4.5" /><path className="hub-logo-line" d="M16.5 31c1.5-4 4-6 7.5-6s6 2 7.5 6" /></>}
-      {kind === "login" && <><path className="hub-logo-line" d="M27 9h11v30H27M7 24h23m-9-9 9 9-9 9" /><path className="hub-logo-core" d="M12 11h5v5h-5z" /></>}
+      <path className="hub-logo-orbit" d="M17 3H31L45 17V31L31 45H17L3 31V17Z" />
+      {kind === "profile" && <><path className="hub-logo-core" d="M24 9 31 13V21L24 25 17 21V13Z" /><path className="hub-logo-line" d="M10 38 14 30 24 26 34 30 38 38 34 41H14Z" /></>}
+      {kind === "shop" && <><path className="hub-logo-line" d="M7 9H14L19 31H36L41 14H16" /><path className="hub-logo-core" d="M18 36 21 33 24 36 21 40Z M32 36 35 33 38 36 35 40Z" /><path className="hub-logo-line" d="M23 19V27M30 19V27" /></>}
+      {kind === "inventory" && <><path className="hub-logo-line" d="M24 5 41 15V33L24 43 7 33V15Z" /><path className="hub-logo-line" d="m9 16 15 9 15-9M24 25v15" /><path className="hub-logo-core" d="m18 12 15 8" /></>}
+      {kind === "ranks" && <><path className="hub-logo-line" d="M15 8H33V18L29 27 24 31 19 27 15 18Z" /><path className="hub-logo-line" d="M15 13H7V19L17 27M33 13H41V19L31 27M24 31V38M15 41H33" /><path className="hub-logo-core" d="M24 12 27 18 34 19 29 24 30 30 24 27 18 30 19 24 14 19 21 18Z" /></>}
+      {kind === "settings" && <><path className="hub-logo-line" d="M19 5H29L31 11 37 14 43 12 46 20 41 24 43 29 38 36 32 34 28 43H20L18 37 12 34 6 36 3 28 8 24 6 19 11 12 17 14Z" /><path className="hub-logo-core" d="M24 17 31 21V27L24 31 17 27V21Z" /></>}
+      {kind === "account" && <><path className="hub-logo-line" d="M24 4 41 12V24L35 35 24 43 13 35 7 24V12Z" /><path className="hub-logo-core" d="M24 12 30 16V22L24 26 18 22V16Z" /><path className="hub-logo-line" d="M15 33 19 28H29L33 33" /></>}
+      {kind === "login" && <><path className="hub-logo-line" d="M26 7H41V41H26M5 24H31M21 14 31 24 21 34" /><path className="hub-logo-core" d="M8 8H17V17H8Z" /></>}
     </svg>
   );
 }
