@@ -873,3 +873,26 @@ button:focus-visible, input:focus-visible { outline: 3px solid #67e8f9; outline-
 .shop-feature-panel h2{margin:5px 0;font:800 22px "Syne",sans-serif;letter-spacing:-.03em}
 .shop-feature-panel p{margin:0;color:#94a8c1;font-size:11px;line-height:1.6}
 @media(max-width:640px){.shop-feature-panel{align-items:flex-start;gap:12px;padding:15px}.shop-feature-icon{width:48px;height:48px;border-radius:13px;font-size:25px}.shop-feature-panel h2{font-size:17px}.shop-feature-panel p{font-size:10px}}
+
+
+/* Animated icon-only player hub */
+.game-nav{gap:8px;padding:5px 9px;border:1px solid #8bdff51c;border-radius:17px;background:linear-gradient(135deg,#07121dd9,#0b1726c9);box-shadow:0 8px 34px #0006,inset 0 1px #ffffff0b;backdrop-filter:blur(18px)}
+.game-nav .hub-icon-link{position:relative;display:grid;place-items:center;width:45px;height:45px;min-height:45px;padding:0;border:1px solid #8bbbd51c;border-radius:13px;background:linear-gradient(145deg,#17283bcf,#08121ee8);color:#b8eafa;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease,background .22s ease}
+.game-nav .hub-icon-link:hover,.game-nav .hub-icon-link:focus-visible{transform:translateY(-3px) scale(1.04);border-color:#67e8f9a6;background:linear-gradient(145deg,#164056e8,#11172ee8);box-shadow:0 5px 22px #22d3ee20,0 0 0 1px #67e8f91c;outline:none}
+.hub-logo{width:29px;height:29px;overflow:visible;filter:drop-shadow(0 0 5px #67e8f92a)}
+.hub-logo-orbit{fill:none;stroke:#67e8f92c;stroke-width:1.1;stroke-dasharray:8 6;transform-origin:24px 24px;animation:hub-orbit 12s linear infinite}
+.hub-logo-line{fill:none;stroke:url(#hub-grad-profile);stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:stroke-width .2s ease}
+.hub-logo-core{fill:none;stroke:#a5f3fc;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 3px #67e8f966);transform-origin:24px 24px;animation:hub-core-pulse 3s ease-in-out infinite}
+.hub-logo-shop .hub-logo-core,.hub-logo-ranks .hub-logo-core{fill:#67e8f9;stroke:#d9fbff}
+.hub-logo-inventory .hub-logo-core{fill:#60a5fa;stroke:#a5f3fc}
+.hub-logo-settings .hub-logo-core{transform-origin:24px 24px;animation:hub-gear-turn 10s linear infinite}
+.hub-logo-login .hub-logo-line{animation:hub-login-pulse 2.8s ease-in-out infinite}
+.hub-icon-link:hover .hub-logo-orbit{stroke:#67e8f9a8;animation-duration:3s}
+.hub-icon-link:hover .hub-logo-core{animation-duration:1.1s}
+@keyframes hub-orbit{to{transform:rotate(360deg)}}
+@keyframes hub-core-pulse{0%,100%{opacity:.8;transform:scale(.96)}50%{opacity:1;transform:scale(1.06)}}
+@keyframes hub-gear-turn{to{transform:rotate(360deg)}}
+@keyframes hub-login-pulse{0%,100%{opacity:.75}50%{opacity:1;filter:drop-shadow(0 0 5px #67e8f9)}}
+@media(max-width:980px){.game-nav{top:calc(61px + env(safe-area-inset-top));gap:6px;padding:4px 6px}.game-nav .hub-icon-link{width:39px;height:39px;min-height:39px}.hub-logo{width:26px;height:26px}}
+@media(max-width:640px){.game-nav{top:calc(55px + env(safe-area-inset-top));gap:5px;padding:4px 6px;border-radius:14px}.game-nav .hub-icon-link{width:34px;height:34px;min-height:34px;border-radius:10px}.hub-logo{width:23px;height:23px}}
+@media(prefers-reduced-motion:reduce){.hub-logo-orbit,.hub-logo-core,.hub-logo-login .hub-logo-line{animation:none!important}.game-nav .hub-icon-link{transition:none}}
