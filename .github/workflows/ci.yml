@@ -1,0 +1,49 @@
+name: BALL ARENA V2 CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ball-arena-v2-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Generate route tree and verify app compilation
+        run: npm run build:dev
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Validate authentication invariants
+        run: npm run check:auth
+
+      - name: Core, economy, controls and match-speed tests
+        run: npm test && npm run test:arena
+
+      - name: Validate ball packs
+        run: npm run validate-packs
+
+      - name: Production build
+        run: npm run build
