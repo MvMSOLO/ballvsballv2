@@ -366,6 +366,15 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   }, []);
 
   useEffect(() => {
+    const saved = loadSave();
+    setCoins(saved.coins);
+    setDiamonds(saved.diamonds);
+    setAudioMuted(!saved.settings.sound);
+    setMuted(!saved.settings.sound);
+    if (saved.settings.quality !== "auto") setQuality(saved.settings.quality);
+  }, []);
+
+  useEffect(() => {
     if (!notice) return;
     const timer = window.setTimeout(() => setNotice(""), 2400);
     return () => window.clearTimeout(timer);
@@ -553,7 +562,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         <div className="brand-mark"><span className="brand-orb">●</span><div><strong>BALL ARENA</strong><small>PHYSICS DUEL LEAGUE</small></div></div>
         {!view && mode === "free-roam" && <nav className="game-nav" aria-label="Player hub"><a href="/profile">PROFILE</a><a href="/shop">SHOP</a><a href="/inventory">INVENTORY</a><a href="/leaderboard">RANKS</a><a href="/settings">SETTINGS</a><a href="/login">SIGN IN</a></nav>}
         {!adminMode ? <a className="admin-route-link" href="/1v1/admin" title="Open the auto-bot pack testing lab">⚙ 1V1 LAB</a> : <a className="admin-route-link" href="/1v1/" title="Return to standard duel mode">↗ DUEL</a>}
-        <div className="wallet">{view?.flow === "fight" && <button className={"speed-vote-button" + (view.matchSpeed === 2 ? " active" : "")} onClick={toggleMatchSpeed} aria-pressed={view.matchSpeed === 2} title="Both sides must approve 2x speed"><strong>2×</strong><span>{view.matchSpeed === 2 ? "BOTH READY" : "MATCH SPEED"}</span></button>}<span>◈ {diamonds}</span><span>● {coins}</span><button className="icon-button sound-toggle" onClick={() => { const next = !audioMuted; setAudioMuted(next); setMuted(next); }} aria-label={audioMuted ? "Enable sound" : "Mute sound"}>{audioMuted ? "◌" : "♫"}</button><button className="icon-button" onClick={() => setQuality((q) => q === "medium" ? "high" : q === "high" ? "low" : "medium")} aria-label="Change graphics quality">◉ {quality.toUpperCase()}</button></div>
+        <div className="wallet">{view?.flow === "fight" && <button className={"speed-vote-button" + (view.matchSpeed === 2 ? " active" : "")} onClick={toggleMatchSpeed} aria-pressed={view.matchSpeed === 2} title="Both sides must approve 2x speed"><strong>2×</strong><span>{view.matchSpeed === 2 ? "BOTH READY" : "MATCH SPEED"}</span></button>}<span>◈ {diamonds}</span><span>● {coins}</span><button className="icon-button sound-toggle" onClick={() => { const next = !audioMuted; setAudioMuted(next); setMuted(next); try { const saved = loadSave(); saved.settings.sound = !next; writeSave(saved); } catch { /* keep the in-memory toggle */ } }} aria-label={audioMuted ? "Enable sound" : "Mute sound"}>{audioMuted ? "◌" : "♫"}</button><button className="icon-button" onClick={() => { const next = quality === "medium" ? "high" : quality === "high" ? "low" : "medium"; setQuality(next); try { const saved = loadSave(); saved.settings.quality = next; writeSave(saved); } catch { /* keep the in-memory quality */ } }} aria-label="Change graphics quality">◉ {quality.toUpperCase()}</button></div>
       </header>
 
       {!view && mode === "free-roam" && <div className="world-guide">
