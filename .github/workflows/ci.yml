@@ -36,6 +36,9 @@ jobs:
       - name: Type check
         run: npm run typecheck
 
+      - name: Lint full codebase
+        run: npm run lint
+
       - name: Core, economy, controls and match-speed tests
         run: npm run test:arena
 
