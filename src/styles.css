@@ -915,3 +915,11 @@ button:focus-visible, input:focus-visible { outline: 3px solid #67e8f9; outline-
 @media(max-width:980px){.game-nav{gap:5px;padding:4px 6px}.game-nav .hub-icon-link{border-radius:2px}}
 @media(max-width:640px){.game-nav{gap:4px;padding:4px 5px;border-radius:2px}.game-nav .hub-icon-link{width:34px;height:34px;min-height:34px;border-radius:2px}.hub-logo{width:23px;height:23px}}
 @media(prefers-reduced-motion:reduce){.hub-logo-orbit,.hub-logo-core,.hub-logo-login .hub-logo-line{animation:none!important}.game-nav .hub-icon-link{transition:none}}
+
+
+/* Esports typography pass */
+:root{font-family:"Rajdhani",sans-serif}
+body,button,input,select,textarea{font-family:"Rajdhani",sans-serif}
+h1,h2,h3,h4,.portal-brand strong,.portal-page-heading h1,.portal-section-heading h2,.crate-copy h2,.shop-ball-card h3,.rank-player>strong{font-family:"Orbitron",sans-serif;letter-spacing:.015em}
+.game-nav .hub-icon-link{font-family:"Orbitron",sans-serif}
+.portal-kicker,.portal-page-heading .portal-kicker,.portal-nav-link,.portal-signin,.portal-button,.portal-section-heading .portal-kicker,.rank-table-head{font-family:"Chakra Petch",sans-serif;letter-spacing:.12em}
