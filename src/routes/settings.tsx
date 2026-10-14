@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { defaultSave, loadSave, writeSave, type Save, type SaveSettings } from "@/economy/save";
-import { syncArenaSave } from "@/economy/persistence";
+import { hydrateArenaSave, syncArenaSave } from "@/economy/persistence";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { authEnabled } from "@/lib/auth/client";
 import { PortalShell } from "@/components/portal-shell";
@@ -17,7 +17,7 @@ function SettingsPage() {
     const local = loadSave();
     setSave(local);
     if (cloudSync) {
-      void syncArenaSave(local).then(setSave).catch(() => setNotice("Cloud settings unavailable; local preferences are loaded."));
+      void hydrateArenaSave(local).then(setSave).catch(() => setNotice("Cloud settings unavailable; local preferences are loaded."));
     }
   }, [cloudSync, isPending]);
   useEffect(() => () => {
