@@ -103,16 +103,7 @@ export async function signIn(
   const callbackURL = opts.callbackURL ?? "/";
   const errorCallbackURL = opts.errorCallbackURL ?? "/";
 
-  // Open the popup SYNCHRONOUSLY on the user gesture — before any await
-  // (including signOut). Awaiting first drops user-gesture privilege in some
-  // browsers when the opener is a cross-origin live-preview iframe.
-  const popup = inLivePreview() ? openSignInPopup(providerId) : null;
-
-  // Clear any prior session so switching providers actually switches identity.
-  // Bounded because the popup is already open — a request that never settles
-  // would leave it hanging — but bounded PER ENVIRONMENT: only the server can
-  // end a deployed session, so cutting it short at the preview's 1.5s would
-  // start OAuth with the old session still live.
+  // Clear the existing local session before changing identity providers.
   await runPreSignInSignOut({
     livePreview: inLivePreview(),
     hasBearer: Boolean(getBearerToken()),
@@ -120,14 +111,25 @@ export async function signIn(
     clearToken: () => setBearerToken(null),
   });
 
+  // Google uses Better Auth's native Google provider, which talks directly to
+  // Google. Generic broker providers (currently X) keep the live-preview popup.
+  if (providerId === "google") {
+    const { data, error } = await authClient.signIn.social({
+      provider: "google",
+      callbackURL,
+      errorCallbackURL,
+    });
+    if (error) throw new Error(error.message ?? "Google sign-in could not be started");
+    if (data?.url) window.location.href = data.url;
+    return;
+  }
+
   if (inLivePreview()) {
+    const popup = openSignInPopup(providerId);
     if (!popup) throw new Error("Pop-up blocked — allow pop-ups for sign-in");
     const token = await waitForPopupToken(popup);
     if (!token) throw new Error("Sign-in was cancelled or failed");
     setBearerToken(token);
-    // Refresh the client session store with the bearer attached (onRequest).
-    // Avoid a full iframe reload when we're already on the destination — that
-    // reload was the slow "still loading after the popup closed" feeling.
     try {
       await authClient.getSession();
     } catch {
