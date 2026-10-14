@@ -93,7 +93,15 @@ export const authConfigured =
 // it derives the origin per-request from the (proxied) host, validated against the
 // preview allowlist, which makes the OAuth `redirect_uri` the concrete preview URL
 // the broker's preview client accepts.
-const explicitBaseURL = env("BETTER_AUTH_URL");
+// Prefer the explicitly configured public origin. On Vercel, fall back to
+// the platform's production domain (or the canonical app domain) so Better Auth
+// never builds OAuth callback URLs against localhost when BETTER_AUTH_URL is
+// omitted from the project environment.
+const vercelProductionURL = env("VERCEL_PROJECT_PRODUCTION_URL");
+const explicitBaseURL =
+  env("BETTER_AUTH_URL") ??
+  (vercelProductionURL ? `https://${vercelProductionURL.replace(/^https?:\\/\\//, "")}` : undefined) ??
+  (env("VERCEL_ENV") === "production" ? "https://ballvsballv2.vercel.app" : undefined);
 // Explicit `string[]` (not a readonly tuple) — Better Auth's DynamicBaseURLConfig
 // requires a mutable `allowedHosts: string[]`.
 const previewAllowedHosts: string[] = [...PREVIEW_ALLOWED_HOSTS];
