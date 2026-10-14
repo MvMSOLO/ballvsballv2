@@ -161,8 +161,10 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   const previousHpRef = useRef<[number, number] | null>(null);
   const [view, setView] = useState<UiView>(null);
   const [coins, setCoins] = useState(CONFIG.starterCoins);
+  const [infiniteCoins, setInfiniteCoins] = useState(false);
   const [audioMuted, setAudioMuted] = useState(false);
   const [diamonds, setDiamonds] = useState(CONFIG.starterDiamonds);
+  const [infiniteDiamonds, setInfiniteDiamonds] = useState(false);
   const [aim, setAim] = useState(90);
   const [notice, setNotice] = useState("");
   const [quality, setQuality] = useState<"low" | "medium" | "high">("medium");
@@ -223,6 +225,8 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     requestLandscape();
     const stored = loadSave();
     if (stored && typeof stored.coins === "number") setCoins(stored.coins);
+    if (stored && typeof stored.adminInfiniteCoins === "boolean") setInfiniteCoins(stored.adminInfiniteCoins);
+    if (stored && typeof stored.adminInfiniteDiamonds === "boolean") setInfiniteDiamonds(stored.adminInfiniteDiamonds);
     if (stored && typeof stored.diamonds === "number") {
       setDiamonds(stored.diamonds);
       diamondsRef.current = stored.diamonds;
@@ -401,6 +405,8 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     const saved = loadSave();
     setCoins(saved.coins);
     setDiamonds(saved.diamonds);
+    setInfiniteCoins(saved.adminInfiniteCoins);
+    setInfiniteDiamonds(saved.adminInfiniteDiamonds);
     diamondsRef.current = saved.diamonds;
     setAudioMuted(!saved.settings.sound);
     setMuted(!saved.settings.sound);
@@ -613,7 +619,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         <div className="brand-mark"><span className="brand-orb">●</span><div><strong>BALL ARENA</strong><small>PHYSICS DUEL LEAGUE</small></div></div>
         {mode !== "admin" && <nav className="game-nav" aria-label="Player hub"><a className="hub-icon-link" href="/profile" title="Profile" aria-label="Profile"><HubLogo kind="profile" /></a><a className="hub-icon-link" href="/shop" title="Shop" aria-label="Shop"><HubLogo kind="shop" /></a><a className="hub-icon-link" href="/inventory" title="Inventory" aria-label="Inventory"><HubLogo kind="inventory" /></a><a className="hub-icon-link" href="/leaderboard" title="Ranks" aria-label="Ranks"><HubLogo kind="ranks" /></a><a className="hub-icon-link" href="/settings" title="Settings" aria-label="Settings"><HubLogo kind="settings" /></a>{currentUser && !currentUser.isDevFallback ? <a className="hub-icon-link" href="/profile" title="Account" aria-label="Account"><HubLogo kind="account" /></a> : <a className="hub-icon-link" href="/login" title="Sign in" aria-label="Sign in"><HubLogo kind="login" /></a>}</nav>}
         {!adminMode ? <a className="admin-route-link" href="/1v1/admin" title="Open the auto-bot pack testing lab">⚙ 1V1 LAB</a> : <a className="admin-route-link" href="/1v1/" title="Return to standard duel mode">↗ DUEL</a>}
-        <div className="wallet">{view?.flow === "fight" && <button className={"speed-vote-button" + (view.matchSpeed === 2 ? " active" : "")} onClick={toggleMatchSpeed} aria-pressed={view.matchSpeed === 2} title="Both sides must approve 2x speed"><strong>2×</strong><span>{view.matchSpeed === 2 ? "BOTH READY" : "MATCH SPEED"}</span></button>}<span>◈ {diamonds}</span><span>● {coins}</span><button className="icon-button sound-toggle" onClick={() => { const next = !audioMuted; setAudioMuted(next); setMuted(next); try { const saved = loadSave(); saved.settings.sound = !next; writeSave(saved); } catch { /* keep the in-memory toggle */ } }} aria-label={audioMuted ? "Enable sound" : "Mute sound"}>{audioMuted ? "◌" : "♫"}</button><button className="icon-button" onClick={() => { const next = quality === "medium" ? "high" : quality === "high" ? "low" : "medium"; setQuality(next); try { const saved = loadSave(); saved.settings.quality = next; writeSave(saved); } catch { /* keep the in-memory quality */ } }} aria-label="Change graphics quality">◉ {quality.toUpperCase()}</button></div>
+        <div className="wallet">{view?.flow === "fight" && <button className={"speed-vote-button" + (view.matchSpeed === 2 ? " active" : "")} onClick={toggleMatchSpeed} aria-pressed={view.matchSpeed === 2} title="Both sides must approve 2x speed"><strong>2×</strong><span>{view.matchSpeed === 2 ? "BOTH READY" : "MATCH SPEED"}</span></button>}<span title={infiniteDiamonds ? "Infinite diamonds enabled" : "Diamonds"}>◈ {infiniteDiamonds ? "∞" : diamonds.toLocaleString()}</span><span title={infiniteCoins ? "Infinite coins enabled" : "Coins"}>● {infiniteCoins ? "∞" : coins.toLocaleString()}</span><button className="icon-button sound-toggle" onClick={() => { const next = !audioMuted; setAudioMuted(next); setMuted(next); try { const saved = loadSave(); saved.settings.sound = !next; writeSave(saved); } catch { /* keep the in-memory toggle */ } }} aria-label={audioMuted ? "Enable sound" : "Mute sound"}>{audioMuted ? "◌" : "♫"}</button><button className="icon-button" onClick={() => { const next = quality === "medium" ? "high" : quality === "high" ? "low" : "medium"; setQuality(next); try { const saved = loadSave(); saved.settings.quality = next; writeSave(saved); } catch { /* keep the in-memory quality */ } }} aria-label="Change graphics quality">◉ {quality.toUpperCase()}</button></div>
       </header>
 
       {!view && mode === "free-roam" && <div className="world-guide">
