@@ -1,8 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { authMiddleware } from "@/lib/auth/middleware";
-import { computeRewards, fulfillOrder, mergeCloud } from "../../economy/logic";
+import { buyOwnedBall, computeRewards, fulfillOrder, mergeCloud } from "../../economy/logic";
 import { migrateSave, type Save } from "../../economy/save";
+import { allPacks } from "../../packs/registry";
 
 const NAME = z.string().regex(/^[a-zA-Z0-9_]{3,16}$/);
 const matchSchema = z.object({
@@ -282,4 +283,64 @@ export const deleteProgress = createServerFn({ method: "POST" })
     await db`delete from claims where user_id = ${id}`;
     await db`delete from profiles where user_id = ${id}`;
     return { ok: true as const };
+  });
+
+
+/** Read the canonical save for this authenticated player without merging a stale device snapshot. */
+export const loadCloudSave = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
+  .handler(async ({ context }) => {
+    const db = await sql();
+    const rows = await db.query<{ blob: string }>(
+      "select blob from saves where user_id = $1",
+      [context.userId],
+    );
+    return { blob: rows[0]?.blob ?? null };
+  });
+
+/** Purchase one explicitly priced catalog ball using the server's current wallet. */
+export const purchaseBall = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: unknown) => z.object({ ballId: z.string().min(1).max(80) }).parse(input))
+  .handler(async ({ context, data }) => {
+    const db = await sql();
+    const rows = await db.query<{ blob: string }>(
+      "select blob from saves where user_id = $1",
+      [context.userId],
+    );
+    const current = readSave(rows[0]?.blob) ?? migrateSave({});
+    const ball = allPacks().flatMap((pack) => pack.balls).find((item) => item.id === data.ballId);
+    if (!ball) return { status: "unknown" as const, blob: JSON.stringify(current) };
+
+    const result = buyOwnedBall(current, ball);
+    if (result.error) {
+      return {
+        status: (result.error === "diamonds" ? "diamonds" : "owned") as "diamonds" | "owned",
+        blob: JSON.stringify(current),
+      };
+    }
+
+    const next = result.save;
+    const blob = JSON.stringify(next);
+    await db.query(
+      "insert into saves (user_id, version, blob, coins, diamonds, xp) values ($1, $2, $3, $4, $5, $6) " +
+        "on conflict (user_id) do update set version = excluded.version, blob = excluded.blob, " +
+        "coins = excluded.coins, diamonds = excluded.diamonds, xp = excluded.xp, updated_at = now()",
+      [context.userId, next.v, blob, next.coins, next.diamonds, next.xp],
+    );
+    const publicName = storedName(next.username, context.userId);
+    const level = Math.max(1, Math.floor(Math.sqrt(next.xp / 40)) + 1);
+    await db.query(
+      "insert into profiles (user_id, username, country, title, trophies, level, favorite) values ($1, $2, $3, $4, $5, $6, $7) " +
+        "on conflict (user_id) do update set username = excluded.username, country = excluded.country, " +
+        "title = excluded.title, trophies = excluded.trophies, level = excluded.level, favorite = excluded.favorite, updated_at = now()",
+      [context.userId, publicName, next.country, next.avatar.title, next.trophies, level, next.favorites[0] ?? ""],
+    );
+    await db.query(
+      "insert into leaderboard (user_id, username, country, trophies, favorite) values ($1, $2, $3, $4, $5) " +
+        "on conflict (user_id) do update set username = excluded.username, country = excluded.country, " +
+        "trophies = excluded.trophies, favorite = excluded.favorite, updated_at = now()",
+      [context.userId, publicName, next.country, next.trophies, next.favorites[0] ?? ""],
+    );
+    return { status: "ok" as const, blob };
   });
