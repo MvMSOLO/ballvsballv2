@@ -100,7 +100,7 @@ export const authConfigured =
 const vercelProductionURL = env("VERCEL_PROJECT_PRODUCTION_URL");
 const explicitBaseURL =
   env("BETTER_AUTH_URL") ??
-  (vercelProductionURL ? `https://${vercelProductionURL.replace(/^https?:\\/\\//, "")}` : undefined) ??
+  (vercelProductionURL ? `https://${vercelProductionURL.replace(/^https?:[/][/]/, "")}` : undefined) ??
   (env("VERCEL_ENV") === "production" ? "https://ballvsballv2.vercel.app" : undefined);
 // Explicit `string[]` (not a readonly tuple) — Better Auth's DynamicBaseURLConfig
 // requires a mutable `allowedHosts: string[]`.
