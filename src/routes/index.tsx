@@ -585,8 +585,8 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         <small>Turn your phone sideways to enter the arena.</small>
       </div>
 
-      {view && flow === "intro" && <div className="match-found-banner">
-        <span>CHALLENGE ACCEPTED</span><strong>You vs {view.names[1]}</strong>
+      {view && flow === "intro" && <div className="match-found-banner" role="status" aria-live="polite">
+        <i className="intro-spinner" aria-hidden="true" /><span>CHALLENGE ACCEPTED</span><strong>You vs {view.names[1]}</strong><small>Preparing arena · Loading ball selections…</small>
       </div>}
 
       {view && flow !== "intro" && <section className={"match-hud " + (flow === "fight" ? "fight-hud" : flow === "end" || flow === "round" ? "result-hud" : "setup-hud")} data-phase={flow}>
