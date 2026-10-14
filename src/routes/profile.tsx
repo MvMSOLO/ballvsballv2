@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { levelOf, loadSave, writeSave, defaultSave, type Save } from "@/economy/save";
 import { setUsername } from "@/lib/arena/server-fns";
-import { syncArenaSave } from "@/economy/persistence";
+import { hydrateArenaSave, syncArenaSave } from "@/economy/persistence";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { authEnabled } from "@/lib/auth/client";
 import { PortalShell } from "@/components/portal-shell";
@@ -24,7 +24,7 @@ function ProfilePage() {
     setCountry(local.country || "UZ");
     const connected = Boolean(user && !user.isDevFallback && authEnabled);
     if (connected) {
-      void syncArenaSave(local).then((merged) => {
+      void hydrateArenaSave(local).then((merged) => {
         setSave(merged);
         setName(merged.username === "Guest" && user?.displayName ? user.displayName.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 16) || "Guest" : merged.username);
         setCountry(merged.country || "UZ");
