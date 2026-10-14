@@ -7,7 +7,7 @@ import { advanceSession, applyCommand, createSession, publicView, renderFrame, v
 import { allPacks, enabledBalls } from "../packs/registry";
 import { playerMoveInput } from "../game/controls";
 import { loadSave, writeSave } from "../economy/save";
-import { syncArenaSave } from "@/economy/persistence";
+import { hydrateArenaSave, syncArenaSave } from "@/economy/persistence";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { authEnabled } from "@/lib/auth/client";
 import { sfx, setMuted, unlockAudio } from "../audio/synth";
@@ -381,7 +381,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     setMuted(!saved.settings.sound);
     if (saved.settings.quality !== "auto") setQuality(saved.settings.quality);
     if (cloudSyncRef.current) {
-      void syncArenaSave(saved).then((merged) => {
+      void hydrateArenaSave(saved).then((merged) => {
         if (!active) return;
         setCoins(merged.coins);
         setDiamonds(merged.diamonds);
