@@ -747,3 +747,87 @@ button:focus-visible, input:focus-visible { outline: 3px solid #67e8f9; outline-
   border-radius: 12px;
   background: #0c0e14;
 }
+
+
+/* Landscape-phone UX patch: keep the next action visible without hidden nested scrolling. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .match-hud.setup-hud {
+    top: calc(46px + env(safe-area-inset-top));
+    width: min(760px, calc(100vw - 24px));
+    max-height: calc(100dvh - 54px - env(safe-area-inset-top));
+    padding: 8px 12px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #67e8f966 #ffffff0a;
+  }
+  .setup-hud .match-head { gap: 2px 8px; }
+  .setup-hud .match-head > strong { font-size: 15px; }
+  .setup-hud .phase-chip { margin: 6px 0; padding: 6px 9px; }
+  .setup-hud .pick-area { display: flex; flex-direction: column; min-height: 0; }
+  .setup-hud .pick-area > .subline { font-size: 10px; line-height: 1.25; }
+  .setup-hud .ball-cards { gap: 7px; margin: 5px 0 7px; }
+  .setup-hud .ball-card { padding: 7px; gap: 4px; }
+  .setup-hud .ball-sphere { width: 32px; height: 32px; }
+  .setup-hud .rarity { font-size: 6px; }
+  .setup-hud .ball-card strong { font-size: 10px; }
+  .setup-hud .ball-stat-bars { margin: 0; }
+  .setup-hud .ability-chip { padding: 3px 4px; gap: 2px; }
+  .setup-hud .ability-chip b { font-size: 7px; }
+  .setup-hud .ability-chip > small,
+  .setup-hud .ball-card p,
+  .setup-hud .hint-line { display: none; }
+  .setup-hud .pick-area > .action-row {
+    position: sticky;
+    bottom: -8px;
+    z-index: 4;
+    flex: 0 0 auto;
+    margin-top: auto;
+    padding: 8px 0 2px;
+    background: linear-gradient(180deg, #0c172700, #0c1727f7 24%);
+  }
+  .setup-hud .pick-area > .action-row button {
+    min-height: 38px;
+    flex: 1 1 0;
+    font-size: 9px;
+  }
+  .setup-hud > .lobby-button { min-height: 30px; margin-top: 5px; }
+  .admin-console {
+    max-height: calc(100dvh - 62px - env(safe-area-inset-top));
+    width: min(360px, 42vw);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #67e8f966 #ffffff0a;
+    gap: 6px;
+    padding: 9px;
+  }
+  .admin-console-head { padding-bottom: 4px; }
+  .admin-console-head > strong { font-size: 11px; }
+  .admin-console label { gap: 3px; }
+  .admin-select-grid { gap: 5px; }
+  .admin-console select { min-height: 28px; }
+  .admin-angle { padding: 5px 7px; }
+  .admin-bot-status { padding: 5px 7px; }
+  .admin-primary, .admin-action-row button { min-height: 28px; padding: 5px 7px; }
+}
+.match-hud.setup-hud:focus-within,
+.admin-console:focus-within { scrollbar-color: #67e8f9 #ffffff0a; }
+
+/* Give the duel transition a real loading cue instead of a silent empty arena. */
+.intro-spinner {
+  display: block;
+  width: 25px;
+  height: 25px;
+  margin: 0 auto 5px;
+  border: 2px solid #67e8f933;
+  border-top-color: #67e8f9;
+  border-right-color: #c4b5fd;
+  border-radius: 50%;
+  box-shadow: 0 0 20px #22d3ee24;
+  animation: intro-spin .75s linear infinite;
+}
+.match-found-banner { gap: 6px; min-width: 260px; }
+.match-found-banner small { color: #9fb0c6; font-size: 9px; letter-spacing: .08em; }
+@keyframes intro-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .intro-spinner { animation: none; border-top-color: #67e8f9; } }
