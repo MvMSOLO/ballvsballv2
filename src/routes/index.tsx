@@ -116,6 +116,31 @@ const RIVALS = [
   { name: "ZedSpark", x: 0, z: 10, yaw: 3, moving: false, shirt: "#1c2430", emote: "" },
 ] as const;
 
+
+type HubLogoKind = "profile" | "shop" | "inventory" | "ranks" | "settings" | "account" | "login";
+
+function HubLogo({ kind }: { kind: HubLogoKind }) {
+  return (
+    <svg className={`hub-logo hub-logo-${kind}`} viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id={`hub-grad-${kind}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#a5f3fc" />
+          <stop offset="55%" stopColor="#60a5fa" />
+          <stop offset="100%" stopColor="#c4b5fd" />
+        </linearGradient>
+      </defs>
+      <circle className="hub-logo-orbit" cx="24" cy="24" r="19" />
+      {kind === "profile" && <><circle className="hub-logo-core" cx="24" cy="17" r="6" /><path className="hub-logo-line" d="M12 37c1.4-7 5.5-10.5 12-10.5S34.6 30 36 37" /></>}
+      {kind === "shop" && <><path className="hub-logo-line" d="M8 11h5l4.5 22h18l5-16H15" /><circle className="hub-logo-core" cx="21" cy="39" r="2.6" /><circle className="hub-logo-core" cx="34" cy="39" r="2.6" /><path className="hub-logo-line" d="M22 20v7m7-7v7" /></>}
+      {kind === "inventory" && <><path className="hub-logo-line" d="m24 8 15 8v16l-15 8-15-8V16z" /><path className="hub-logo-line" d="m9 16 15 9 15-9M24 25v15" /><path className="hub-logo-core" d="m18 12 15 8" /></>}
+      {kind === "ranks" && <><path className="hub-logo-line" d="M16 9h16v10c0 7-3.5 11-8 11s-8-4-8-11z" /><path className="hub-logo-line" d="M16 13H9v5c0 5 3 8 9 8m14-13h7v5c0 5-3 8-9 8M24 30v7m-8 3h16" /><path className="hub-logo-core" d="m24 13 2.1 4.2 4.6.7-3.3 3.2.8 4.6-4.2-2.2-4.2 2.2.8-4.6-3.3-3.2 4.6-.7z" /></>}
+      {kind === "settings" && <><path className="hub-logo-line" d="m20 7 8 0 1.4 4.2 3.8 2.2 4.2-1.1 4 7-3.2 3.1v4.4l3.2 3.1-4 7-4.2-1.1-3.8 2.2L28 43h-8l-1.4-4.2-3.8-2.2-4.2 1.1-4-7 3.2-3.1v-4.4L6.6 20l4-7 4.2 1.1 3.8-2.2z" /><circle className="hub-logo-core" cx="24" cy="24" r="6" /></>}
+      {kind === "account" && <><path className="hub-logo-line" d="M24 7 38 13v10c0 9-5.5 14-14 18-8.5-4-14-9-14-18V13z" /><circle className="hub-logo-core" cx="24" cy="19" r="4.5" /><path className="hub-logo-line" d="M16.5 31c1.5-4 4-6 7.5-6s6 2 7.5 6" /></>}
+      {kind === "login" && <><path className="hub-logo-line" d="M27 9h11v30H27M7 24h23m-9-9 9 9-9 9" /><path className="hub-logo-core" d="M12 11h5v5h-5z" /></>}
+    </svg>
+  );
+}
+
 export type ArenaRouteMode = "free-roam" | "duel" | "admin";
 
 export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } = {}) {
@@ -586,7 +611,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
       <div className="game-vignette" />
       <header className="topbar">
         <div className="brand-mark"><span className="brand-orb">●</span><div><strong>BALL ARENA</strong><small>PHYSICS DUEL LEAGUE</small></div></div>
-        {mode === "free-roam" && <nav className="game-nav" aria-label="Player hub"><a href="/profile">PROFILE</a><a href="/shop">SHOP</a><a href="/inventory">INVENTORY</a><a href="/leaderboard">RANKS</a><a href="/settings">SETTINGS</a>{currentUser && !currentUser.isDevFallback ? <a href="/profile">ACCOUNT</a> : <a href="/login">SIGN IN</a>}</nav>}
+        {mode !== "admin" && <nav className="game-nav" aria-label="Player hub"><a className="hub-icon-link" href="/profile" title="Profile" aria-label="Profile"><HubLogo kind="profile" /></a><a className="hub-icon-link" href="/shop" title="Shop" aria-label="Shop"><HubLogo kind="shop" /></a><a className="hub-icon-link" href="/inventory" title="Inventory" aria-label="Inventory"><HubLogo kind="inventory" /></a><a className="hub-icon-link" href="/leaderboard" title="Ranks" aria-label="Ranks"><HubLogo kind="ranks" /></a><a className="hub-icon-link" href="/settings" title="Settings" aria-label="Settings"><HubLogo kind="settings" /></a>{currentUser && !currentUser.isDevFallback ? <a className="hub-icon-link" href="/profile" title="Account" aria-label="Account"><HubLogo kind="account" /></a> : <a className="hub-icon-link" href="/login" title="Sign in" aria-label="Sign in"><HubLogo kind="login" /></a>}</nav>}
         {!adminMode ? <a className="admin-route-link" href="/1v1/admin" title="Open the auto-bot pack testing lab">⚙ 1V1 LAB</a> : <a className="admin-route-link" href="/1v1/" title="Return to standard duel mode">↗ DUEL</a>}
         <div className="wallet">{view?.flow === "fight" && <button className={"speed-vote-button" + (view.matchSpeed === 2 ? " active" : "")} onClick={toggleMatchSpeed} aria-pressed={view.matchSpeed === 2} title="Both sides must approve 2x speed"><strong>2×</strong><span>{view.matchSpeed === 2 ? "BOTH READY" : "MATCH SPEED"}</span></button>}<span>◈ {diamonds}</span><span>● {coins}</span><button className="icon-button sound-toggle" onClick={() => { const next = !audioMuted; setAudioMuted(next); setMuted(next); try { const saved = loadSave(); saved.settings.sound = !next; writeSave(saved); } catch { /* keep the in-memory toggle */ } }} aria-label={audioMuted ? "Enable sound" : "Mute sound"}>{audioMuted ? "◌" : "♫"}</button><button className="icon-button" onClick={() => { const next = quality === "medium" ? "high" : quality === "high" ? "low" : "medium"; setQuality(next); try { const saved = loadSave(); saved.settings.quality = next; writeSave(saved); } catch { /* keep the in-memory quality */ } }} aria-label="Change graphics quality">◉ {quality.toUpperCase()}</button></div>
       </header>
