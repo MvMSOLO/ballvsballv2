@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { BallDef } from "@/sim/types";
 import { allPacks } from "@/packs/registry";
 import { defaultSave, loadSave, writeSave, EXPLOSIONS, FLYERS, type Save } from "@/economy/save";
-import { syncArenaSave } from "@/economy/persistence";
+import { hydrateArenaSave, syncArenaSave } from "@/economy/persistence";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { authEnabled } from "@/lib/auth/client";
 import { PortalShell } from "@/components/portal-shell";
@@ -23,7 +23,7 @@ function InventoryPage() {
     const local = loadSave();
     setSave(local);
     if (cloudSync) {
-      void syncArenaSave(local).then((merged) => {
+      void hydrateArenaSave(local).then((merged) => {
         setSave(merged);
       }).catch(() => setNotice("Cloud save could not be loaded; local collection is still available."));
     }
