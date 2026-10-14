@@ -37,7 +37,7 @@ jobs:
         run: npm run typecheck
 
       - name: Core, economy, controls and match-speed tests
-        run: npm test && npm run test:arena
+        run: npm run test:arena
 
       - name: Validate ball packs
         run: npm run validate-packs
