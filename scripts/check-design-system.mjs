@@ -116,3 +116,16 @@ assertBalancedCss(tokens, "design-system.css");
 assertBalancedCss(primitives, "ui-primitives.css");
 
 console.log(`Design/brand/lobby checks passed: ${requiredTokens.length} tokens, ${requiredPrimitives.length} UI primitives, brand assets, responsive camera and first-session lobby gates.`);
+
+const ballInspect = await readFile(new URL("../src/components/ball-inspect-dialog.tsx", import.meta.url), "utf8");
+const shopRoute = await readFile(new URL("../src/routes/shop.tsx", import.meta.url), "utf8");
+const inventoryRoute = await readFile(new URL("../src/routes/inventory.tsx", import.meta.url), "utf8");
+assert.ok(ballInspect.includes('new THREE.WebGLRenderer({ alpha: true, antialias: false, powerPreference: "low-power" })'), "Ball inspect should use a low-overhead dedicated 3D preview");
+assert.ok(ballInspect.includes("new ResizeObserver(resize)"), "3D ball preview must resize without layout jumps");
+assert.ok(ballInspect.includes('role="dialog" aria-modal="true"'), "Ball inspect must expose a modal dialog to assistive technology");
+assert.ok(ballInspect.includes('event.key === "Escape"'), "Ball inspect must support escape-to-close");
+assert.ok(ballInspect.includes("ball.stats.contactDamage") && ballInspect.includes("ball.stats.mass") && ballInspect.includes("ball.stats.speed"), "Ball inspect stats must use actual ball definitions");
+assert.ok(ballInspect.includes("ability.actions[0]") && ballInspect.includes("ball.visual.shape"), "Ball preview identity must derive from the selected ball's visual/ability definition");
+assert.ok(shopRoute.includes('import { BallInspectDialog } from "@/components/ball-inspect-dialog";') && shopRoute.includes('onClick={() => setInspectedBall(ball)}'), "Shop cards must provide a real inspect action");
+assert.ok(inventoryRoute.includes('import { BallInspectDialog } from "@/components/ball-inspect-dialog";') && inventoryRoute.includes('onClick={() => setInspectedBall(ball)}'), "Owned collection cards must provide the same inspect action");
+assert.ok(tokens.includes(".ball-inspect-backdrop {") && tokens.includes(".shop-ball-orb.shape-crystal"), "Ball inspect and distinctive card silhouettes require shared design-system styles");

@@ -7,6 +7,7 @@ import { hydrateArenaSave, syncArenaSave } from "@/economy/persistence";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { authEnabled } from "@/lib/auth/client";
 import { PortalShell } from "@/components/portal-shell";
+import { BallInspectDialog } from "@/components/ball-inspect-dialog";
 
 export const Route = createFileRoute("/inventory")({ component: InventoryPage });
 function titleCase(value: string) { return value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()); }
@@ -19,6 +20,7 @@ function InventoryPage() {
   const [save, setSave] = useState<Save>(() => defaultSave());
   const [filter, setFilter] = useState("all");
   const [notice, setNotice] = useState("");
+  const [inspectedBall, setInspectedBall] = useState<BallDef | null>(null);
   useEffect(() => {
     const local = loadSave();
     setSave(local);
@@ -64,12 +66,14 @@ function InventoryPage() {
     <div className="shop-ball-grid inventory-grid">{displayed.map((ball) => {
       const favorite = save.favorites.includes(ball.id);
       return <article className={"shop-ball-card inventory-ball " + (favorite ? "is-favorite" : "")} key={ball.id}>
-        <div className={"shop-ball-orb rarity-" + ball.rarity} style={{ background: "radial-gradient(circle at 32% 24%, #fff 0%, " + ball.visual.baseColor + " 25%, " + ball.visual.accentColor + " 100%)" }}><span>{ball.id.includes("jolt") ? "ϟ" : ball.id.includes("web") ? "✳" : ball.id.includes("magma") ? "✹" : "◈"}</span></div>
+        <div className={"shop-ball-orb rarity-" + ball.rarity + " shape-" + ball.visual.shape} style={{ background: "radial-gradient(circle at 32% 24%, #fff 0%, " + ball.visual.baseColor + " 25%, " + ball.visual.accentColor + " 100%)" }}><span>{ball.id.includes("jolt") ? "ϟ" : ball.id.includes("web") ? "✳" : ball.id.includes("magma") ? "✹" : "◈"}</span></div>
         <span className={"rarity-pill rarity-" + ball.rarity}>{ball.rarity.toUpperCase()}</span><h3>{ball.name.en}</h3><p>LEVEL {save.ballLevel[ball.id] ?? 0} · {ball.stats.hp} HP</p>
+        <button className="portal-button secondary ball-inspect-trigger" type="button" onClick={() => setInspectedBall(ball)}>⌕ INSPECT</button>
         <button className={"portal-button " + (favorite ? "primary" : "secondary")} onClick={() => toggleFavorite(ball.id)}>{favorite ? "★ FAVORITE" : "☆ SET FAVORITE"}</button>
       </article>;
     })}</div>
     {!displayed.length && <div className="portal-empty"><span>◈</span><strong>Nothing in this category yet</strong><p>Open a crate or visit the market to expand your collection.</p><a href="/shop" className="portal-text-link">OPEN BALL MARKET ↗</a></div>}
+    <BallInspectDialog ball={inspectedBall} onClose={() => setInspectedBall(null)} statusLabel={inspectedBall ? save.owned.includes(inspectedBall.id) ? "OWNED · LEVEL " + (save.ballLevel[inspectedBall.id] ?? 0) : "NOT IN COLLECTION" : undefined} actionLabel={inspectedBall ? save.favorites.includes(inspectedBall.id) ? "★ REMOVE FAVORITE" : "☆ SET FAVORITE" : undefined} actionDisabled={!inspectedBall || !save.owned.includes(inspectedBall.id)} onAction={() => { if (inspectedBall) toggleFavorite(inspectedBall.id); }} />
     <div className="portal-columns inventory-equipment">
       <section className="portal-panel"><div className="portal-section-heading"><span className="portal-kicker">LOADOUT</span><h2>Equipped cosmetics</h2></div><div className="portal-form">
         <label>Profile title<select value={save.avatar.title.toLowerCase()} onChange={(event) => persist({ ...save, avatar: { ...save.avatar, title: titleCase(event.target.value) } })}>{titles.map((item) => <option key={item} value={item}>{titleCase(item)}</option>)}{!titles.length && <option value={save.avatar.title.toLowerCase()}>{save.avatar.title}</option>}</select></label>

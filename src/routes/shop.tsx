@@ -8,6 +8,7 @@ import { hydrateArenaSave, purchaseArenaBall } from "@/economy/persistence";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { authEnabled } from "@/lib/auth/client";
 import { PortalShell } from "@/components/portal-shell";
+import { BallInspectDialog } from "@/components/ball-inspect-dialog";
 
 export const Route = createFileRoute("/shop")({ component: ShopPage });
 function ballPrice(ball: BallDef) {
@@ -27,6 +28,7 @@ function ShopPage() {
   const [showAll, setShowAll] = useState(false);
   const [notice, setNotice] = useState("");
   const [buyingBallId, setBuyingBallId] = useState<string | null>(null);
+  const [inspectedBall, setInspectedBall] = useState<BallDef | null>(null);
   useEffect(() => {
     const local = loadSave();
     setSave(local);
@@ -78,9 +80,10 @@ function ShopPage() {
     <div className="shop-filters"><input aria-label="Search balls" placeholder="Search balls..." value={query} onChange={(event) => setQuery(event.target.value)} /><select aria-label="Filter rarity" value={rarity} onChange={(event) => setRarity(event.target.value)}><option value="all">All rarities</option>{["common", "rare", "epic", "legendary", "mythic"].map((item) => <option key={item} value={item}>{item}</option>)}</select></div>
     <div className="shop-ball-grid">{visible.map((ball) => {
       const owned = save.owned.includes(ball.id);
-      return <article className="shop-ball-card" key={ball.id}><div className={"shop-ball-orb rarity-" + ball.rarity} style={{ background: "radial-gradient(circle at 32% 24%, #fff 0%, " + ball.visual.baseColor + " 25%, " + ball.visual.accentColor + " 100%)" }}><span>{ball.id.includes("jolt") ? "ϟ" : ball.id.includes("web") ? "✳" : ball.id.includes("magma") ? "✹" : "◈"}</span></div><span className={"rarity-pill rarity-" + ball.rarity}>{ball.rarity.toUpperCase()}</span><h3>{ball.name.en}</h3><p>{ball.ai_hints.role.toUpperCase()} · {ball.stats.hp} HP</p><button className={"portal-button " + (owned ? "owned" : "secondary")} disabled={owned || buyingBallId !== null} onClick={() => void buyBall(ball)}>{owned ? "✓ OWNED" : buyingBallId === ball.id ? "PURCHASING…" : "BUY · ◈ " + ballPrice(ball)}</button></article>;
+      return <article className="shop-ball-card" key={ball.id}><div className={"shop-ball-orb rarity-" + ball.rarity + " shape-" + ball.visual.shape} style={{ background: "radial-gradient(circle at 32% 24%, #fff 0%, " + ball.visual.baseColor + " 25%, " + ball.visual.accentColor + " 100%)" }}><span>{ball.id.includes("jolt") ? "ϟ" : ball.id.includes("web") ? "✳" : ball.id.includes("magma") ? "✹" : "◈"}</span></div><span className={"rarity-pill rarity-" + ball.rarity}>{ball.rarity.toUpperCase()}</span><h3>{ball.name.en}</h3><p>{ball.ai_hints.role.toUpperCase()} · {ball.stats.hp} HP</p><button className="portal-button secondary ball-inspect-trigger" type="button" onClick={() => setInspectedBall(ball)}>⌕ INSPECT</button><button className={"portal-button " + (owned ? "owned" : "secondary")} disabled={owned || buyingBallId !== null} onClick={() => void buyBall(ball)}>{owned ? "✓ OWNED" : buyingBallId === ball.id ? "PURCHASING…" : "BUY · ◈ " + ballPrice(ball)}</button></article>;
     })}</div>
     {!showAll && !query && rarity === "all" && filtered.length > visible.length && <button className="portal-button secondary portal-load-more" onClick={() => setShowAll(true)}>VIEW FULL CATALOG · {filtered.length - visible.length} MORE</button>}
     {visible.length === 0 && <div className="portal-empty"><span>⌕</span><strong>No balls found</strong><p>Try another name or rarity filter.</p></div>}
+    <BallInspectDialog ball={inspectedBall} onClose={() => setInspectedBall(null)} actionLabel={inspectedBall ? save.owned.includes(inspectedBall.id) ? "✓ ALREADY OWNED" : buyingBallId === inspectedBall.id ? "PURCHASING…" : "BUY · ◈ " + ballPrice(inspectedBall) : undefined} actionDisabled={!inspectedBall || save.owned.includes(inspectedBall.id) || buyingBallId !== null} onAction={() => { if (inspectedBall) void buyBall(inspectedBall); }} />
   </PortalShell>;
 }

@@ -60,6 +60,7 @@ Public screens reviewed: home arena, profile, shop, inventory, leaderboard, sett
 - Acceptance: all phases and edge states tested; controls work by mouse, keyboard, and touch; no state is represented only by color.
 
 ### Phase 06 — Ball presentation and collection identity
+**Status:** implementation pushed to main. Shop and owned collection cards now share an inspect modal with a live Three.js preview driven by each ball’s real visual definition, rarity signal, combat attributes, tags, and ability action. Card silhouettes are rarity-framed and shape-coded; the inspect sheet has keyboard dismissal, responsive reflow, reduced-motion support, explicit owned/favorite/purchase state, and stats sourced from BallDef. Automated design-contract assertions have been added. Production build and route-level visual acceptance remain the final verification gates.
 - Build a unified 3D ball-preview treatment with distinctive silhouettes/materials, rarity borders, stat visualizations, ability glyphs, selection/inspect states, and controlled previews.
 - Prefer real 3D previews over generic emoji/glyph substitutes where feasible; respect actual ball definitions and stats.
 - Acceptance: selected and owned states are unambiguous; stats match simulation data; previews scale across devices without layout shift.
