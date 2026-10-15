@@ -1,6 +1,6 @@
 # BALL ARENA — Phase 05 Combat HUD Handoff
 
-**State:** Phase 05 initial combat-HUD pass implemented: aim state syncs from the session view, confirmed picks disable reroll, fight status no longer implies a zero-second limit, and both HP bars expose proportional values plus accessible text. Remaining: verify real transition/error paths and layouts after the current patch, run the project test suite, and measure rendering on target hardware. This is an incremental HUD pass, not a claim that the complete Phase 05 acceptance checklist is finished.
+**State:** Phase 05 initial combat-HUD pass implemented: aim state syncs from the session view, confirmed picks disable reroll, fight status no longer implies a zero-second limit, HP bars expose proportional values plus accessible text, empty offers have a recovery prompt, and the end screen shows actual session coin/XP rewards. Remaining: verify real transition/error paths and layouts after the current patch, run the project test suite, and measure rendering on target hardware. This is an incremental HUD pass, not a claim that the complete Phase 05 acceptance checklist is finished.
 
 ## Scope and invariants
 
