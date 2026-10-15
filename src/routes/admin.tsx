@@ -129,7 +129,7 @@ function AdminPage() {
   const canRenderAdmin = isOwnerClient && !isPending;
 
   return <PortalShell active="admin" title="OWNER CONTROL CENTER" description="Verified-owner tools for player accounts, balances, inventory, moderation and audit history.">
-    {!isPending && !user && <section className="portal-panel admin-gate"><span className="admin-kicker">AUTH REQUIRED</span><h2>Sign in first</h2><p>Admin tools require the verified owner account.</p><a className="portal-button primary" href="/login">SIGN IN ↗</a></section>}
+    {!isPending && !user && <section className="portal-panel admin-gate"><span className="admin-kicker">AUTH REQUIRED</span><h2>Sign in first</h2><p>Admin tools require the verified owner account.</p><a className="portal-button primary" href="/login?callbackURL=%2Fadmin">SIGN IN ↗</a></section>}
     {!isPending && user && !isOwnerClient && <section className="portal-panel admin-gate"><span className="admin-kicker">RESTRICTED AREA</span><h2>Owner access only</h2><p>This route is protected on the server and only accepts the verified owner email.</p><a className="portal-button secondary" href="/">RETURN TO ARENA</a></section>}
     {canRenderAdmin && <>
       <section className="admin-hero portal-panel">
