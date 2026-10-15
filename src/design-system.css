@@ -1424,3 +1424,21 @@ button { touch-action: manipulation; }
   flex: 0 0 auto; color: #ff6b78; font: 700 9px/1 var(--ba-font-data); letter-spacing: .06em;
 }
 @media (prefers-reduced-motion: reduce) { .fight-health-fill { transition: none; } }
+
+/* Phase 05: predictable recovery for an empty draft and explicit match rewards. */
+.pick-empty-state {
+  grid-column: 1 / -1; min-height: 116px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 7px; padding: 18px;
+  border: 1px dashed rgba(174, 194, 221, .3); border-radius: 5px 14px 5px 14px;
+  background: rgba(5, 9, 14, .58); text-align: center;
+}
+.pick-empty-state strong { color: #f3f6fa; font: 700 12px/1.2 var(--ba-font-display); letter-spacing: .08em; }
+.pick-empty-state span { color: #aab6c6; font-size: 12px; }
+.reward-summary { display: flex; justify-content: center; gap: 10px; margin: 12px 0; }
+.reward-summary > span {
+  min-width: 100px; display: flex; flex-direction: column; align-items: center;
+  gap: 4px; padding: 10px 16px; border: 1px solid rgba(174,194,221,.2);
+  border-radius: 5px 12px 5px 12px; background: rgba(5,9,14,.45);
+}
+.reward-summary strong { color: #d9f99d; font: 700 18px/1.1 var(--ba-font-data); font-variant-numeric: tabular-nums; }
+.reward-summary small { color: #aab6c6; font: 700 9px/1 var(--ba-font-data); letter-spacing: .12em; }
