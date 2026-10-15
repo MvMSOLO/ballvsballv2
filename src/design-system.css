@@ -1058,3 +1058,7 @@ button { touch-action: manipulation; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* Phase 02 — original brand sigil scales consistently across the arena and player hub. */
+.brand-sigil, .portal-brand-sigil { position: relative; z-index: 1; display: block; width: 25px; height: 25px; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(40, 8, 8, .24)); }
+.portal-brand-sigil { width: 23px; height: 23px; }
