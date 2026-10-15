@@ -51,6 +51,8 @@ export interface FriendCard {
 
 export interface Save {
   v: number;
+  /** Server-incremented revision; stale clients must hydrate after an admin edit. */
+  adminRevision: number;
   coins: number;
   diamonds: number;
   /** Server-controlled owner overrides; the server overwrites these from moderation records. */
@@ -165,6 +167,7 @@ export function defaultAvatar(): AvatarLook {
 export function defaultSave(): Save {
   return {
     v: 2,
+    adminRevision: 0,
     coins: CONFIG.starterCoins,
     diamonds: CONFIG.starterDiamonds,
     adminInfiniteCoins: false,
@@ -270,6 +273,7 @@ export function migrateSave(raw: unknown): Save {
     ...base,
     ...o,
     v: 2,
+    adminRevision: Math.max(0, Math.floor(num(o.adminRevision, base.adminRevision))),
     coins: Math.max(0, num(o.coins, base.coins)),
     diamonds: Math.max(0, num(o.diamonds, base.diamonds)),
     adminInfiniteCoins: bool(o.adminInfiniteCoins, false),
