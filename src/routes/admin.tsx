@@ -8,13 +8,13 @@ export const Route = createFileRoute("/admin")({ component: AdminPage });
 const OWNER_EMAIL = "mirzayevavazbek15@gmail.com";
 type AdminActionKey =
   | "kick" | "ban" | "unban" | "toggle_inf_coins" | "toggle_inf_diamonds"
-  | "grant_ball" | "remove_ball" | "grant_all_balls" | "set_trophies" | "set_xp"
+  | "grant_ball" | "remove_ball" | "grant_all_balls" | "set_trophies" | "set_xp" | "set_pass_xp"
   | "grant_premium" | "revoke_premium" | "grant_vip_frame" | "grant_admin_frame"
   | "revoke_vip_frame" | "revoke_admin_frame" | "reset_progress";
 
 type AdminPlayer = {
   id: string; name: string; email: string; email_verified: boolean; username: string; country: string;
-  trophies: number; level: number; coins: number; diamonds: number; xp: number; balls_owned: number;
+  trophies: number; level: number; coins: number; diamonds: number; xp: number; pass_xp: number; balls_owned: number;
   is_banned: boolean; ban_reason: string; infinite_coins: boolean; infinite_diamonds: boolean; active_sessions: number;
 };
 type AdminBall = { id: string; name: string; rarity: string };
@@ -37,6 +37,7 @@ function AdminPage() {
   const [banReason, setBanReason] = useState("");
   const [trophies, setTrophies] = useState("0");
   const [xp, setXp] = useState("0");
+  const [passXp, setPassXp] = useState("0");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState("");
@@ -69,6 +70,15 @@ function AdminPage() {
     // Refresh only when the authenticated owner identity changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPending, isOwnerClient, user?.id]);
+
+  // Keep edit fields in sync with the selected server record, including after
+  // an admin action. This prevents a stale 0/value from being submitted later.
+  useEffect(() => {
+    if (!selected) return;
+    setTrophies(String(selected.trophies));
+    setXp(String(selected.xp));
+    setPassXp(String(selected.pass_xp));
+  }, [selected?.id, selected?.trophies, selected?.xp, selected?.pass_xp]);
 
   async function runAction(action: AdminActionKey, extras: { reason?: string; ballId?: string; amount?: number } = {}) {
     if (!selected || busy) return;
@@ -108,11 +118,14 @@ function AdminPage() {
     setSelectedId(player.id);
     setTrophies(String(player.trophies));
     setXp(String(player.xp));
+    setPassXp(String(player.pass_xp));
   }
 
-  const ownerTarget = selected?.email?.trim().toLowerCase() === OWNER_EMAIL && selected.email_verified;
+  const ownerTarget = Boolean(selected?.email?.trim().toLowerCase() === OWNER_EMAIL && selected.email_verified);
   const selfTarget = selected?.id === user?.id;
-  const blockedTarget = !selected || ownerTarget || selfTarget;
+  // Owner can edit their own profile. Only a duplicate owner identity viewed
+  // from another record stays protected.
+  const blockedTarget = !selected || (ownerTarget && !selfTarget);
   const canRenderAdmin = isOwnerClient && !isPending;
 
   return <PortalShell active="admin" title="OWNER CONTROL CENTER" description="Verified-owner tools for player accounts, balances, inventory, moderation and audit history.">
@@ -159,16 +172,18 @@ function AdminPage() {
               <div><small>COINS</small><strong>{selected.infinite_coins ? "∞ INF" : selected.coins.toLocaleString()}</strong></div>
               <div><small>DIAMONDS</small><strong>{selected.infinite_diamonds ? "∞ INF" : selected.diamonds.toLocaleString()}</strong></div>
               <div><small>XP / LEVEL</small><strong>{selected.xp.toLocaleString()} <i>/ {selected.level}</i></strong></div>
+              <div><small>BATTLE PASS XP</small><strong>{selected.pass_xp.toLocaleString()}</strong></div>
               <div><small>OWNED BALLS</small><strong>{selected.balls_owned}</strong></div>
             </div>
-            {blockedTarget && <p className="admin-protected-note">The owner account and the currently signed-in account cannot be moderated.</p>}
+            {selfTarget && <p className="admin-protected-note">Owner self-management is enabled: economy, balls, perks, trophies and XP can all be edited here. KICK/BAN is disabled for your own active account to prevent accidental lockout.</p>}
+            {blockedTarget && <p className="admin-protected-note">This verified owner identity can only be managed from its own signed-in account.</p>}
             <div className="admin-control-section">
               <div className="admin-control-title"><span>01</span><div><strong>MODERATION</strong><small>Session and account access</small></div></div>
               <div className="admin-action-grid">
-                <button className="admin-action-button danger" disabled={busy || blockedTarget || selected.active_sessions === 0} onClick={() => void runAction("kick")}><b>↯</b><span>KICK PLAYER</span><small>Revoke active sessions</small></button>
+                <button className="admin-action-button danger" disabled={busy || blockedTarget || selfTarget || selected.active_sessions === 0} onClick={() => void runAction("kick")}><b>↯</b><span>KICK PLAYER</span><small>Revoke active sessions</small></button>
                 {selected.is_banned
-                  ? <button className="admin-action-button good" disabled={busy || blockedTarget} onClick={() => void runAction("unban")}><b>✓</b><span>UNBAN PLAYER</span><small>Restore server access</small></button>
-                  : <button className="admin-action-button danger" disabled={busy || blockedTarget} onClick={() => void runAction("ban", { reason: banReason })}><b>⊘</b><span>BAN PLAYER</span><small>Block game API access</small></button>}
+                  ? <button className="admin-action-button good" disabled={busy || blockedTarget || selfTarget} onClick={() => void runAction("unban")}><b>✓</b><span>UNBAN PLAYER</span><small>Restore server access</small></button>
+                  : <button className="admin-action-button danger" disabled={busy || blockedTarget || selfTarget} onClick={() => void runAction("ban", { reason: banReason })}><b>⊘</b><span>BAN PLAYER</span><small>Block game API access</small></button>}
               </div>
               {!selected.is_banned && <label className="admin-label">BAN REASON<input value={banReason} onChange={(event) => setBanReason(event.target.value)} maxLength={300} placeholder="Optional reason shown in the audit log" /></label>}
               {selected.is_banned && <p className="admin-ban-reason">REASON: {selected.ban_reason || "No reason provided."}</p>}
@@ -187,7 +202,7 @@ function AdminPage() {
               <div className="admin-action-grid">
                 <button className="admin-action-button good" disabled={busy || blockedTarget || !ballId} onClick={() => void runAction("grant_ball", { ballId })}><b>＋</b><span>ADD BALL</span><small>Grant selected ball</small></button>
                 <button className="admin-action-button danger" disabled={busy || blockedTarget || !ballId} onClick={() => void runAction("remove_ball", { ballId })}><b>−</b><span>REMOVE BALL</span><small>Remove selected ball</small></button>
-                <button className="admin-action-button good" disabled={busy || blockedTarget} onClick={() => void runAction("grant_all_balls")}><b>✦</b><span>ALL BALLS</span><small>Unlock full catalog</small></button>
+                <button className="admin-action-button good" disabled={busy || blockedTarget} onClick={() => void runAction("grant_all_balls")}><b>✦</b><span>ALL PLAYABLE BALLS</span><small>Unlock every enabled ball and remove inactive template IDs</small></button>
                 <button className="admin-action-button good" disabled={busy || blockedTarget} onClick={() => void runAction("grant_premium")}><b>♛</b><span>GRANT PREMIUM</span><small>Enable Premium + Pro Pass</small></button>
                 <button className="admin-action-button danger" disabled={busy || blockedTarget} onClick={() => void runAction("revoke_premium")}><b>×</b><span>REVOKE PREMIUM</span><small>Remove Premium + Pro Pass</small></button>
                 <button className="admin-action-button coin" disabled={busy || blockedTarget} onClick={() => void runAction("grant_vip_frame")}><b>✧</b><span>GRANT VIP FRAME</span><small>Profile cosmetic</small></button>
@@ -203,6 +218,8 @@ function AdminPage() {
                 <button className="portal-button secondary admin-set-button" disabled={busy || blockedTarget || trophies.trim() === "" || !Number.isFinite(Number(trophies)) || Number(trophies) < 0 || Number(trophies) > 100000} onClick={() => void runAction("set_trophies", { amount: Math.floor(Number(trophies)) })}>SET TROPHIES</button>
                 <label className="admin-label">XP<input type="number" min="0" max="10000000" value={xp} onChange={(event) => setXp(event.target.value)} /></label>
                 <button className="portal-button secondary admin-set-button" disabled={busy || blockedTarget || xp.trim() === "" || !Number.isFinite(Number(xp)) || Number(xp) < 0 || Number(xp) > 10000000} onClick={() => void runAction("set_xp", { amount: Math.floor(Number(xp)) })}>SET XP</button>
+                <label className="admin-label">BATTLE PASS XP<input type="number" min="0" max="10000000" value={passXp} onChange={(event) => setPassXp(event.target.value)} /></label>
+                <button className="portal-button secondary admin-set-button" disabled={busy || blockedTarget || passXp.trim() === "" || !Number.isFinite(Number(passXp)) || Number(passXp) < 0 || Number(passXp) > 10000000} onClick={() => void runAction("set_pass_xp", { amount: Math.floor(Number(passXp)) })}>SET PASS XP</button>
               </div>
               <button className="admin-reset-button" disabled={busy || blockedTarget} onClick={() => void runAction("reset_progress")}><span>⚠</span><span><strong>RESET GAME PROGRESS</strong><small>Reset stats, match history, friends and inventory to starter state. Account, receipts and moderation controls remain.</small></span></button>
             </div>
