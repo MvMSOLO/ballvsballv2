@@ -1399,3 +1399,28 @@ button { touch-action: manipulation; }
   .world-guide-keys kbd { width: 17px; height: 18px; }
 }
 
+
+/* Phase 05: combat health is conveyed by both a proportional bar and text. */
+.fight-panel .fight-player { min-width: 0; }
+.fight-health { display: flex; align-items: center; gap: 7px; margin: 8px 0 5px; }
+.fight-health-track {
+  width: 100%; height: 9px; overflow: hidden;
+  border: 1px solid rgba(153, 177, 204, .28); border-radius: 999px;
+  background: rgba(3, 8, 14, .78); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .55);
+}
+.fight-health-fill {
+  display: block; height: 100%; border-radius: inherit;
+  background: linear-gradient(90deg, #2588eb, #70d5ff); transition: width 120ms linear;
+}
+.fight-panel > div:last-child .fight-health-fill { background: linear-gradient(90deg, #e23d55, #ff9a70); }
+.fight-health.critical .fight-health-track {
+  border-color: #ff6b6b; box-shadow: 0 0 0 1px rgba(255, 81, 91, .24), 0 0 13px rgba(255, 64, 84, .16);
+}
+.fight-health.critical .fight-health-fill,
+.fight-panel > div:last-child .fight-health.critical .fight-health-fill {
+  background: repeating-linear-gradient(135deg, #ff465f 0 6px, #b91c3b 6px 12px);
+}
+.fight-health-warning {
+  flex: 0 0 auto; color: #ff6b78; font: 700 9px/1 var(--ba-font-data); letter-spacing: .06em;
+}
+@media (prefers-reduced-motion: reduce) { .fight-health-fill { transition: none; } }
