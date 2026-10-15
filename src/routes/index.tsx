@@ -625,7 +625,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
       {!view && mode === "free-roam" && <section className="world-guide" aria-label="Arena briefing">
         <div className="world-guide-topline">
           <span className="eyebrow">ARENA FORGE <i> / 001</i></span>
-          <span className="world-guide-live"><i className="status-dot" /> LIVE</span>
+          <span className="world-guide-live"><i className="status-dot" /> ARENA READY</span>
         </div>
         <h1>ENTER THE <em>ARENA.</em></h1>
         <p>One ball. One launch. No second chances. Find a rival and let physics decide.</p>
@@ -638,6 +638,13 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
           <span className="world-guide-step">01</span>
           <span><b>FIND YOUR TARGET</b><small>Move close to a rival to unlock the challenge.</small></span>
           <span className="world-guide-arrow" aria-hidden="true">↗</span>
+        </div>
+        <div className="world-guide-controls" aria-label="Movement controls">
+          <span className="world-guide-controls-label">MOVE</span>
+          <span className="world-guide-keys" aria-hidden="true"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span>
+          <span className="world-guide-controls-or">OR</span>
+          <span className="world-guide-stick" aria-hidden="true"><i /></span>
+          <span className="world-guide-controls-label">LEFT STICK</span>
         </div>
       </section>}
 
