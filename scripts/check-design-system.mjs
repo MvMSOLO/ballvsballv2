@@ -165,6 +165,9 @@ assert.ok(authReturn.includes('candidate.startsWith("//")') && authReturn.includ
 assert.ok(loginRoute.includes('useCurrentUserState()') && loginRoute.includes('sessionPending'), "Login must resolve the current session before presenting auth success or redirecting");
 assert.ok(loginRoute.includes('getAuthCapabilities()') && loginRoute.includes('capabilityError'), "Login must verify provider capability and expose a retry state");
 assert.ok(authCapabilities.includes('process.env.GOOGLE_CLIENT_ID') && authCapabilities.includes('emailAndPasswordEnabled'), "Provider buttons must follow server-side capability flags, not hard-coded assumptions");
+const authCapabilityPolicy = await readFile(new URL("../src/lib/auth/auth-capabilities-policy.ts", import.meta.url), "utf8");
+assert.ok(authCapabilities.includes('process.env.GROK_AUTH_CLIENT_ID') && authCapabilities.includes('process.env.VERCEL_ENV === "production"'), "Production must not advertise the preview OAuth fallback as a configured provider");
+assert.ok(authCapabilityPolicy.includes('return input.brokerConfigured || !input.production'), "Only production must require explicit broker credentials for generic OAuth");
 assert.ok(loginRoute.includes('profile.ok') && loginRoute.includes('Account created by the server'), "Registration must distinguish confirmed account creation from later profile-sync failure");
 assert.ok(loginRoute.includes('friendlyCredentialError') && loginRoute.includes('friendlyProviderError'), "Auth failures must have actionable recovery messaging");
 assert.ok(authClient.includes('if (!data?.url) throw new Error("Google sign-in is not configured') && authClient.includes('if (!data?.url) throw new Error("This sign-in provider is unavailable'), "A missing OAuth redirect URL must not leave the UI stuck in a false pending state");
