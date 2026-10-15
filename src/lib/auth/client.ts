@@ -120,7 +120,8 @@ export async function signIn(
       errorCallbackURL,
     });
     if (error) throw new Error(error.message ?? "Google sign-in could not be started");
-    if (data?.url) window.location.href = data.url;
+    if (!data?.url) throw new Error("Google sign-in is not configured or could not be started.");
+    window.location.href = data.url;
     return;
   }
 
@@ -151,7 +152,8 @@ export async function signIn(
     errorCallbackURL,
   });
   if (error) throw new Error(error.message ?? "Sign-in failed");
-  if (data?.url) window.location.href = data.url;
+  if (!data?.url) throw new Error("This sign-in provider is unavailable on this deployment.");
+  window.location.href = data.url;
 }
 
 /**
