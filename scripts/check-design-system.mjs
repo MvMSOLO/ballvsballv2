@@ -52,10 +52,14 @@ assert.match(seasonBadge, /Season 01 — Origin/i, "Season badge identity is mis
 assert.ok(brandGuide.includes("Never fabricate online player counts"), "Brand guide must prohibit deceptive marketing");
 
 assert.match(worldRenderer, /aspect >= 1\.85 \? 56 : aspect >= 1\.35 \? 48 : 44/, "Lobby camera must widen on desktop and landscape screens");
-assert.ok(homeRoute.includes('x: -4.2, z: 3.7'), "Front-left rival must stay inside the lobby safe framing");
+assert.ok(homeRoute.includes('x: -1.8, z: 3.7'), "Front-left rival must stay inside the lobby safe framing");
 assert.ok(homeRoute.includes('x: 4.2, z: 3.7'), "Front-right rival must stay inside the lobby safe framing");
-assert.ok(homeRoute.includes('x: -4.8, z: -2.4'), "Rear-left rival must stay inside the lobby safe framing");
+assert.ok(homeRoute.includes('x: -1.8, z: -2.4'), "Rear-left rival must stay inside the lobby safe framing");
 assert.ok(homeRoute.includes('x: 4.8, z: -2.4'), "Rear-right rival must stay inside the lobby safe framing");
+assert.ok(homeRoute.includes('x: 0, z: -7.2'), "Back-center rival must be placed away from the camera's bottom crop");
+assert.ok(tokens.includes('top: calc(78px + env(safe-area-inset-top))'), "Short-landscape briefing must clear the top navigation rail");
+assert.ok(tokens.includes('.world-guide > p,\n  .world-guide-metrics { display: none; }'), "Short-landscape briefing must compact nonessential content");
+assert.ok(tokens.includes('.world-guide-controls { margin-top: 9px; padding-top: 8px; gap: 5px; }'), "Short-landscape movement hint must fit in the briefing");
 assert.ok(homeRoute.includes('className="world-guide-controls"'), "First-session lobby must show movement controls");
 assert.ok(homeRoute.includes('> ARENA READY</span>'), "Lobby status must not imply an online-player session");
 
