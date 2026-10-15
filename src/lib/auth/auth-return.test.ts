@@ -45,7 +45,7 @@ describe("validateCredentialInput", () => {
   });
 
   it("requires a valid username during registration", () => {
-    assert.match(validateCredentialInput({ mode: "sign-up", email: "arena@example.com", password: "password123", username: "two" }) ?? "", /Username must be/);
+    assert.match(validateCredentialInput({ mode: "sign-up", email: "arena@example.com", password: "password123", username: "ab" }) ?? "", /Username must be/);
     assert.equal(validateCredentialInput({ mode: "sign-up", email: "arena@example.com", password: "password123", username: "arena_fox" }), null);
   });
 
