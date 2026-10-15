@@ -109,11 +109,11 @@ function ballGlyph(id: string): string {
 }
 
 const RIVALS = [
-  { name: "NovaByte", x: -7, z: 4, yaw: 0.4, moving: true, shirt: "#5b8cff", emote: "" },
-  { name: "PixelFox", x: 7, z: 4, yaw: -0.4, moving: false, shirt: "#3ecf8e", emote: "wave" },
-  { name: "OrbitJay", x: -8, z: -2, yaw: 1, moving: false, shirt: "#f5b942", emote: "" },
-  { name: "MangoRush", x: 8, z: -2, yaw: -1, moving: true, shirt: "#ff5a36", emote: "" },
-  { name: "ZedSpark", x: 0, z: 10, yaw: 3, moving: false, shirt: "#1c2430", emote: "" },
+  { name: "NovaByte", x: -4.2, z: 3.7, yaw: 0.4, moving: true, shirt: "#5b8cff", emote: "" },
+  { name: "PixelFox", x: 4.2, z: 3.7, yaw: -0.4, moving: false, shirt: "#3ecf8e", emote: "wave" },
+  { name: "OrbitJay", x: -4.8, z: -2.4, yaw: 1, moving: false, shirt: "#f5b942", emote: "" },
+  { name: "MangoRush", x: 4.8, z: -2.4, yaw: -1, moving: true, shirt: "#ff5a36", emote: "" },
+  { name: "ZedSpark", x: 0, z: 8.5, yaw: 3, moving: false, shirt: "#1c2430", emote: "" },
 ] as const;
 
 
