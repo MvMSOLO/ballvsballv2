@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { defaultSave, migrateSave, type Save } from "@/economy/save";
-import { allPacks } from "@/packs/registry";
+import { enabledBalls } from "@/packs/registry";
 
 const OWNER_EMAIL = "mirzayevavazbek15@gmail.com";
 const INFINITE_BALANCE = 2_000_000_000;
@@ -111,13 +111,11 @@ async function logAction(db: Db, actorId: string, targetId: string, action: stri
 }
 
 function getBallCatalog() {
+  // Match the exact catalog used by matchmaking/rendering. Disabled packs (such
+  // as the three sample balls in packs/_template) must never be grantable.
   const seen = new Set<string>();
-  return allPacks()
-    .flatMap((pack) => pack.balls.map((ball) => ({
-      id: ball.id,
-      name: ball.name.en,
-      rarity: ball.rarity,
-    })))
+  return enabledBalls()
+    .map((ball) => ({ id: ball.id, name: ball.name.en, rarity: ball.rarity }))
     .filter((ball) => {
       if (seen.has(ball.id)) return false;
       seen.add(ball.id);
@@ -150,12 +148,13 @@ export const getAdminOverview = createServerFn({ method: "GET" })
     );
     const playerRows = await db.query<{
       id: string; name: string; email: string; email_verified: boolean; username: string; country: string;
-      trophies: number; level: number; coins: number; diamonds: number; xp: number; balls_owned: number;
+      trophies: number; level: number; coins: number; diamonds: number; xp: number; pass_xp: number; balls_owned: number;
       is_banned: boolean; ban_reason: string; infinite_coins: boolean; infinite_diamonds: boolean; active_sessions: number;
     }>(
       "select u.id, u.name, u.email, u.\"emailVerified\" as email_verified, coalesce(p.username, '') as username, " +
         "coalesce(p.country, 'UZ') as country, coalesce(p.trophies, 0)::int as trophies, coalesce(p.level, 1)::int as level, " +
         "coalesce(s.coins, 0)::int as coins, coalesce(s.diamonds, 0)::int as diamonds, coalesce(s.xp, 0)::int as xp, " +
+        "coalesce((s.blob::jsonb ->> 'passXp')::int, 0)::int as pass_xp, " +
         "coalesce(c.is_banned, false) as is_banned, coalesce(c.ban_reason, '') as ban_reason, " +
         "coalesce(c.infinite_coins, false) as infinite_coins, coalesce(c.infinite_diamonds, false) as infinite_diamonds, " +
         "(select count(*)::int from \"session\" ss where ss.\"userId\" = u.id and ss.\"expiresAt\" > now()) as active_sessions, " +
@@ -187,7 +186,7 @@ const actionSchema = z.object({
   targetUserId: z.string().trim().min(1).max(200),
   action: z.enum([
     "kick", "ban", "unban", "toggle_inf_coins", "toggle_inf_diamonds",
-    "grant_ball", "remove_ball", "grant_all_balls", "set_trophies", "set_xp",
+    "grant_ball", "remove_ball", "grant_all_balls", "set_trophies", "set_xp", "set_pass_xp",
     "grant_premium", "revoke_premium", "grant_vip_frame", "grant_admin_frame",
     "revoke_vip_frame", "revoke_admin_frame", "reset_progress",
   ]),
@@ -202,15 +201,22 @@ export const performAdminAction = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const db = await getDb();
     await assertOwner(db, context.userId);
-    if (context.userId === data.targetUserId) throw new Error("For safety, the owner account cannot be moderated here.");
     const targetRows = await db.query<{ id: string; email: string; email_verified: boolean }>(
       'select id, email, "emailVerified" as email_verified from "user" where id = $1 limit 1',
       [data.targetUserId],
     );
     const target = targetRows[0];
     if (!target) throw new Error("Player account not found.");
-    if (target.email.trim().toLowerCase() === OWNER_EMAIL && target.email_verified) {
-      throw new Error("The verified owner account is protected from moderation actions.");
+    const selfTarget = target.id === context.userId;
+    const ownerTarget = target.email.trim().toLowerCase() === OWNER_EMAIL && target.email_verified;
+    // Only the authenticated owner may act, and the owner identity may never be
+    // managed through a different account record. The owner can edit their own
+    // inventory/economy/progression, but not kick or ban their own live session.
+    if (ownerTarget && !selfTarget) {
+      throw new Error("The verified owner account can only be edited from its own signed-in session.");
+    }
+    if (selfTarget && (data.action === "kick" || data.action === "ban")) {
+      throw new Error("KICK/BAN is disabled for your own signed-in owner account to prevent lockout.");
     }
 
     const control = await getControl(db, target.id);
@@ -220,6 +226,7 @@ export const performAdminAction = createServerFn({ method: "POST" })
     );
     const current = await applyCurrencyFlags(db, target.id, parseSave(saveRows[0]?.blob));
     const catalog = getBallCatalog();
+    const playableBallIds = new Set(catalog.map((ball) => ball.id));
     let summary = "";
     let updatedSave: Save | null = null;
 
@@ -308,23 +315,35 @@ export const performAdminAction = createServerFn({ method: "POST" })
         const ball = catalog.find((item) => item.id === data.ballId);
         if (!ball) throw new Error("Choose a valid ball from the catalog.");
         if (data.action === "grant_ball") {
-          updatedSave = { ...current, owned: Array.from(new Set([...current.owned, ball.id])) };
+          const playableOwned = current.owned.filter((id) => playableBallIds.has(id));
+          updatedSave = {
+            ...current,
+            owned: Array.from(new Set([...playableOwned, ball.id])),
+            favorites: current.favorites.filter((id) => playableBallIds.has(id)),
+            ballLevel: Object.fromEntries(Object.entries(current.ballLevel).filter(([id]) => playableBallIds.has(id))),
+          };
           summary = `Granted ball: ${ball.name}.`;
         } else {
-          const owned = current.owned.filter((id) => id !== ball.id);
+          const owned = current.owned.filter((id) => id !== ball.id && playableBallIds.has(id));
           updatedSave = {
             ...current,
             owned: owned.length ? owned : defaultSave().owned,
-            favorites: current.favorites.filter((id) => id !== ball.id),
-            ballLevel: Object.fromEntries(Object.entries(current.ballLevel).filter(([id]) => id !== ball.id)),
+            favorites: current.favorites.filter((id) => id !== ball.id && playableBallIds.has(id)),
+            ballLevel: Object.fromEntries(Object.entries(current.ballLevel).filter(([id]) => id !== ball.id && playableBallIds.has(id))),
           };
           summary = `Removed ball: ${ball.name}.`;
         }
         break;
       }
       case "grant_all_balls": {
-        updatedSave = { ...current, owned: Array.from(new Set([...current.owned, ...catalog.map((item) => item.id)])) };
-        summary = `Granted all ${catalog.length} catalog balls.`;
+        // Replace legacy IDs from disabled packs with every currently playable ball.
+        updatedSave = {
+          ...current,
+          owned: catalog.map((item) => item.id),
+          favorites: current.favorites.filter((id) => playableBallIds.has(id)),
+          ballLevel: Object.fromEntries(Object.entries(current.ballLevel).filter(([id]) => playableBallIds.has(id))),
+        };
+        summary = `Granted all ${catalog.length} playable balls and removed disabled-template IDs.`;
         break;
       }
       case "set_trophies": {
@@ -336,7 +355,13 @@ export const performAdminAction = createServerFn({ method: "POST" })
       case "set_xp": {
         if (data.amount === undefined) throw new Error("Enter an XP amount.");
         updatedSave = { ...current, xp: data.amount };
-        summary = `Set XP to ${data.amount.toLocaleString()}.`;
+        summary = `Set account XP to ${data.amount.toLocaleString()}.`;
+        break;
+      }
+      case "set_pass_xp": {
+        if (data.amount === undefined) throw new Error("Enter a Battle Pass XP amount.");
+        updatedSave = { ...current, passXp: data.amount };
+        summary = `Set Battle Pass XP to ${data.amount.toLocaleString()}.`;
         break;
       }
       case "grant_premium": {
@@ -388,7 +413,12 @@ export const performAdminAction = createServerFn({ method: "POST" })
       }
     }
 
-    if (updatedSave) await persistSave(db, target.id, updatedSave);
+    if (updatedSave) {
+      // Advance the server revision for every save-changing admin operation.
+      // syncSave uses it to keep old client tabs from undoing this change.
+      updatedSave = { ...updatedSave, adminRevision: current.adminRevision + 1 };
+      await persistSave(db, target.id, updatedSave);
+    }
     await logAction(db, context.userId, target.id, data.action, summary);
     return { ok: true as const, message: summary };
   });
