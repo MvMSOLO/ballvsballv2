@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [tokens, primitives, root, packageText, wordmark, loadingMark, seasonBadge, brandGuide, homeRoute, portalShell] = await Promise.all([
+const [tokens, primitives, root, packageText, wordmark, loadingMark, seasonBadge, brandGuide, homeRoute, portalShell, worldRenderer] = await Promise.all([
   readFile(new URL("../src/design-system.css", import.meta.url), "utf8"),
   readFile(new URL("../src/ui-primitives.css", import.meta.url), "utf8"),
   readFile(new URL("../src/routes/__root.tsx", import.meta.url), "utf8"),
@@ -12,6 +12,7 @@ const [tokens, primitives, root, packageText, wordmark, loadingMark, seasonBadge
   readFile(new URL("../public/brand/BRAND_GUIDE.md", import.meta.url), "utf8"),
   readFile(new URL("../src/routes/index.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/portal-shell.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/render/world.ts", import.meta.url), "utf8"),
 ]);
 const pkg = JSON.parse(packageText);
 
@@ -50,6 +51,14 @@ assert.match(loadingMark, /<title[^>]*>Ball Arena loading<\/title>/i, "Loading m
 assert.match(seasonBadge, /Season 01 — Origin/i, "Season badge identity is missing");
 assert.ok(brandGuide.includes("Never fabricate online player counts"), "Brand guide must prohibit deceptive marketing");
 
+assert.match(worldRenderer, /aspect >= 1\.85 \? 56 : aspect >= 1\.35 \? 48 : 44/, "Lobby camera must widen on desktop and landscape screens");
+assert.ok(homeRoute.includes('x: -4.2, z: 3.7'), "Front-left rival must stay inside the lobby safe framing");
+assert.ok(homeRoute.includes('x: 4.2, z: 3.7'), "Front-right rival must stay inside the lobby safe framing");
+assert.ok(homeRoute.includes('x: -4.8, z: -2.4'), "Rear-left rival must stay inside the lobby safe framing");
+assert.ok(homeRoute.includes('x: 4.8, z: -2.4'), "Rear-right rival must stay inside the lobby safe framing");
+assert.ok(homeRoute.includes('className="world-guide-controls"'), "First-session lobby must show movement controls");
+assert.ok(homeRoute.includes('> ARENA READY</span>'), "Lobby status must not imply an online-player session");
+
 assert.ok(primitives.includes("@media (prefers-reduced-motion: reduce)"), "Reduced-motion behavior is missing");
 assert.ok(primitives.includes("@media (forced-colors: active)"), "Forced-colors behavior is missing");
 assert.ok(primitives.includes(":focus-visible"), "Keyboard focus styling is missing");
@@ -67,4 +76,4 @@ function assertBalancedCss(source, name) {
 assertBalancedCss(tokens, "design-system.css");
 assertBalancedCss(primitives, "ui-primitives.css");
 
-console.log(`Design/brand checks passed: ${requiredTokens.length} tokens, ${requiredPrimitives.length} UI primitives, brand assets, metadata, responsive and accessibility gates.`);
+console.log(`Design/brand/lobby checks passed: ${requiredTokens.length} tokens, ${requiredPrimitives.length} UI primitives, brand assets, responsive camera and first-session lobby gates.`);
