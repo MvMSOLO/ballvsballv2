@@ -33,11 +33,13 @@ Public screens reviewed: home arena, profile, shop, inventory, leaderboard, sett
 - Acceptance: every route loads without CSS/runtime errors; active, hover, focus, disabled, and error states remain identifiable; no broken layout on supported sizes.
 
 ### Phase 02 — Brand identity and art direction
+**Status:** in progress. Added an original angular sigil asset, replaced the arena/player-hub placeholder marks, and aligned the SVG favicon. Remaining: finalize the full wordmark/lockups, loading mark, season badge, and complete asset/brand rules.
 - Finalize distinctive BALL ARENA wordmark/sigil, logo lockups, favicon/app icon, loading mark, season badge, and brand usage rules.
 - Establish a deliberate surface/material vocabulary and rarity/state color map. Keep the identity recognizably original rather than imitating REDMAGIC logos or assets.
 - Acceptance: brand is recognizable at 24 px and in an Instagram ad thumbnail; icons and typography are consistent across every screen.
 
 ### Phase 03 — Home / lobby rebuilt
+**Status:** first implementation pushed; post-deploy visual regression review still required. The first-screen briefing has a new art-directed hierarchy with live counts of configured rivals/ball types, explicit objective guidance, a labeled navigation rail, and no public 1V1 LAB button on the free-roam home. Remaining: visually verify desktop/tablet/portrait/landscape, adjust clipping/overlap, and evaluate the first-session path with players.
 - Recompose the first screen: arena as the hero, player identity and wallet as compact rails, a single obvious play/challenge action, contextual rival prompts, and readable secondary destinations.
 - Remove visual competition from unnecessary floating cards and overlong instructions.
 - Acceptance: a new player can identify the next step quickly; the central playfield is not obscured; test desktop, tablet, portrait mobile, and landscape mobile.
