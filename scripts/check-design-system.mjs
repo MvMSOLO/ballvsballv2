@@ -153,3 +153,20 @@ assert.ok(profileRoute.includes('async function equipFrame(frameId: FrameId)') &
 assert.ok(profileRoute.includes('aria-label={"Progress to level " + (level + 1)}') && profileRoute.includes('xpForNext(level)'), "Profile XP progress must derive from the real XP/level model");
 assert.ok(profileRoute.includes('✓ EQUIPPED') && profileRoute.includes('EQUIP FRAME'), "Owned profile frames must separate ownership from equipped state");
 assert.ok(tokens.includes('.shop-save-state[data-state="error"]') && tokens.includes('.profile-xp-track') && tokens.includes('.profile-frame-card-iron'), "Phase 07 catalogue, XP, and baseline-frame styles must exist");
+
+
+// Phase 08: authenticated onboarding, safe return targets, real provider availability, and recovery states.
+const loginRoute = await readFile(new URL("../src/routes/login.tsx", import.meta.url), "utf8");
+const authReturn = await readFile(new URL("../src/lib/auth/auth-return.ts", import.meta.url), "utf8");
+const authCapabilities = await readFile(new URL("../src/lib/auth/auth-capabilities.ts", import.meta.url), "utf8");
+const authClient = await readFile(new URL("../src/lib/auth/client.ts", import.meta.url), "utf8");
+assert.ok(loginRoute.includes('validateSearch: (search: Record<string, unknown>)') && loginRoute.includes('resolveAuthReturnTo(search.callbackURL)'), "Login must validate the return target before OAuth redirects");
+assert.ok(authReturn.includes('candidate.startsWith("//")') && authReturn.includes('AUTH_ROUTE_PATHS.has(target.pathname)'), "Auth return targets must reject open redirects and login loops");
+assert.ok(loginRoute.includes('useCurrentUserState()') && loginRoute.includes('sessionPending'), "Login must resolve the current session before presenting auth success or redirecting");
+assert.ok(loginRoute.includes('getAuthCapabilities()') && loginRoute.includes('capabilityError'), "Login must verify provider capability and expose a retry state");
+assert.ok(authCapabilities.includes('process.env.GOOGLE_CLIENT_ID') && authCapabilities.includes('emailAndPasswordEnabled'), "Provider buttons must follow server-side capability flags, not hard-coded assumptions");
+assert.ok(loginRoute.includes('profile.ok') && loginRoute.includes('Account created by the server'), "Registration must distinguish confirmed account creation from later profile-sync failure");
+assert.ok(loginRoute.includes('friendlyCredentialError') && loginRoute.includes('friendlyProviderError'), "Auth failures must have actionable recovery messaging");
+assert.ok(authClient.includes('if (!data?.url) throw new Error("Google sign-in is not configured') && authClient.includes('if (!data?.url) throw new Error("This sign-in provider is unavailable'), "A missing OAuth redirect URL must not leave the UI stuck in a false pending state");
+assert.ok(portalShell.includes('AUTH_RETURN_PATHS[active]') && portalShell.includes('href={signInHref}'), "Player hub sign-in must preserve the requested route");
+assert.ok(tokens.includes('.auth-provider-button') && tokens.includes('.auth-status-panel') && tokens.includes('.auth-benefit-list'), "Phase 08 needs responsive provider/status/onboarding styles");
