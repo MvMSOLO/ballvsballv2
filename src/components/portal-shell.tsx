@@ -20,7 +20,7 @@ export function PortalShell({ active, title, description, children }: {
     <div className="portal-ambient" aria-hidden="true" />
     <header className="portal-topbar">
       <a href="/" className="portal-brand" aria-label="BALL ARENA home">
-        <span className="portal-brand-orb"><img className="portal-brand-sigil" src="/brand/ball-arena-mark.svg" alt="" /></span><span><strong>BALL ARENA</strong><small>PHYSICS DUEL LEAGUE</small></span>
+        <img className="portal-brand-wordmark" src="/brand/ball-arena-wordmark.svg" alt="BALL ARENA — Physics Duel League" />
       </a>
       <nav className="portal-nav" aria-label="Main navigation">
         {LINKS.map((item) => <a key={item.key} href={item.href} className={"portal-nav-link" + (active === item.key ? " active" : "")} aria-current={active === item.key ? "page" : undefined}>{item.label}</a>)}
