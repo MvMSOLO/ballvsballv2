@@ -981,11 +981,11 @@ export class World {
     // formation is intentional so the first-time lobby reads as one arena, not
     // five characters lost at the edges of a cinematic wide shot.
     const spots: [number, number, string][] = [
-      [-4.2, 3.7, "#5b8cff"],
+      [-1.8, 3.7, "#5b8cff"],
       [4.2, 3.7, "#3ecf8e"],
-      [-4.8, -2.4, "#f5b942"],
+      [-1.8, -2.4, "#f5b942"],
       [4.8, -2.4, "#ff5a36"],
-      [0, 8.5, "#c4b5fd"],
+      [0, -7.2, "#c4b5fd"],
     ];
     for (const [x, z, color] of spots) {
       const pad = new THREE.Mesh(
