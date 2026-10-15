@@ -1185,3 +1185,11 @@ button { touch-action: manipulation; }
 @media (prefers-reduced-motion: reduce) {
   .brand-orb::after, .portal-brand-orb::after { animation: none; }
 }
+
+
+/* Keep the three-part arena masthead intentional on small screens. */
+@media (max-width: 760px) {
+  .topbar-main { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; }
+  .topbar-main .game-nav { grid-column: 1 / -1; grid-row: 2; }
+  .topbar-main .wallet { grid-column: 2; grid-row: 1; }
+}
