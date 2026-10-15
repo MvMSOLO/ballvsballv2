@@ -615,18 +615,31 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     <main className="game-shell">
       <div className="world-host" ref={hostRef} aria-label="3D BALL ARENA world" />
       <div className="game-vignette" />
-      <header className="topbar">
+      <header className={"topbar" + (mode === "free-roam" ? " topbar-main" : "")}>
         <div className="brand-mark"><span className="brand-orb"><img className="brand-sigil" src="/brand/ball-arena-mark.svg" alt="" /></span><div><strong>BALL ARENA</strong><small>PHYSICS DUEL LEAGUE</small></div></div>
-        {mode !== "admin" && <nav className="game-nav" aria-label="Player hub"><a className="hub-icon-link" href="/profile" title="Profile" aria-label="Profile"><HubLogo kind="profile" /></a><a className="hub-icon-link" href="/shop" title="Shop" aria-label="Shop"><HubLogo kind="shop" /></a><a className="hub-icon-link" href="/inventory" title="Inventory" aria-label="Inventory"><HubLogo kind="inventory" /></a><a className="hub-icon-link" href="/leaderboard" title="Ranks" aria-label="Ranks"><HubLogo kind="ranks" /></a><a className="hub-icon-link" href="/settings" title="Settings" aria-label="Settings"><HubLogo kind="settings" /></a>{currentUser && !currentUser.isDevFallback ? <a className="hub-icon-link" href="/profile" title="Account" aria-label="Account"><HubLogo kind="account" /></a> : <a className="hub-icon-link" href="/login" title="Sign in" aria-label="Sign in"><HubLogo kind="login" /></a>}</nav>}
-        {!adminMode ? <a className="admin-route-link" href="/1v1/admin" title="Open the auto-bot pack testing lab">⚙ 1V1 LAB</a> : <a className="admin-route-link" href="/1v1/" title="Return to standard duel mode">↗ DUEL</a>}
+        {mode !== "admin" && <nav className="game-nav" aria-label="Player hub">{currentUser && !currentUser.isDevFallback ? <a className="hub-icon-link" href="/profile" title="Profile" aria-label="Profile"><HubLogo kind="profile" /><span className="hub-icon-label">PROFILE</span></a> : <a className="hub-icon-link" href="/login" title="Sign in" aria-label="Sign in"><HubLogo kind="login" /><span className="hub-icon-label">SIGN IN</span></a>}<a className="hub-icon-link" href="/shop" title="Shop" aria-label="Shop"><HubLogo kind="shop" /><span className="hub-icon-label">SHOP</span></a><a className="hub-icon-link" href="/inventory" title="Inventory" aria-label="Inventory"><HubLogo kind="inventory" /><span className="hub-icon-label">INVENTORY</span></a><a className="hub-icon-link" href="/leaderboard" title="Ranks" aria-label="Ranks"><HubLogo kind="ranks" /><span className="hub-icon-label">RANKS</span></a><a className="hub-icon-link" href="/settings" title="Settings" aria-label="Settings"><HubLogo kind="settings" /><span className="hub-icon-label">SETTINGS</span></a></nav>}
+        {mode === "admin" ? <a className="admin-route-link" href="/1v1/" title="Return to standard duel mode">↗ DUEL</a> : mode === "duel" ? <a className="admin-route-link" href="/1v1/admin" title="Open the auto-bot pack testing lab">⚙ 1V1 LAB</a> : null}
         <div className="wallet">{view?.flow === "fight" && <button className={"speed-vote-button" + (view.matchSpeed === 2 ? " active" : "")} onClick={toggleMatchSpeed} aria-pressed={view.matchSpeed === 2} title="Both sides must approve 2x speed"><strong>2×</strong><span>{view.matchSpeed === 2 ? "BOTH READY" : "MATCH SPEED"}</span></button>}<span title={infiniteDiamonds ? "Infinite diamonds enabled" : "Diamonds"}>◈ {infiniteDiamonds ? "∞" : diamonds.toLocaleString()}</span><span title={infiniteCoins ? "Infinite coins enabled" : "Coins"}>● {infiniteCoins ? "∞" : coins.toLocaleString()}</span><button className="icon-button sound-toggle" onClick={() => { const next = !audioMuted; setAudioMuted(next); setMuted(next); try { const saved = loadSave(); saved.settings.sound = !next; writeSave(saved); } catch { /* keep the in-memory toggle */ } }} aria-label={audioMuted ? "Enable sound" : "Mute sound"}>{audioMuted ? "◌" : "♫"}</button><button className="icon-button" onClick={() => { const next = quality === "medium" ? "high" : quality === "high" ? "low" : "medium"; setQuality(next); try { const saved = loadSave(); saved.settings.quality = next; writeSave(saved); } catch { /* keep the in-memory quality */ } }} aria-label="Change graphics quality">◉ {quality.toUpperCase()}</button></div>
       </header>
 
-      {!view && mode === "free-roam" && <div className="world-guide">
-        <span className="eyebrow">FREE ROAM · SEASON 01</span>
-        <strong>WALK UP TO A RIVAL</strong>
-        <small>Move with the stick or WASD. Get close, then challenge them.</small>
-      </div>}
+      {!view && mode === "free-roam" && <section className="world-guide" aria-label="Arena briefing">
+        <div className="world-guide-topline">
+          <span className="eyebrow">ARENA FORGE <i> / 001</i></span>
+          <span className="world-guide-live"><i className="status-dot" /> LIVE</span>
+        </div>
+        <h1>ENTER THE <em>ARENA.</em></h1>
+        <p>One ball. One launch. No second chances. Find a rival and let physics decide.</p>
+        <div className="world-guide-metrics">
+          <div><strong>{String(RIVALS.length).padStart(2, "0")}</strong><span>RIVALS</span></div>
+          <div><strong>{String(availablePacks.reduce((count, pack) => count + pack.balls.length, 0)).padStart(2, "0")}</strong><span>BALL TYPES</span></div>
+          <div><strong>1V1</strong><span>DUEL MODE</span></div>
+        </div>
+        <div className="world-guide-objective">
+          <span className="world-guide-step">01</span>
+          <span><b>FIND YOUR TARGET</b><small>Move close to a rival to unlock the challenge.</small></span>
+          <span className="world-guide-arrow" aria-hidden="true">↗</span>
+        </div>
+      </section>}
 
       {!view && mode === "free-roam" && <div
         className="move-stick"
