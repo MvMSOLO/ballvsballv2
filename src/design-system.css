@@ -180,7 +180,7 @@ button { touch-action: manipulation; }
   mask-image: linear-gradient(90deg, black, transparent 88%);
 }
 .world-host { z-index: 0; }
-.world-host canvas.gl { filter: saturate(1.12) contrast(1.04); }
+/* Keep the WebGL canvas unfiltered; scene materials and lighting carry the color grade. */
 .game-vignette {
   z-index: 1;
   background:

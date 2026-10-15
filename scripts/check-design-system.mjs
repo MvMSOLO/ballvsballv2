@@ -54,7 +54,16 @@ assert.ok(brandGuide.includes("Never fabricate online player counts"), "Brand gu
 assert.match(worldRenderer, /aspect >= 1\.85 \? 56 : aspect >= 1\.35 \? 48 : 44/, "Lobby camera must widen on desktop and landscape screens");
 assert.ok(worldRenderer.includes("new THREE.InstancedMesh(pillarGeometry, pillarMaterial, 12)"), "Repeated lobby pillars must use instanced rendering");
 assert.ok(worldRenderer.includes("if (targetQuality !== this.quality) this.setQuality(targetQuality, true)"), "Adaptive quality must not resize the renderer every frame");
-assert.ok(worldRenderer.includes("this.quality === \"low\" ? 0.8 : this.quality === \"medium\" ? 1.25 : 1.75"), "Low graphics mode must reduce render resolution for GPU headroom");
+assert.ok(worldRenderer.includes("this.quality === \"low\" ? 0.75 : this.quality === \"medium\" ? 1 : 1.5"), "Quality modes must cap framebuffer resolution for GPU headroom");
+assert.ok(worldRenderer.includes("antialias: false"), "WebGL renderer must avoid expensive default MSAA on integrated GPUs");
+assert.ok(worldRenderer.includes("update(dt: number, draw: DrawState, frameDeltaMs = dt * 1000)"), "Adaptive quality must receive the real animation-frame interval");
+assert.ok(worldRenderer.includes("Math.max(updateCostMs, Math.max(0, frameDeltaMs))"), "Adaptive quality must account for GPU-bound frame pacing");
+assert.ok(worldRenderer.includes("if (this.battleTrailsActive)"), "Idle lobby frames must not reset the full battle-trail pool");
+assert.ok(worldRenderer.includes("collectResources(this.scene)"), "Scene resources must be explicitly disposed on route teardown");
+assert.ok(homeRoute.includes("world.update(dt, draw, frameDeltaMs)"), "Frame timing must flow from requestAnimationFrame to the renderer");
+assert.ok(homeRoute.includes("const LOBBY_BOTS = RIVALS.map"), "Static rival draw data must be prepared once, not allocated each frame");
+assert.ok(homeRoute.includes("if (world.quality !== qualityRef.current)"), "Automatic quality changes must keep the quality HUD in sync");
+assert.ok(!tokens.includes(".world-host canvas.gl { filter: saturate(1.12) contrast(1.04); }"), "Canvas must not use an extra full-screen CSS filter");
 assert.ok(tokens.includes(".world-guide::after { display: none; }"), "Decorative footer must not overlap controls in short landscape");
 assert.ok(worldRenderer.includes('name = "lobby-crown"'), "Lobby must build the stadium crown architecture");
 assert.ok(worldRenderer.includes('name = "lobby-crown-ring"'), "Lobby architecture needs its restrained signal pulse");

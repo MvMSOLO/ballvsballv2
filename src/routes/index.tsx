@@ -116,6 +116,12 @@ const RIVALS = [
   { name: "ZedSpark", x: 0, z: -7.2, yaw: 3, moving: false, shirt: "#1c2430", emote: "" },
 ] as const;
 
+const LOBBY_BOTS = RIVALS.map((rival) => ({
+  name: rival.name, x: rival.x, z: rival.z, yaw: rival.yaw,
+  moving: rival.moving, shirt: rival.shirt, emote: rival.emote,
+}));
+const PLAYER_COLORS = { skin: "#f3c7a1", shirt: "#ff5a36", pants: "#2f6bff", hat: "#1c2430" };
+
 
 type HubLogoKind = "profile" | "shop" | "inventory" | "ranks" | "settings" | "account" | "login";
 
@@ -168,6 +174,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   const [aim, setAim] = useState(90);
   const [notice, setNotice] = useState("");
   const [quality, setQuality] = useState<"low" | "medium" | "high">("medium");
+  const qualityRef = useRef(quality);
   const playerPosRef = useRef({ x: 0, z: 0 });
   const touchMoveRef = useRef({ x: 0, y: 0 });
   const stickPointerRef = useRef<number | null>(null);
@@ -437,7 +444,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     let raf = 0;
     try {
       const world = new World(host);
-      world.setQuality(quality, true);
+      world.setQuality(qualityRef.current, true);
       worldRef.current = world;
       const resize = () => world.resize();
       window.addEventListener("resize", resize);
@@ -455,7 +462,8 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
       window.addEventListener("keyup", onUp);
       const tick = (now: number) => {
         if (disposed) return;
-        const dt = Math.min(0.05, lastFrameRef.current ? (now - lastFrameRef.current) / 1000 : 0.016);
+        const frameDeltaMs = lastFrameRef.current ? Math.max(0, now - lastFrameRef.current) : 16;
+        const dt = Math.min(0.05, frameDeltaMs / 1000);
         lastFrameRef.current = now;
         const keys = keysRef.current;
         const { x: inputX, z: inputZ } = playerMoveInput(keys, touchMoveRef.current);
@@ -571,11 +579,9 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
           moving: moveLength > 0.13,
           emote: current?.flow === "end" ? (current.matchWinner === 0 ? "win" : "lose") : "",
           camYaw: 0,
-          colors: { skin: "#f3c7a1", shirt: "#ff5a36", pants: "#2f6bff", hat: "#1c2430" },
-          bots: RIVALS.map((rival) => ({
-            name: rival.name, x: rival.x, z: rival.z, yaw: rival.yaw, moving: rival.moving, shirt: rival.shirt, emote: rival.emote,
-          })),
-          quality,
+          colors: PLAYER_COLORS,
+          bots: LOBBY_BOTS,
+          quality: world.quality,
           aimDrag: v?.flow === "aim" ? 1 : 0,
           ents: frame?.ents ?? [],
           effects: frame?.effects ?? [],
@@ -588,7 +594,11 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
           spectate: null,
           oppColor: "#ff3b5c",
         };
-        world.update(dt, draw);
+        world.update(dt, draw, frameDeltaMs);
+        if (world.quality !== qualityRef.current) {
+          qualityRef.current = world.quality;
+          setQuality(world.quality);
+        }
         raf = window.requestAnimationFrame(tick);
       };
       raf = window.requestAnimationFrame(tick);
@@ -604,7 +614,26 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "3D renderer could not start on this device.");
     }
-  }, [quality, adminMode]);
+  }, [adminMode]);
+
+  useEffect(() => {
+    qualityRef.current = quality;
+    const world = worldRef.current;
+    if (world && world.quality !== quality) world.setQuality(quality, true);
+  }, [quality]);
+
+  const changeGraphicsQuality = useCallback((next: "low" | "medium" | "high") => {
+    qualityRef.current = next;
+    worldRef.current?.setQuality(next, true);
+    setQuality(next);
+    try {
+      const saved = loadSave();
+      saved.settings.quality = next;
+      writeSave(saved);
+    } catch {
+      // Keep the current in-memory quality when local storage is unavailable.
+    }
+  }, []);
 
   const flow = view?.flow;
   const selected = view?.offers[view.picked];
@@ -619,7 +648,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         <div className="brand-mark"><img className="brand-wordmark" src="/brand/ball-arena-wordmark.svg" alt="BALL ARENA — Physics Duel League" /></div>
         {mode !== "admin" && <nav className="game-nav" aria-label="Player hub">{currentUser && !currentUser.isDevFallback ? <a className="hub-icon-link" href="/profile" title="Profile" aria-label="Profile"><HubLogo kind="profile" /><span className="hub-icon-label">PROFILE</span></a> : <a className="hub-icon-link" href="/login" title="Sign in" aria-label="Sign in"><HubLogo kind="login" /><span className="hub-icon-label">SIGN IN</span></a>}<a className="hub-icon-link" href="/shop" title="Shop" aria-label="Shop"><HubLogo kind="shop" /><span className="hub-icon-label">SHOP</span></a><a className="hub-icon-link" href="/inventory" title="Inventory" aria-label="Inventory"><HubLogo kind="inventory" /><span className="hub-icon-label">INVENTORY</span></a><a className="hub-icon-link" href="/leaderboard" title="Ranks" aria-label="Ranks"><HubLogo kind="ranks" /><span className="hub-icon-label">RANKS</span></a><a className="hub-icon-link" href="/settings" title="Settings" aria-label="Settings"><HubLogo kind="settings" /><span className="hub-icon-label">SETTINGS</span></a></nav>}
         {mode === "admin" ? <a className="admin-route-link" href="/1v1/" title="Return to standard duel mode">↗ DUEL</a> : mode === "duel" ? <a className="admin-route-link" href="/1v1/admin" title="Open the auto-bot pack testing lab">⚙ 1V1 LAB</a> : null}
-        <div className="wallet">{view?.flow === "fight" && <button className={"speed-vote-button" + (view.matchSpeed === 2 ? " active" : "")} onClick={toggleMatchSpeed} aria-pressed={view.matchSpeed === 2} title="Both sides must approve 2x speed"><strong>2×</strong><span>{view.matchSpeed === 2 ? "BOTH READY" : "MATCH SPEED"}</span></button>}<span title={infiniteDiamonds ? "Infinite diamonds enabled" : "Diamonds"}>◈ {infiniteDiamonds ? "∞" : diamonds.toLocaleString()}</span><span title={infiniteCoins ? "Infinite coins enabled" : "Coins"}>● {infiniteCoins ? "∞" : coins.toLocaleString()}</span><button className="icon-button sound-toggle" onClick={() => { const next = !audioMuted; setAudioMuted(next); setMuted(next); try { const saved = loadSave(); saved.settings.sound = !next; writeSave(saved); } catch { /* keep the in-memory toggle */ } }} aria-label={audioMuted ? "Enable sound" : "Mute sound"}>{audioMuted ? "◌" : "♫"}</button><button className="icon-button" onClick={() => { const next = quality === "medium" ? "high" : quality === "high" ? "low" : "medium"; setQuality(next); try { const saved = loadSave(); saved.settings.quality = next; writeSave(saved); } catch { /* keep the in-memory quality */ } }} aria-label="Change graphics quality">◉ {quality.toUpperCase()}</button></div>
+        <div className="wallet">{view?.flow === "fight" && <button className={"speed-vote-button" + (view.matchSpeed === 2 ? " active" : "")} onClick={toggleMatchSpeed} aria-pressed={view.matchSpeed === 2} title="Both sides must approve 2x speed"><strong>2×</strong><span>{view.matchSpeed === 2 ? "BOTH READY" : "MATCH SPEED"}</span></button>}<span title={infiniteDiamonds ? "Infinite diamonds enabled" : "Diamonds"}>◈ {infiniteDiamonds ? "∞" : diamonds.toLocaleString()}</span><span title={infiniteCoins ? "Infinite coins enabled" : "Coins"}>● {infiniteCoins ? "∞" : coins.toLocaleString()}</span><button className="icon-button sound-toggle" onClick={() => { const next = !audioMuted; setAudioMuted(next); setMuted(next); try { const saved = loadSave(); saved.settings.sound = !next; writeSave(saved); } catch { /* keep the in-memory toggle */ } }} aria-label={audioMuted ? "Enable sound" : "Mute sound"}>{audioMuted ? "◌" : "♫"}</button><button className="icon-button" onClick={() => { const next = quality === "medium" ? "high" : quality === "high" ? "low" : "medium"; changeGraphicsQuality(next); }} aria-label="Change graphics quality">◉ {quality.toUpperCase()}</button></div>
       </header>
 
       {!view && mode === "free-roam" && <section className="world-guide" aria-label="Arena briefing">

@@ -822,6 +822,8 @@ export class World {
   private dpr = 1;
   private frameMs = 16;
   private slowFrameStreak = 0;
+  private battleTrailsActive = false;
+  private readonly nameTagWorldQuaternion = new THREE.Quaternion();
   quality: "low" | "medium" | "high" = "medium";
   auto = true;
   host: HTMLElement;
@@ -833,7 +835,8 @@ export class World {
     const canvas = document.createElement("canvas");
     canvas.className = "gl";
     host.appendChild(canvas);
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: "high-performance" });
+    // Keep the framebuffer inexpensive on integrated/mobile GPUs; High mode supersamples via DPR.
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: "high-performance" });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.12;
@@ -908,7 +911,7 @@ export class World {
     if (Math.abs(this.camera.fov - want) > 0.4) this.camera.fov = want;
     this.camera.updateProjectionMatrix();
     // Low mode intentionally renders below CSS resolution to reduce pixel workload on weaker GPUs.
-    const cap = this.quality === "low" ? 0.8 : this.quality === "medium" ? 1.25 : 1.75;
+    const cap = this.quality === "low" ? 0.75 : this.quality === "medium" ? 1 : 1.5;
     this.dpr = Math.min(cap, window.devicePixelRatio || 1);
     this.renderer.setPixelRatio(this.dpr);
     this.renderer.setSize(w, h, false);
@@ -917,6 +920,7 @@ export class World {
   setQuality(q: "low" | "medium" | "high", auto: boolean): void {
     this.quality = q;
     this.auto = auto;
+    this.slowFrameStreak = 0;
     const high = q === "high";
     this.renderer.shadowMap.enabled = high;
     this.key.castShadow = high;
@@ -1360,10 +1364,10 @@ export class World {
     return { x: this.camera.position.x + dir.x * t, z: this.camera.position.z + dir.z * t };
   }
 
-  update(dt: number, draw: DrawState): void {
+  update(dt: number, draw: DrawState, frameDeltaMs = dt * 1000): void {
+    const t0 = performance.now();
     this.clock += dt;
     this.impactShake = Math.max(0, this.impactShake - dt * 0.85);
-    const t0 = performance.now();
     this.lobby.visible = draw.mode === "lobby";
     this.arena.visible = draw.mode === "arena";
     this.player.group.position.set(draw.px, 0, draw.pz);
@@ -1433,7 +1437,11 @@ export class World {
     this.updateCombatEffects(draw.effects, dt);
     this.updateBattleTrails(draw, dt);
     this.renderer.render(this.scene, this.camera);
-    this.frameMs = this.frameMs * 0.9 + (performance.now() - t0) * 0.1;
+    // Use the measured RAF interval as well as synchronous update/render cost. A renderer
+    // can block mostly on GPU work that performance.now() around render() does not expose.
+    const updateCostMs = performance.now() - t0;
+    const observedFrameMs = Math.max(updateCostMs, Math.max(0, frameDeltaMs));
+    this.frameMs = this.frameMs * 0.9 + observedFrameMs * 0.1;
     if (this.auto && this.quality !== "low") {
       // Require repeated slow frames before dropping to Low, and never resize the canvas
       // every frame when the target remains Medium. Repeated setSize/setPixelRatio calls
@@ -1447,14 +1455,19 @@ export class World {
 
   private updateBattleTrails(draw: DrawState, dt: number): void {
     if (draw.mode !== "arena") {
-      this.lastTrailPosition.clear();
-      for (const particle of this.trailPool) {
-        particle.active = false;
-        particle.mesh.visible = false;
-        particle.material.opacity = 0;
+      // Lobby frames should not walk/reset the whole particle pool over and over.
+      if (this.battleTrailsActive) {
+        this.lastTrailPosition.clear();
+        for (const particle of this.trailPool) {
+          particle.active = false;
+          particle.mesh.visible = false;
+          particle.material.opacity = 0;
+        }
+        this.battleTrailsActive = false;
       }
       return;
     }
+    this.battleTrailsActive = true;
 
     const currentIds = new Set<number>();
     for (const entity of draw.ents) {
@@ -1691,7 +1704,7 @@ export class World {
 
   private updateNameTagFacing(rig: Rig, self: boolean): void {
     if (!rig.nameTag) return;
-    const parentRotation = new THREE.Quaternion();
+    const parentRotation = this.nameTagWorldQuaternion;
     rig.group.getWorldQuaternion(parentRotation);
     rig.nameTag.quaternion.copy(parentRotation.invert().multiply(this.camera.quaternion));
     const dist = this.camera.position.distanceTo(rig.group.position);
@@ -1873,8 +1886,37 @@ export class World {
   }
 
   destroy(): void {
-    this.trailGeometry.dispose();
-    for (const particle of this.trailPool) particle.material.dispose();
+    // Dispose scene and cached templates explicitly on route teardown. Mesh clones share
+    // resources, so Sets ensure that each GPU-backed object is disposed only once.
+    const geometries = new Set<THREE.BufferGeometry>();
+    const materials = new Set<THREE.Material>();
+    const textures = new Set<THREE.Texture>();
+    const collectResources = (root: THREE.Object3D) => {
+      root.traverse((node) => {
+        const drawable = node as THREE.Object3D & {
+          geometry?: THREE.BufferGeometry;
+          material?: THREE.Material | THREE.Material[];
+        };
+        if (drawable.geometry instanceof THREE.BufferGeometry) geometries.add(drawable.geometry);
+        const nodeMaterials = Array.isArray(drawable.material)
+          ? drawable.material
+          : drawable.material
+            ? [drawable.material]
+            : [];
+        for (const material of nodeMaterials) {
+          materials.add(material);
+          for (const value of Object.values(material)) {
+            if (value instanceof THREE.Texture) textures.add(value);
+          }
+        }
+      });
+    };
+    collectResources(this.scene);
+    for (const template of this.ballMatCache.values()) collectResources(template);
+    for (const texture of textures) texture.dispose();
+    for (const material of materials) material.dispose();
+    for (const geometry of geometries) geometry.dispose();
+    this.ballMatCache.clear();
     this.renderer.dispose();
     this.host.replaceChildren();
   }
