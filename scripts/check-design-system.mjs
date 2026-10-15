@@ -63,6 +63,12 @@ assert.ok(worldRenderer.includes('if (draw.mode === "lobby") {\n      // The fre
 assert.ok(worldRenderer.includes("this.lobbyWater = this.lobby.getObjectByName(\"water\")"), "Static decorative scene nodes should be cached once");
 assert.ok(tokens.includes(".match-hud .lobby-button { position: relative; top: -3px; }"), "Short landscape duel lobby button must stay inside the viewport");
 assert.ok(worldRenderer.includes("collectResources(this.scene)"), "Scene resources must be explicitly disposed on route teardown");
+assert.ok(homeRoute.includes('if (view?.flow !== "aim" || view.myAim === null) return;'), "Aim slider must resync from the session view during aim");
+assert.ok(homeRoute.includes('disabled={view.confirmed} title={view.confirmed ? "Pick confirmed — reroll locked" : "Reroll your current offers"}'), "Confirmed picks must disable reroll");
+assert.ok(homeRoute.includes('flow === "fight" ? (view.sudden ? "SUDDEN DEATH" : view.matchSpeed === 2 ? "2× SPEED" : "LIVE MATCH")'), "Fight phase chip must not display a false zero-second timer");
+assert.ok(homeRoute.includes('role="progressbar" aria-label={`${view.names[0]} HP`}'), "Combat HUD must expose accessible HP bars");
+assert.ok(homeRoute.includes('className="fight-health-warning">CRITICAL</strong>'), "Critical HP must have a non-color-only warning");
+assert.ok(tokens.includes(".fight-health-track {"), "Combat HUD health bar styling is missing");
 assert.ok(homeRoute.includes("world.update(dt, draw, frameDeltaMs)"), "Frame timing must flow from requestAnimationFrame to the renderer");
 assert.ok(homeRoute.includes("const LOBBY_BOTS = RIVALS.map"), "Static rival draw data must be prepared once, not allocated each frame");
 assert.ok(homeRoute.includes("if (world.quality !== qualityRef.current)"), "Automatic quality changes must keep the quality HUD in sync");
