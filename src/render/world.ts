@@ -896,7 +896,11 @@ export class World {
     const w = this.host.clientWidth || window.innerWidth;
     const h = this.host.clientHeight || window.innerHeight;
     this.camera.aspect = w / Math.max(1, h);
-    const want = this.camera.aspect < 0.85 ? 52 : 42;
+    // The lobby contains several side-by-side rivals. Increase horizontal coverage on
+    // wide screens so their nameplates and silhouettes remain inside the camera frame.
+    // Tall/portrait framing is preserved for the deliberate rotate-to-landscape gate.
+    const aspect = this.camera.aspect;
+    const want = aspect < 0.85 ? 52 : aspect >= 1.85 ? 56 : aspect >= 1.35 ? 48 : 44;
     if (Math.abs(this.camera.fov - want) > 0.4) this.camera.fov = want;
     this.camera.updateProjectionMatrix();
     const cap = this.quality === "low" ? 1 : this.quality === "medium" ? 1.5 : 2;
@@ -973,12 +977,15 @@ export class World {
       glow.setColorAt(i, new THREE.Color(i % 2 ? "#3ee0ff" : "#ffb15a"));
     }
     this.lobby.add(glow);
+    // Rival pads stay locked to RIVALS in src/routes/index.tsx; this tighter
+    // formation is intentional so the first-time lobby reads as one arena, not
+    // five characters lost at the edges of a cinematic wide shot.
     const spots: [number, number, string][] = [
-      [-7, 4, "#5b8cff"],
-      [7, 4, "#3ecf8e"],
-      [-8, -2, "#f5b942"],
-      [8, -2, "#ff5a36"],
-      [0, 10, "#c4b5fd"],
+      [-4.2, 3.7, "#5b8cff"],
+      [4.2, 3.7, "#3ecf8e"],
+      [-4.8, -2.4, "#f5b942"],
+      [4.8, -2.4, "#ff5a36"],
+      [0, 8.5, "#c4b5fd"],
     ];
     for (const [x, z, color] of spots) {
       const pad = new THREE.Mesh(
