@@ -70,7 +70,12 @@ export const syncSave = createServerFn({ method: "POST" })
     const incoming = migrateSave(JSON.parse(data.blob));
     const rows = await db<{ blob: string }>`select blob from saves where user_id = ${context.userId}`;
     const prev = readSave(rows[0]?.blob);
-    let merged = mergeCloud(incoming, prev);
+    // An admin edit/reset increments this revision. A still-open client tab may
+    // carry pre-edit progress; do not let max-merging resurrect removed balls,
+    // old XP, or progress that an owner intentionally reset. Return the canonical
+    // cloud blob once and let the client hydrate to the new revision.
+    const staleAfterAdminEdit = Boolean(prev && incoming.adminRevision < prev.adminRevision);
+    let merged = staleAfterAdminEdit ? prev! : mergeCloud(incoming, prev);
     if (prev) {
       if (incoming.coins > prev.coins + 25000) merged = { ...merged, coins: prev.coins };
       if (incoming.diamonds > prev.diamonds + 4000) merged = { ...merged, diamonds: prev.diamonds };
