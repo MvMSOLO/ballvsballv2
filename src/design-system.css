@@ -1289,21 +1289,28 @@ button { touch-action: manipulation; }
 }
 
 
-/* Phase 01 QA fix — landscape briefing must not inherit the desktop centering transform. */
+/* Phase 03 QA fix — keep the briefing clear of the top rail and left joystick in short landscape. */
 @media (max-height: 520px) and (orientation: landscape) {
   .world-guide {
-    top: calc(58px + env(safe-area-inset-top));
-    left: clamp(14px, 3vw, 28px);
-    width: min(318px, calc(100vw - 36px));
+    top: calc(78px + env(safe-area-inset-top));
+    left: clamp(12px, 2vw, 22px);
+    width: min(278px, calc(100vw - 28px));
     min-width: 0;
-    max-height: calc(100svh - 74px);
-    padding: 14px;
+    max-height: calc(100svh - 112px);
+    padding: 11px 12px;
     transform: none;
-    overflow-y: auto;
+    overflow: hidden;
   }
-  .world-guide h1 { font-size: 31px; }
+  .world-guide h1 { font-size: 30px; margin-bottom: 7px; }
   .world-guide-topline { margin-bottom: 8px; }
-  .world-guide-metrics { margin: 10px 0; padding: 8px 0; }
+  .world-guide > p,
+  .world-guide-metrics { display: none; }
+  .world-guide-objective { gap: 7px; }
+  .world-guide-objective small { font-size: 9px; }
+  .world-guide-controls { margin-top: 9px; padding-top: 8px; gap: 5px; }
+  .world-guide-controls-label { font-size: 6px; letter-spacing: .025em; }
+  .world-guide-keys kbd { width: 17px; height: 17px; }
+  .world-guide-controls-or { font-size: 6px; }
 }
 
 /* Phase 02 — the official lockup replaces separate hand-built header lettering. */
