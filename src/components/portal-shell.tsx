@@ -4,6 +4,15 @@ import { useCurrentUserState } from "@/lib/auth/use-current-user";
 
 const OWNER_EMAIL = "mirzayevavazbek15@gmail.com";
 
+const AUTH_RETURN_PATHS: Record<string, string> = {
+  profile: "/profile",
+  shop: "/shop",
+  inventory: "/inventory",
+  leaderboard: "/leaderboard",
+  settings: "/settings",
+  admin: "/admin",
+};
+
 const LINKS = [
   { href: "/profile", label: "PROFILE", key: "profile" },
   { href: "/shop", label: "SHOP", key: "shop" },
@@ -16,6 +25,7 @@ export function PortalShell({ active, title, description, children }: {
   active: string; title: string; description: string; children: ReactNode;
 }) {
   const { user, isPending } = useCurrentUserState();
+  const signInHref = "/login?callbackURL=" + encodeURIComponent(AUTH_RETURN_PATHS[active] ?? "/");
   return <main className="portal-page">
     <div className="portal-ambient" aria-hidden="true" />
     <header className="portal-topbar">
@@ -27,7 +37,7 @@ export function PortalShell({ active, title, description, children }: {
         {!isPending && user && !user.isDevFallback && user.primaryEmail?.trim().toLowerCase() === OWNER_EMAIL && <a href="/admin" className={"portal-nav-link portal-admin-nav" + (active === "admin" ? " active" : "")} aria-current={active === "admin" ? "page" : undefined}>ADMIN</a>}
       </nav>
       <div className="portal-session">
-        {isPending ? <span className="portal-session-state">CHECKING SESSION…</span> : user ? <div className="portal-account"><UserButton /></div> : <a className="portal-signin" href="/login">SIGN IN ↗</a>}
+        {isPending ? <span className="portal-session-state">CHECKING SESSION…</span> : user ? <div className="portal-account"><UserButton /></div> : <a className="portal-signin" href={signInHref}>SIGN IN ↗</a>}
       </div>
     </header>
     <section className="portal-content">
