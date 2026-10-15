@@ -2,6 +2,7 @@ import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-r
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import appCss from "../styles.css?url";
+import designSystemCss from "../design-system.css?url";
 
 const APP_NAME = "BALL ARENA";
 
@@ -11,13 +12,14 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: APP_NAME },
-      { name: "theme-color", content: "#07080d" },
-      { name: "description", content: "Neon Colosseum. Pick a ball, aim once, and let physics finish the duel." },
+      { name: "theme-color", content: "#080a0e" },
+      { name: "description", content: "A premium 3D physics ball-duel arena. Choose your ball, lock your aim, and let physics settle the fight." },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&family=Chakra+Petch:wght@400;500;600;700&display=swap" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" },
       { rel: "stylesheet", href: appCss },
+      { rel: "stylesheet", href: designSystemCss },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
     ],
