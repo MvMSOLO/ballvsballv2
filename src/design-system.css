@@ -1305,3 +1305,28 @@ button { touch-action: manipulation; }
   .world-guide-topline { margin-bottom: 8px; }
   .world-guide-metrics { margin: 10px 0; padding: 8px 0; }
 }
+
+/* Phase 02 — the official lockup replaces separate hand-built header lettering. */
+.brand-mark { min-width: 0; }
+.brand-wordmark {
+  display: block;
+  width: clamp(162px, 17.2vw, 228px);
+  max-width: 100%;
+  height: auto;
+  filter: drop-shadow(0 2px 14px rgba(255, 77, 55, .12));
+}
+.portal-brand { min-width: 0; }
+.portal-brand-wordmark {
+  display: block;
+  width: clamp(154px, 17vw, 202px);
+  max-width: 100%;
+  height: auto;
+}
+@media (max-width: 640px) {
+  .brand-wordmark { width: clamp(132px, 33vw, 170px); }
+  .portal-brand-wordmark { width: clamp(134px, 38vw, 166px); }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .brand-wordmark { width: clamp(128px, 18vw, 164px); }
+}
+
