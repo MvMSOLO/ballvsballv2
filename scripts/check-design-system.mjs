@@ -67,6 +67,11 @@ assert.ok(homeRoute.includes('if (view?.flow !== "aim" || view.myAim === null) r
 assert.ok(homeRoute.includes('disabled={view.confirmed} title={view.confirmed ? "Pick confirmed — reroll locked" : "Reroll your current offers"}'), "Confirmed picks must disable reroll");
 assert.ok(homeRoute.includes('flow === "fight" ? (view.sudden ? "SUDDEN DEATH" : view.matchSpeed === 2 ? "2× SPEED" : "LIVE MATCH")'), "Fight phase chip must not display a false zero-second timer");
 assert.ok(homeRoute.includes('role="progressbar" aria-label={`${view.names[0]} HP`}'), "Combat HUD must expose accessible HP bars");
+assert.ok(homeRoute.includes('view.offers.length === 0 ? <div className="ba-empty-state pick-empty-state" role="status">'), "Empty ball offers must show a recoverable status");
+assert.ok(homeRoute.includes('disabled={view.offers.length === 0 || view.picked < 0 || view.confirmed}'), "Confirm must stay disabled when the offer list is empty");
+assert.ok(homeRoute.includes('aria-label="Match rewards"'), "Match end screen must label the earned reward summary");
+assert.ok(homeRoute.includes("sessionRef.current?.coins ?? 0") && homeRoute.includes("sessionRef.current?.xp ?? 0"), "Displayed rewards must come from the actual session");
+assert.ok(tokens.includes(".pick-empty-state {") && tokens.includes(".reward-summary {"), "Empty-offer and end-reward states need dedicated styles");
 assert.ok(homeRoute.includes('className="fight-health-warning">CRITICAL</strong>'), "Critical HP must have a non-color-only warning");
 assert.ok(tokens.includes(".fight-health-track {"), "Combat HUD health bar styling is missing");
 assert.ok(homeRoute.includes("world.update(dt, draw, frameDeltaMs)"), "Frame timing must flow from requestAnimationFrame to the renderer");
