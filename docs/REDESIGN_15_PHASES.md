@@ -72,9 +72,10 @@ Public screens reviewed: home arena, profile, shop, inventory, leaderboard, sett
 - Acceptance: purchase, insufficient balance, already owned, equip/unequip, save/hydration, and error scenarios are exercised.
 
 ### Phase 08 — Authentication and onboarding
+**Status (2026-10-15):** Phase 08 implementation is pushed to `main` at `a5337a4cfa8ef4574d6c08675830eb0815b66a34`. GitHub Actions passed route generation/app compilation, TypeScript, ESLint, core/economy/control/match-speed tests, auth return-path and provider-capability policy tests, ball-pack validation, and production build. Vercel reports the matching production deployment READY. Read-only production QA passed `/login`, the `/profile` callback, and an external callback URL at desktop 1440×900 and mobile 390×844: the external redirect was normalized to the arena; Google appeared available and X correctly appeared disabled/not configured; no blank screen, captured console errors, or horizontal overflow was observed. Signup fields were inspected without submitting a form. Real credential sign-in, account creation, and Google OAuth were intentionally not executed on production, so those end-to-end identity-provider transactions remain an account-approved integration test gate.
 - Make sign-in/create-account feel like part of the product, explain benefits simply, provide clean validation/loading/recovery states, and make guest-to-account progression comprehensible.
 - Preserve existing auth implementation and provider capability. Do not create an authentication success appearance before the server confirms it.
-- Acceptance: sign-in/up, invalid credentials, pending/disabled provider, session loading, signed-out routes, and return-to-game paths work.
+- Acceptance: local validation and callback/provider policy are covered by automated tests; live sign-in/up and invalid-credential outcomes still require a controlled end-to-end auth test.
 
 ### Phase 09 — Navigation, settings, leaderboard, admin boundary
 - Unify nav structure across arena and player hub; use discoverable labels at desktop and mobile; clarify route hierarchy.
