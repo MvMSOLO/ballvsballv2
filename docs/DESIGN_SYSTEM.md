@@ -12,6 +12,7 @@ The interface should support gameplay rather than compete with it. Idle screens 
 - Reusable UI primitives: `src/ui-primitives.css`
 - Root stylesheet registration and fonts: `src/routes/__root.tsx`
 - Automated contract gate: `scripts/check-design-system.mjs`
+- Brand assets and usage: `public/brand/` and `public/brand/BRAND_GUIDE.md`
 - Validation runs at the start of `npm run build` and within `npm test`.
 
 ## Token families
