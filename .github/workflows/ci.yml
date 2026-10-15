@@ -42,6 +42,9 @@ jobs:
       - name: Core, economy, controls and match-speed tests
         run: npm run test:arena
 
+      - name: Authentication return-path tests
+        run: node --experimental-strip-types --test src/lib/auth/auth-return.test.ts
+
       - name: Validate ball packs
         run: npm run validate-packs
 
