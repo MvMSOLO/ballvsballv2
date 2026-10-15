@@ -36,7 +36,7 @@ Public screens reviewed: home arena, profile, shop, inventory, leaderboard, sett
 - Acceptance still required: final deployment ready, all core routes reviewed visually, component states checked at mobile and desktop widths, and no CSS/runtime errors.
 
 ### Phase 02 — Brand identity and art direction
-**Status:** in progress. Added an original angular sigil asset, replaced the arena/player-hub placeholder marks, and aligned the SVG favicon. Remaining: finalize the full wordmark/lockups, loading mark, season badge, and complete asset/brand rules.
+**Status:** implementation pushed to main; deployment build status and post-deploy visual review still gate acceptance. Added the primary horizontal wordmark, integrated it into both the free-roam arena and player-hub headers, created an animated loading mark and Season 01 / Origin badge, added a brand usage guide, and introduced contract checks for these assets and social metadata. The existing angular sigil and favicon remain the compact identity.
 - Finalize distinctive BALL ARENA wordmark/sigil, logo lockups, favicon/app icon, loading mark, season badge, and brand usage rules.
 - Establish a deliberate surface/material vocabulary and rarity/state color map. Keep the identity recognizably original rather than imitating REDMAGIC logos or assets.
 - Acceptance: brand is recognizable at 24 px and in an Instagram ad thumbnail; icons and typography are consistent across every screen.
