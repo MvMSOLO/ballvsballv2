@@ -129,3 +129,12 @@ assert.ok(ballInspect.includes("ability.actions[0]") && ballInspect.includes("ba
 assert.ok(shopRoute.includes('import { BallInspectDialog } from "@/components/ball-inspect-dialog";') && shopRoute.includes('onClick={() => setInspectedBall(ball)}'), "Shop cards must provide a real inspect action");
 assert.ok(inventoryRoute.includes('import { BallInspectDialog } from "@/components/ball-inspect-dialog";') && inventoryRoute.includes('onClick={() => setInspectedBall(ball)}'), "Owned collection cards must provide the same inspect action");
 assert.ok(tokens.includes(".ball-inspect-backdrop {") && tokens.includes(".shop-ball-orb.shape-crystal"), "Ball inspect and distinctive card silhouettes require shared design-system styles");
+
+const arenaRoute = await readFile(new URL("../src/routes/index.tsx", import.meta.url), "utf8");
+assert.ok(arenaRoute.includes('import { BallInspectDialog } from "@/components/ball-inspect-dialog";'), "Match drafting must reuse the shared ball inspector");
+assert.ok(arenaRoute.includes('className="ball-card-inspect"') && arenaRoute.includes('onClick={() => setInspectedBall(ball)}'), "Match pick cards must inspect without submitting a pick");
+assert.ok(arenaRoute.includes('className="ball-card-select" disabled={view.confirmed}'), "Locked match picks must not remain selectable");
+assert.ok(arenaRoute.includes('view.confirmed ? "✓ LOCKED IN" : "✓ SELECTED"'), "Selection and confirmed states must be visually distinct");
+assert.ok(arenaRoute.includes("AVAILABLE FOR THIS MATCH") && arenaRoute.includes("MATCH PICK LOCKED"), "Match inspect status must distinguish an available pick from a locked one");
+assert.ok(tokens.includes(".ball-card-select {") && tokens.includes(".ball-card-inspect {") && tokens.includes(".ball-card.confirmed.selected"), "Match selection and inspect controls require responsive interaction styling");
+assert.ok(tokens.includes("@media (max-height: 500px)") && tokens.includes("min-height: 27px"), "Inspect action must remain touchable in short landscape");

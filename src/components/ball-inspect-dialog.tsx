@@ -139,14 +139,35 @@ export interface BallInspectDialogProps {
   ball: BallDef | null; onClose: () => void; actionLabel?: string; actionDisabled?: boolean; onAction?: () => void; statusLabel?: string;
 }
 export function BallInspectDialog({ ball, onClose, actionLabel, actionDisabled = false, onAction, statusLabel }: BallInspectDialogProps) {
+  const dialogRef = useRef<HTMLElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
   useEffect(() => {
     if (!ball) return;
-    const previous = document.body.style.overflow;
+    const previousOverflow = document.body.style.overflow;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     document.body.style.overflow = "hidden";
-    const keydown = (event: KeyboardEvent) => { if (event.key === "Escape") onClose(); };
+    closeButtonRef.current?.focus();
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { event.preventDefault(); onCloseRef.current(); return; }
+      if (event.key !== "Tab") return;
+      const dialog = dialogRef.current;
+      if (!dialog) return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'));
+      if (!focusable.length) { event.preventDefault(); dialog.focus(); return; }
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) { event.preventDefault(); first.focus(); }
+    };
     window.addEventListener("keydown", keydown);
-    return () => { document.body.style.overflow = previous; window.removeEventListener("keydown", keydown); };
-  }, [ball, onClose]);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", keydown);
+      if (previousFocus?.isConnected) previousFocus.focus();
+    };
+  }, [ball]);
   if (!ball) return null;
   const stats = [
     { key: "HP", value: ball.stats.hp, max: 220, label: "Health pool" },
@@ -155,8 +176,8 @@ export function BallInspectDialog({ ball, onClose, actionLabel, actionDisabled =
     { key: "DMG", value: ball.stats.contactDamage, max: 16, label: "Contact damage" },
   ];
   return <div className="ball-inspect-backdrop" onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
-    <section className="ball-inspect-dialog" role="dialog" aria-modal="true" aria-labelledby="ball-inspect-title">
-      <header className="ball-inspect-header"><div><span className="portal-kicker">BALL CODEX / {ball.id.toUpperCase()}</span><span className={"rarity-pill rarity-" + ball.rarity}>{ball.rarity.toUpperCase()} CLASS</span></div><button className="ball-inspect-close" type="button" onClick={onClose} aria-label="Close ball details">×</button></header>
+    <section ref={dialogRef} className="ball-inspect-dialog" role="dialog" aria-modal="true" aria-labelledby="ball-inspect-title" tabIndex={-1}>
+      <header className="ball-inspect-header"><div><span className="portal-kicker">BALL CODEX / {ball.id.toUpperCase()}</span><span className={"rarity-pill rarity-" + ball.rarity}>{ball.rarity.toUpperCase()} CLASS</span></div><button ref={closeButtonRef} className="ball-inspect-close" type="button" onClick={onClose} aria-label="Close ball details">×</button></header>
       <div className="ball-inspect-main">
         <div className="ball-inspect-art"><BallPreview3D ball={ball} /><div className="ball-inspect-id"><span>COLLECTION SIGNAL</span><strong style={{ color: RARITY[ball.rarity] }}>{ball.visual.shape.toUpperCase()}</strong></div></div>
         <div className="ball-inspect-copy">

@@ -11,6 +11,7 @@ import { hydrateArenaSave, syncArenaSave } from "@/economy/persistence";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { authEnabled } from "@/lib/auth/client";
 import { sfx, setMuted, unlockAudio } from "../audio/synth";
+import { BallInspectDialog } from "@/components/ball-inspect-dialog";
 
 export const Route = createFileRoute("/")({ component: BallArenaPage });
 
@@ -172,6 +173,8 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   const [diamonds, setDiamonds] = useState(CONFIG.starterDiamonds);
   const [infiniteDiamonds, setInfiniteDiamonds] = useState(false);
   const [aim, setAim] = useState(90);
+  const [inspectedBall, setInspectedBall] = useState<BallDef | null>(null);
+  const closeBallInspect = useCallback(() => setInspectedBall(null), []);
   const [notice, setNotice] = useState("");
   const [quality, setQuality] = useState<"low" | "medium" | "high">("medium");
   const qualityRef = useRef(quality);
@@ -723,8 +726,8 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
           const skillMeta = firstAbility
             ? (skillWindow !== undefined ? `WINDOW ${skillWindow.toFixed(1)}S` : `${firstAbility.actions.length} EFFECT${firstAbility.actions.length === 1 ? "" : "S"}`)
             : "CONTACT PASSIVE";
-          return <button key={id} className={`ball-card ${view.picked === index ? "selected" : ""}`} onClick={() => send({ t: "pick", side: 0, index })} aria-pressed={view.picked === index}>
-            <span className="rarity">{ball.rarity}</span>
+          return <article key={id} className={"ball-card " + (view.picked === index ? "selected " : "") + (view.confirmed ? "confirmed" : "")} data-ball-id={ball.id}><button type="button" className="ball-card-select" disabled={view.confirmed} onClick={() => send({ t: "pick", side: 0, index })} aria-pressed={view.picked === index} aria-label={"Select " + ball.name.en + (view.picked === index ? ", selected" : "")}>
+            <div className="ball-card-meta"><span className={"rarity rarity-" + ball.rarity}>{ball.rarity}</span>{view.picked === index && <span className="ball-card-pick-state">{view.confirmed ? "✓ LOCKED IN" : "✓ SELECTED"}</span>}</div>
             <span className={`ball-sphere shape-${ball.visual.shape} ball-${ball.id}`} style={{ background: `radial-gradient(circle at 30% 24%, #ffffff 0%, ${ball.visual.baseColor} 24%, ${ball.visual.accentColor} 100%)`, color: ball.visual.accentColor }}>
               <span className="ball-glyph">{ballGlyph(ball.id)}</span><i className="ball-glint" />
             </span>
@@ -737,7 +740,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
             </div>
             <span className="ability-chip"><i>{abilityTriggerLabel(firstAbility?.trigger ?? "onBallHit", firstAbility?.interval)}</i><b><em className="ability-glyph">{abilityGlyph(firstAbility?.actions[0])}</em><span>{abilityName}</span></b><small>{skillMeta}{ball.abilities.length > 1 ? ` · +${ball.abilities.length - 1} SKILLS` : ""}</small></span>
             <p>{ball.description.en}</p>
-          </button>;
+          </button><button type="button" className="ball-card-inspect" aria-label={"Inspect " + ball.name.en + " in 3D"} title={"Inspect " + ball.name.en} onClick={() => setInspectedBall(ball)}>3D <span>↗</span></button></article>;
         })}</div><div className="action-row"><button className="secondary-button" disabled={view.confirmed} title={view.confirmed ? "Pick confirmed — reroll locked" : "Reroll your current offers"} onClick={() => send({ t: "reroll", side: 0 })}>{view.rerollCost === 0 ? "↻ FREE REROLL" : `↻ REROLL · ◈ ${view.rerollCost}`}</button><button className="primary-button compact" disabled={view.offers.length === 0 || view.picked < 0 || view.confirmed} onClick={() => send({ t: "confirm", side: 0 })}>CONFIRM PICK ↗</button></div><p className="hint-line">Opponent: {view.oppStatus === "locked" ? "LOCKED IN" : "CHOOSING…"}</p></div>}
         {flow === "aim" && <div className="aim-area"><div className="aim-icon">⌖</div><h2>Set your launch vector</h2><p>Your aim is private until both players lock in.</p><label className="aim-label">ANGLE <b>{aim}°</b></label><input aria-label="Aim angle" type="range" min="0" max="359" value={aim} onChange={(e) => { const n = Number(e.target.value); setAim(n); send({ t: "aim", side: 0, angle: n * Math.PI / 180 }); }} /><div className="action-row"><button className="primary-button compact" disabled={view.aimLocked} onClick={() => send({ t: "lock", side: 0 })}>LOCK AIM ✓</button><span className="hint-line">Opponent: {view.oppAimLocked ? "LOCKED" : "AIMING…"} · SECRET</span></div></div>}
         {flow === "countdown" && <div className="status-panel"><div className="pulse-ring">{Math.max(1, Math.ceil(view.timer))}</div><h2>GET READY</h2><p>Balls revealed. The duel starts automatically.</p></div>}
@@ -745,6 +748,8 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         {(flow === "round" || flow === "end") && <div className="status-panel"><div className="pulse-ring">{view.matchWinner === 0 ? "W" : view.matchWinner === 1 ? "L" : view.roundWinner === 0 ? "✓" : "×"}</div><h2>{flow === "end" ? (view.matchWinner === 0 ? "VICTORY" : "DEFEAT") : (view.roundWinner === 0 ? "ROUND WON" : "ROUND LOST")}</h2><p>{flow === "end" ? "Match rewards earned. Run it back?" : "Next round loading…"}</p>{flow === "end" && <div className="reward-summary" aria-label="Match rewards"><span><strong>+{sessionRef.current?.coins ?? 0}</strong><small>COINS</small></span><span><strong>+{sessionRef.current?.xp ?? 0}</strong><small>XP</small></span></div>}{flow === "end" && <button className="primary-button compact" onClick={() => startMatch(opponentName)}>REMATCH ↗</button>}</div>}
         <button className="lobby-button" onClick={() => { sessionRef.current = null; setView(null); nearbyRivalRef.current = null; setNearbyRival(null); setNotice("Back to the plaza."); }}>← LOBBY</button>
       </section>}
+
+      <BallInspectDialog ball={inspectedBall} onClose={closeBallInspect} statusLabel={inspectedBall ? (view?.flow === "pick" && view.offers.includes(inspectedBall.id) ? view.confirmed && view.offers[view.picked] === inspectedBall.id ? "MATCH PICK LOCKED" : "AVAILABLE FOR THIS MATCH" : "BALL CODEX · DETAILS ONLY") : undefined} />
 
       {adminMode && <section className="admin-console" aria-label="1v1 admin control panel">
         <div className="admin-console-head"><span>ADMIN ROUTE · /1v1/admin</span><strong>1V1 CONTROL DECK</strong></div>
