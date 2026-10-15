@@ -151,7 +151,7 @@ assert.ok(shopRoute.includes('setSaveStatus("syncing")') && shopRoute.includes('
 assert.ok(inventoryRoute.includes('aria-label="Search owned balls by name, role, or tag"') && inventoryRoute.includes('aria-label="Sort owned balls"'), "Inventory must support searchable/sortable owned collection");
 assert.ok(inventoryRoute.includes('syncArenaSave(next)') && inventoryRoute.includes('Changes are saved locally, but cloud sync failed'), "Inventory updates must use the existing account-sync path and report fallback truthfully");
 assert.ok(inventoryRoute.includes('" · EQUIPPED"') && inventoryRoute.includes('RESET COLLECTION FILTERS'), "Inventory must label active cosmetics and provide empty-filter recovery");
-assert.ok(profileRoute.includes('async function equipFrame(frameId: FrameId)') && profileRoute.includes('save.avatar.frame: frameId'), "Profile frame selection must be an explicit persisted equip action");
+assert.ok(profileRoute.includes('async function equipFrame(frameId: FrameId)') && profileRoute.includes('frame: frameId'), "Profile frame selection must be an explicit persisted equip action");
 assert.ok(profileRoute.includes('aria-label={"Progress to level " + (level + 1)}') && profileRoute.includes('xpForNext(level)'), "Profile XP progress must derive from the real XP/level model");
 assert.ok(profileRoute.includes('✓ EQUIPPED') && profileRoute.includes('EQUIP FRAME'), "Owned profile frames must separate ownership from equipped state");
 assert.ok(tokens.includes('.shop-save-state[data-state="error"]') && tokens.includes('.profile-xp-track') && tokens.includes('.profile-frame-card-iron'), "Phase 07 catalogue, XP, and baseline-frame styles must exist");

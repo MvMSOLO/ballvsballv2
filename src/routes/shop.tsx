@@ -98,7 +98,7 @@ function ShopPage() {
     if (sort === "name") return a.name.en.localeCompare(b.name.en);
     if (sort === "price-low") return ballPrice(a) - ballPrice(b) || a.name.en.localeCompare(b.name.en);
     if (sort === "price-high") return ballPrice(b) - ballPrice(a) || a.name.en.localeCompare(b.name.en);
-    if (sort === "rarity") return rarityOrder[rarityOrder[a.rarity] === undefined ? "common" : b.rarity] - rarityOrder[a.rarity] || a.name.en.localeCompare(b.name.en);
+    if (sort === "rarity") return rarityOrder[b.rarity] - rarityOrder[a.rarity] || a.name.en.localeCompare(b.name.en);
     return 0;
   });
   const hasActiveFilters = Boolean(query.trim()) || rarity !== "all" || ownership !== "all" || sort !== "featured";
