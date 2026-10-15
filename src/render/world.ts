@@ -835,18 +835,21 @@ export class World {
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: "high-performance" });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.15;
-    this.renderer.setClearColor("#070910");
-    this.scene.background = new THREE.Color("#070910");
-    this.scene.fog = new THREE.Fog("#101624", 16, 46);
-    this.scene.add(new THREE.HemisphereLight("#ffd7b0", "#182033", 0.72));
-    this.key = new THREE.DirectionalLight("#ffd2a8", 2.1);
+    this.renderer.toneMappingExposure = 1.12;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.setClearColor("#080b13");
+    this.scene.background = new THREE.Color("#080b13");
+    this.scene.fog = new THREE.Fog("#0b1120", 22, 58);
+    this.scene.add(new THREE.HemisphereLight("#d9efff", "#111522", 0.82));
+    this.key = new THREE.DirectionalLight("#ffd2a8", 2.05);
     this.key.position.set(8, 16, 6);
     this.scene.add(this.key);
-    this.rim = new THREE.DirectionalLight("#3ee0ff", 1.15);
+    this.rim = new THREE.DirectionalLight("#3ee0ff", 1.3);
     this.rim.position.set(-12, 8, -8);
     this.scene.add(this.rim);
-    this.scene.add(new THREE.DirectionalLight("#ff7a45", 0.35));
+    const warmFill = new THREE.DirectionalLight("#ff684d", 0.48);
+    warmFill.position.set(10, 4, 12);
+    this.scene.add(warmFill);
     this.specCanvas = document.createElement("canvas");
     this.specCanvas.width = 256;
     this.specCanvas.height = 160;
@@ -929,12 +932,27 @@ export class World {
 
   private buildLobby(): void {
     const floor = new THREE.Mesh(
-      new THREE.CircleGeometry(20, 64),
-      new THREE.MeshStandardMaterial({ color: "#141821", roughness: 0.35, metalness: 0.55 }),
+      new THREE.CircleGeometry(20, 96),
+      new THREE.MeshStandardMaterial({ color: "#101722", roughness: 0.3, metalness: 0.66 }),
     );
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     this.lobby.add(floor);
+
+    // Fine machined inlays make the lobby feel like a built arena floor, not a flat disk.
+    const inlayMaterial = new THREE.MeshStandardMaterial({
+      color: "#1b2937",
+      emissive: "#183949",
+      emissiveIntensity: 0.18,
+      roughness: 0.42,
+      metalness: 0.78,
+    });
+    for (const [inner, outer, y] of [[10.75, 10.82, 0.012], [18.25, 18.34, 0.014]] as const) {
+      const inlay = new THREE.Mesh(new THREE.RingGeometry(inner, outer, 128), inlayMaterial);
+      inlay.rotation.x = -Math.PI / 2;
+      inlay.position.y = y;
+      this.lobby.add(inlay);
+    }
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(6.2, 6.45, 64),
       new THREE.MeshStandardMaterial({ color: "#ff7a45", emissive: "#ff5a36", emissiveIntensity: 0.8, roughness: 0.3, metalness: 0.4 }),
@@ -977,6 +995,101 @@ export class World {
       glow.setColorAt(i, new THREE.Color(i % 2 ? "#3ee0ff" : "#ffb15a"));
     }
     this.lobby.add(glow);
+
+    // A stadium crown gives the lobby a legible silhouette at desktop and mobile aspect ratios.
+    const crown = new THREE.Group();
+    crown.name = "lobby-crown";
+    const pillarMaterial = new THREE.MeshStandardMaterial({
+      color: "#161f2c",
+      roughness: 0.24,
+      metalness: 0.84,
+      emissive: "#142532",
+      emissiveIntensity: 0.25,
+    });
+    const cyanRail = new THREE.MeshStandardMaterial({
+      color: "#164458",
+      emissive: "#3ee0ff",
+      emissiveIntensity: 0.72,
+      roughness: 0.28,
+      metalness: 0.68,
+    });
+    const orangeRail = new THREE.MeshStandardMaterial({
+      color: "#552b25",
+      emissive: "#ff684d",
+      emissiveIntensity: 0.65,
+      roughness: 0.3,
+      metalness: 0.64,
+    });
+    for (let i = 0; i < 12; i++) {
+      const angle = (i / 12) * Math.PI * 2;
+      const radius = 14.05;
+      const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.42, 5.25, 0.42), pillarMaterial);
+      pillar.position.set(Math.cos(angle) * radius, 2.64, Math.sin(angle) * radius);
+      pillar.rotation.y = -angle;
+      pillar.castShadow = true;
+      pillar.receiveShadow = true;
+      crown.add(pillar);
+
+      const seam = new THREE.Mesh(
+        new THREE.BoxGeometry(0.055, 4.25, 0.055),
+        i % 3 === 0 ? orangeRail : cyanRail,
+      );
+      seam.position.set(Math.cos(angle) * (radius - 0.235), 2.72, Math.sin(angle) * (radius - 0.235));
+      crown.add(seam);
+
+      const foot = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.34, 0.42, 0.16, 8),
+        i % 3 === 0 ? orangeRail : pillarMaterial,
+      );
+      foot.position.set(Math.cos(angle) * radius, 0.1, Math.sin(angle) * radius);
+      crown.add(foot);
+    }
+    for (const [radius, y, material, tube] of [
+      [14.05, 5.18, cyanRail, 0.075],
+      [13.55, 6.05, pillarMaterial, 0.16],
+    ] as const) {
+      const rail = new THREE.Mesh(new THREE.TorusGeometry(radius, tube, 8, 96), material);
+      rail.rotation.x = -Math.PI / 2;
+      rail.position.y = y;
+      rail.castShadow = true;
+      crown.add(rail);
+    }
+    const crownPulse = new THREE.Mesh(
+      new THREE.TorusGeometry(13.7, 0.035, 6, 96),
+      new THREE.MeshBasicMaterial({ color: "#ff684d", transparent: true, opacity: 0.82, depthWrite: false }),
+    );
+    crownPulse.name = "lobby-crown-ring";
+    crownPulse.rotation.x = -Math.PI / 2;
+    crownPulse.position.y = 5.72;
+    crown.add(crownPulse);
+    this.lobby.add(crown);
+
+    // Distant points add depth without a heavy particle simulation or extra draw calls per star.
+    const starPositions = new Float32Array(360 * 3);
+    for (let i = 0; i < 360; i++) {
+      const angle = i * 2.399963229728653;
+      const radius = 27 + (i % 11) * 2.45;
+      starPositions[i * 3] = Math.cos(angle) * radius;
+      starPositions[i * 3 + 1] = 2.5 + (i % 17) * 1.12;
+      starPositions[i * 3 + 2] = Math.sin(angle) * radius;
+    }
+    const starGeometry = new THREE.BufferGeometry();
+    starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
+    const starField = new THREE.Points(
+      starGeometry,
+      new THREE.PointsMaterial({
+        color: "#8bb8da",
+        size: 0.075,
+        transparent: true,
+        opacity: 0.68,
+        sizeAttenuation: true,
+        depthWrite: false,
+        fog: false,
+      }),
+    );
+    starField.name = "arena-starfield";
+    this.scene.add(starField);
+
     // Rival pads stay locked to RIVALS in src/routes/index.tsx; this tighter
     // formation is intentional so the first-time lobby reads as one arena, not
     // five characters lost at the edges of a cinematic wide shot.
@@ -1054,6 +1167,54 @@ export class World {
     instA.receiveShadow = true;
     instB.receiveShadow = true;
     this.arena.add(instA, instB);
+
+    // Broadcast-style floor graphics: one center signal ring, two team-color lanes,
+    // and a fine midfield seam. All markings remain flat under active effects.
+    const arenaGraphics = new THREE.Group();
+    arenaGraphics.name = "arena-graphic-inlays";
+    const cyanSignal = new THREE.MeshBasicMaterial({
+      color: "#3ee0ff",
+      transparent: true,
+      opacity: 0.62,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const orangeSignal = new THREE.MeshBasicMaterial({
+      color: "#ff684d",
+      transparent: true,
+      opacity: 0.56,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const centerSignal = new THREE.Mesh(new THREE.TorusGeometry(2.05, 0.035, 6, 72), cyanSignal);
+    centerSignal.name = "arena-center-signal";
+    centerSignal.rotation.x = Math.PI / 2;
+    centerSignal.position.y = 0.085;
+    arenaGraphics.add(centerSignal);
+    const innerSignal = new THREE.Mesh(new THREE.TorusGeometry(1.76, 0.014, 5, 72), orangeSignal);
+    innerSignal.rotation.x = Math.PI / 2;
+    innerSignal.position.y = 0.086;
+    arenaGraphics.add(innerSignal);
+    const midfield = new THREE.Mesh(
+      new THREE.BoxGeometry(22, 0.018, 0.035),
+      new THREE.MeshBasicMaterial({ color: "#28404f", transparent: true, opacity: 0.72, depthWrite: false }),
+    );
+    midfield.position.set(0, 0.082, 0);
+    arenaGraphics.add(midfield);
+    for (const [z, material] of [[-7.6, cyanSignal], [7.6, orangeSignal]] as const) {
+      const teamRing = new THREE.Mesh(new THREE.TorusGeometry(2.3, 0.025, 5, 64), material);
+      teamRing.rotation.x = Math.PI / 2;
+      teamRing.position.set(0, 0.083, z);
+      arenaGraphics.add(teamRing);
+      const mark = new THREE.Mesh(
+        new THREE.BoxGeometry(1.4, 0.018, 0.055),
+        material,
+      );
+      mark.position.set(0, 0.084, z + (z < 0 ? 2.9 : -2.9));
+      arenaGraphics.add(mark);
+    }
+    this.arena.add(arenaGraphics);
+
     const wallGeo = new THREE.BoxGeometry(24, 1.7, 0.45);
     const wallZ = new THREE.Mesh(wallGeo, lambert("#2a3344", "#3ee0ff", 0.15));
     wallZ.position.set(0, 0.85, -12);
@@ -1064,12 +1225,54 @@ export class World {
     const wallX2 = wallX.clone();
     wallX2.position.x = 12;
     this.arena.add(wallZ, wallZ2, wallX, wallX2);
-    const glass = new THREE.Mesh(
-      new THREE.BoxGeometry(24.4, 0.8, 24.4),
-      new THREE.MeshLambertMaterial({ color: "#bfe6ff", transparent: true, opacity: 0.18 }),
+
+    // Machined top rails and four compact corner beacons frame the playable floor.
+    const northRail = new THREE.Mesh(new THREE.BoxGeometry(24.15, 0.075, 0.11), cyanSignal);
+    northRail.position.set(0, 1.76, -12);
+    const southRail = northRail.clone();
+    southRail.material = orangeSignal;
+    southRail.position.z = 12;
+    const westRail = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.075, 24.15), cyanSignal);
+    westRail.position.set(-12, 1.76, 0);
+    const eastRail = westRail.clone();
+    eastRail.material = orangeSignal;
+    eastRail.position.x = 12;
+    this.arena.add(northRail, southRail, westRail, eastRail);
+
+    for (const [x, z, material] of [
+      [-12.35, -12.35, cyanSignal],
+      [12.35, -12.35, cyanSignal],
+      [-12.35, 12.35, orangeSignal],
+      [12.35, 12.35, orangeSignal],
+    ] as const) {
+      const beacon = new THREE.Group();
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.4, 0.22, 8), lambert("#161e2c", "#12202f", 0.3));
+      base.position.y = 0.12;
+      const column = new THREE.Mesh(new THREE.BoxGeometry(0.2, 2.1, 0.2), lambert("#1c2a38", "#132d3a", 0.25));
+      column.position.y = 1.22;
+      const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.22, 0), material);
+      crystal.position.y = 2.42;
+      beacon.add(base, column, crystal);
+      beacon.position.set(x, 0, z);
+      this.arena.add(beacon);
+    }
+
+    // A very faint overhead force-field plane replaces the old thick glass slab,
+    // which visually intersected the fighters and softened the whole combat read.
+    const forceField = new THREE.Mesh(
+      new THREE.PlaneGeometry(24, 24),
+      new THREE.MeshBasicMaterial({
+        color: "#bfe6ff",
+        transparent: true,
+        opacity: 0.045,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      }),
     );
-    glass.position.y = 2.2;
-    this.arena.add(glass);
+    forceField.name = "arena-force-field";
+    forceField.rotation.x = -Math.PI / 2;
+    forceField.position.y = 7.4;
+    this.arena.add(forceField);
     for (const [x, z, color] of [
       [0, 13.4, "#2f6bff"],
       [0, -13.4, "#ff3b5c"],
@@ -1165,6 +1368,16 @@ export class World {
     }
     const water = this.lobby.getObjectByName("water");
     if (water) water.position.y = 0.05 + Math.sin(this.clock * 2) * 0.03;
+    const crownRing = this.lobby.getObjectByName("lobby-crown-ring") as THREE.Mesh<
+      THREE.TorusGeometry,
+      THREE.MeshBasicMaterial
+    > | undefined;
+    if (crownRing) crownRing.material.opacity = 0.68 + (Math.sin(this.clock * 1.15) + 1) * 0.09;
+    const centerSignal = this.arena.getObjectByName("arena-center-signal") as THREE.Mesh<
+      THREE.TorusGeometry,
+      THREE.MeshBasicMaterial
+    > | undefined;
+    if (centerSignal) centerSignal.material.opacity = 0.52 + (Math.sin(this.clock * 2.1) + 1) * 0.07;
     if (draw.showcase && draw.mode === "lobby") {
       if (this.lobbyBallId !== draw.showcase.id || !this.lobbyBall) {
         if (this.lobbyBall) this.lobby.remove(this.lobbyBall);
@@ -1179,14 +1392,16 @@ export class World {
       this.lobbyBall.visible = true;
     } else if (this.lobbyBall) this.lobbyBall.visible = false;
     if (draw.mode === "lobby") {
-      const drift = Math.sin(this.clock * 0.22) * 0.45;
+      // Slow, sub-degree camera parallax makes the lobby feel alive without affecting control aim.
+      const orbit = this.clock * 0.12;
       const dist = 9.2;
-      const desiredX = draw.px + Math.sin(drift) * 1.4;
-      const desiredZ = draw.pz + dist;
-      this.camera.position.x += (desiredX - this.camera.position.x) * (1 - Math.exp(-3 * dt));
-      this.camera.position.y += (5.15 - this.camera.position.y) * (1 - Math.exp(-3 * dt));
-      this.camera.position.z += (desiredZ - this.camera.position.z) * (1 - Math.exp(-3 * dt));
-      this.camera.lookAt(draw.px, 1.25, draw.pz);
+      const desiredX = draw.px + Math.sin(orbit) * 0.32;
+      const desiredY = 5.15 + Math.sin(this.clock * 0.38) * 0.045;
+      const desiredZ = draw.pz + dist + Math.cos(orbit) * 0.18;
+      this.camera.position.x += (desiredX - this.camera.position.x) * (1 - Math.exp(-2.8 * dt));
+      this.camera.position.y += (desiredY - this.camera.position.y) * (1 - Math.exp(-2.8 * dt));
+      this.camera.position.z += (desiredZ - this.camera.position.z) * (1 - Math.exp(-2.8 * dt));
+      this.camera.lookAt(draw.px + Math.sin(orbit) * 0.08, 1.25, draw.pz);
       this.paintSpectate(draw.spectate);
       this.aimLine.visible = false;
       for (const g of this.ballGroups) g.visible = false;

@@ -52,6 +52,14 @@ assert.match(seasonBadge, /Season 01 — Origin/i, "Season badge identity is mis
 assert.ok(brandGuide.includes("Never fabricate online player counts"), "Brand guide must prohibit deceptive marketing");
 
 assert.match(worldRenderer, /aspect >= 1\.85 \? 56 : aspect >= 1\.35 \? 48 : 44/, "Lobby camera must widen on desktop and landscape screens");
+assert.ok(worldRenderer.includes('name = "lobby-crown"'), "Lobby must build the stadium crown architecture");
+assert.ok(worldRenderer.includes('name = "lobby-crown-ring"'), "Lobby architecture needs its restrained signal pulse");
+assert.ok(worldRenderer.includes('name = "arena-starfield"'), "Arena must have a lightweight deep-space background");
+assert.ok(worldRenderer.includes("new THREE.PointsMaterial"), "Background stars must share a batched points material");
+assert.ok(worldRenderer.includes('name = "arena-force-field"'), "Arena force field must stay above, not intersect, fighters");
+assert.ok(worldRenderer.includes('name = "arena-graphic-inlays"'), "Arena floor needs broadcast-style spatial markings");
+assert.ok(worldRenderer.includes('name = "arena-center-signal"'), "Arena center signal should have a controlled pulse");
+assert.ok(worldRenderer.includes("const orbit = this.clock * 0.12"), "Lobby camera must use subtle eased cinematic parallax");
 assert.ok(homeRoute.includes('x: -1.8, z: 3.7'), "Front-left rival must stay inside the lobby safe framing");
 assert.ok(homeRoute.includes('x: 4.2, z: 3.7'), "Front-right rival must stay inside the lobby safe framing");
 assert.ok(homeRoute.includes('x: -1.8, z: -2.4'), "Rear-left rival must stay inside the lobby safe framing");
