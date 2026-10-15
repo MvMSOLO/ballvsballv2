@@ -1062,3 +1062,126 @@ button { touch-action: manipulation; }
 /* Phase 02 — original brand sigil scales consistently across the arena and player hub. */
 .brand-sigil, .portal-brand-sigil { position: relative; z-index: 1; display: block; width: 25px; height: 25px; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(40, 8, 8, .24)); }
 .portal-brand-sigil { width: 23px; height: 23px; }
+
+
+/* Phase 03 — art-directed first-session briefing and legible primary navigation. */
+.topbar-main { grid-template-columns: auto minmax(0, 1fr) auto; }
+.hub-icon-link { width: clamp(61px, 5.2vw, 78px); height: 46px; grid-template-rows: 21px auto; gap: 2px; }
+.hub-icon-link .hub-logo { width: 21px; height: 21px; }
+.hub-icon-label { display: block; color: currentColor; font: 600 7px/1 var(--ba-font-data); letter-spacing: .05em; white-space: nowrap; }
+.hub-icon-link[aria-current="page"] .hub-icon-label { color: #fff; }
+.world-guide {
+  left: clamp(20px, 4.7vw, 76px);
+  top: 51%;
+  transform: translateY(-50%);
+  width: min(358px, calc(100vw - 46px));
+  min-width: 280px;
+  gap: 0;
+  padding: clamp(19px, 2.2vw, 29px);
+  text-align: left;
+  pointer-events: none;
+  border: 1px solid rgba(194,210,230,.2);
+  border-radius: 4px 19px 4px 19px;
+  background: linear-gradient(145deg, rgba(9,13,19,.96), rgba(11,16,24,.91) 78%, rgba(21,28,39,.89));
+  box-shadow: 0 28px 90px rgba(0,0,0,.45), inset 0 1px rgba(255,255,255,.045);
+  backdrop-filter: blur(18px);
+}
+.world-guide::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 20px;
+  width: 78px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ba-red), transparent);
+  box-shadow: 0 0 16px rgba(255,77,55,.28);
+}
+.world-guide::after {
+  content: "FREE ROAM / SEASON 01";
+  position: absolute;
+  right: 17px;
+  bottom: 16px;
+  color: rgba(156,171,192,.38);
+  font: 7px var(--ba-font-data);
+  letter-spacing: .09em;
+}
+.world-guide-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+.world-guide-topline .eyebrow { font: 600 8px var(--ba-font-data); color: var(--ba-red-hot); letter-spacing: .13em; }
+.world-guide-topline .eyebrow i { color: #728096; font-style: normal; }
+.world-guide-live { display: inline-flex; align-items: center; gap: 6px; color: #a4b4c7; font: 600 7px var(--ba-font-data); letter-spacing: .11em; }
+.world-guide-live .status-dot { width: 5px; height: 5px; }
+.world-guide h1 {
+  max-width: 8.5ch;
+  margin: 0 0 13px;
+  color: #f7f8fb;
+  font: 700 clamp(37px, 4.25vw, 57px)/.91 var(--ba-font-display);
+  letter-spacing: -.055em;
+}
+.world-guide h1 em { color: var(--ba-red); font-style: normal; }
+.world-guide > p { max-width: 31ch; margin: 0; color: #a9b5c5; font-size: 12px; line-height: 1.7; }
+.world-guide-metrics { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 0; margin: 25px 0 20px; padding: 15px 0; border-top: 1px solid var(--ba-line); border-bottom: 1px solid var(--ba-line); }
+.world-guide-metrics > div { display: grid; gap: 6px; padding: 0 11px; border-left: 1px solid var(--ba-line); }
+.world-guide-metrics > div:first-child { padding-left: 0; border-left: 0; }
+.world-guide-metrics strong { color: #f4f6fb; font: 700 22px/1 var(--ba-font-display); letter-spacing: -.03em; }
+.world-guide-metrics span { color: #8190a4; font: 7px var(--ba-font-data); letter-spacing: .06em; }
+.world-guide-objective { display: grid; grid-template-columns: 29px minmax(0,1fr) 15px; gap: 11px; align-items: center; }
+.world-guide-step { display: grid; place-items: center; width: 29px; height: 29px; color: white; border: 1px solid rgba(255,77,55,.45); border-radius: 4px 9px 4px 9px; background: rgba(255,77,55,.12); font: 700 10px var(--ba-font-data); }
+.world-guide-objective > span:nth-child(2) { display: grid; gap: 4px; }
+.world-guide-objective b { color: #e9eef6; font: 600 8px var(--ba-font-data); letter-spacing: .06em; }
+.world-guide-objective small { color: #8998ac; font-size: 10px; line-height: 1.4; }
+.world-guide-arrow { color: var(--ba-red-hot); font-size: 14px; }
+.challenge-button {
+  color: #fff;
+  border: 1px solid rgba(255,132,103,.65);
+  border-radius: 4px 15px 4px 15px;
+  background: linear-gradient(110deg, #e94336, #ab242d);
+  box-shadow: 0 12px 36px rgba(0,0,0,.48), 0 0 26px rgba(255,77,55,.12);
+  animation: none;
+  transition: transform var(--ba-motion-fast), box-shadow var(--ba-motion-fast), filter var(--ba-motion-fast);
+}
+.challenge-button:hover { transform: translate(-50%, -2px); box-shadow: 0 17px 40px rgba(0,0,0,.5), 0 0 30px rgba(255,77,55,.19); }
+.challenge-button .challenge-kicker { color: #ffb4a2; opacity: 1; }
+.challenge-button small { color: #fff; opacity: .75; }
+@media (max-width: 1100px) {
+  .hub-icon-link { width: 62px; }
+}
+@media (max-width: 760px) {
+  .hub-icon-link { width: auto; min-width: 0; flex: 1 1 0; height: 43px; }
+  .hub-icon-link .hub-logo { width: 19px; height: 19px; }
+  .hub-icon-label { font-size: 6px; letter-spacing: 0; }
+  .world-guide {
+    left: 12px;
+    top: calc(105px + env(safe-area-inset-top));
+    transform: none;
+    width: min(300px, calc(100vw - 24px));
+    min-width: 0;
+    max-height: calc(100svh - 175px);
+    overflow: hidden;
+    padding: 14px;
+    border-radius: 4px 14px 4px 14px;
+  }
+  .world-guide-topline { margin-bottom: 11px; }
+  .world-guide h1 { font-size: clamp(27px, 6.2vw, 38px); margin-bottom: 7px; }
+  .world-guide > p { font-size: 10px; line-height: 1.45; }
+  .world-guide-metrics { margin: 12px 0; padding: 10px 0; }
+  .world-guide-metrics > div { padding: 0 7px; gap: 4px; }
+  .world-guide-metrics strong { font-size: 17px; }
+  .world-guide-metrics span { font-size: 6px; }
+  .world-guide-objective { grid-template-columns: 25px minmax(0,1fr) 12px; gap: 8px; }
+  .world-guide-step { width: 25px; height: 25px; }
+  .world-guide-objective small { font-size: 9px; }
+  .world-guide::after { display: none; }
+}
+@media (max-width: 420px) {
+  .world-guide { width: min(285px, calc(100vw - 24px)); padding: 12px; }
+  .world-guide h1 { font-size: 27px; }
+}
+@media (max-height: 520px) and (orientation: landscape) {
+  .world-guide { top: calc(57px + env(safe-area-inset-top)); max-height: calc(100svh - 155px); }
+  .world-guide h1 { font-size: 31px; }
+  .world-guide-metrics { margin: 10px 0; padding: 8px 0; }
+  .world-guide-topline { margin-bottom: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-orb::after, .portal-brand-orb::after { animation: none; }
+}
