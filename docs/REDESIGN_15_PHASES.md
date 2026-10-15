@@ -27,10 +27,13 @@ Public screens reviewed: home arena, profile, shop, inventory, leaderboard, sett
 ## Phases and acceptance criteria
 
 ### Phase 01 — Visual DNA / shared design system
-**Status:** implemented on main; production Vercel status for commit 204b9c84c461e1c8bad5877c5876d4ea6bd1a979 reported success. Visual post-deploy regression review is still required.
-- Added src/design-system.css and loaded it after src/styles.css through src/routes/__root.tsx.
-- Establish design tokens for color, type, surfaces, borders, radii, shadows, motion, focus states, responsive treatment, and common controls.
-- Acceptance: every route loads without CSS/runtime errors; active, hover, focus, disabled, and error states remain identifiable; no broken layout on supported sizes.
+**Status:** foundation implemented on main; automated contract gate wired into production build and npm test. The final deployment status must be checked against the latest commit, and a post-deploy multi-route visual regression review remains required.
+- Expanded src/design-system.css into semantic palette, typography, spacing, shape, elevation, motion/easing, layer, focus, and control-size token families.
+- Added src/ui-primitives.css with composable layout, typography, cards, buttons, icon buttons, fields, badges/chips, divider/status, progress, skeleton, empty-state, and visually-hidden primitives.
+- Registered the primitive stylesheet in src/routes/__root.tsx after the shared art-direction stylesheet.
+- Added scripts/check-design-system.mjs and wired it into npm run build and npm test. It checks required token/primitive coverage, stylesheet registration, reduced-motion/forced-colors/focus support, and CSS brace balance. This is a contract gate, not a substitute for a browser build or visual/accessibility review.
+- Documented usage and change policy in docs/DESIGN_SYSTEM.md.
+- Acceptance still required: final deployment ready, all core routes reviewed visually, component states checked at mobile and desktop widths, and no CSS/runtime errors.
 
 ### Phase 02 — Brand identity and art direction
 **Status:** in progress. Added an original angular sigil asset, replaced the arena/player-hub placeholder marks, and aligned the SVG favicon. Remaining: finalize the full wordmark/lockups, loading mark, season badge, and complete asset/brand rules.
