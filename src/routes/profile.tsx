@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { levelOf, loadSave, writeSave, defaultSave, migrateSave, type Save } from "@/economy/save";
+import { levelOf, xpForNext, loadSave, writeSave, defaultSave, migrateSave, type Save } from "@/economy/save";
 import { hydrateArenaSave, syncArenaSave } from "@/economy/persistence";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { authEnabled } from "@/lib/auth/client";
@@ -11,6 +11,7 @@ export const Route = createFileRoute("/profile")({ component: ProfilePage });
 
 type BadgeState = { vip: boolean; admin: boolean; owner: boolean };
 type PurchasableBadge = "vip" | "admin";
+type FrameId = "iron" | "vip" | "admin" | "owner";
 const EMPTY_BADGES: BadgeState = { vip: false, admin: false, owner: false };
 const OWNER_EMAIL = "mirzayevavazbek15@gmail.com";
 const FRAME_ITEMS = [
@@ -28,6 +29,7 @@ function ProfilePage() {
   const [frameNotice, setFrameNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [buyingBadge, setBuyingBadge] = useState<PurchasableBadge | null>(null);
+  const [equippingFrame, setEquippingFrame] = useState(false);
   const [badges, setBadges] = useState<BadgeState>(EMPTY_BADGES);
 
   useEffect(() => {
@@ -138,11 +140,55 @@ function ProfilePage() {
     }
   }
 
+  async function equipFrame(frameId: FrameId) {
+    const allowed = frameId === "iron"
+      || (frameId === "vip" && badges.vip)
+      || (frameId === "admin" && badges.admin)
+      || (frameId === "owner" && badges.owner);
+    if (!allowed) {
+      setFrameNotice("Unlock or verify this frame before equipping it.");
+      return;
+    }
+    if (equippingFrame) return;
+    setEquippingFrame(true);
+    setFrameNotice("");
+    const next = { ...save, avatar: { ...save.avatar, frame: frameId } };
+    try {
+      writeSave(next);
+    } catch {
+      setFrameNotice("Could not save the frame choice on this device.");
+      setEquippingFrame(false);
+      return;
+    }
+    setSave(next);
+    try {
+      if (connected) {
+        const merged = await syncArenaSave(next);
+        setSave(merged);
+        setFrameNotice(frameId.toUpperCase() + " frame equipped and synced to your account.");
+      } else {
+        setFrameNotice("Frame equipped on this device. Sign in to sync the choice across devices.");
+      }
+    } catch {
+      setFrameNotice("Frame is equipped on this device, but cloud sync failed. Retry when your connection is available.");
+    } finally {
+      setEquippingFrame(false);
+    }
+  }
+
   const level = levelOf(save);
+  const xpFloor = Math.max(0, (level - 1) ** 2 * 40);
+  const xpTarget = xpForNext(level);
+  const xpInLevel = Math.max(0, save.xp - xpFloor);
+  const xpForLevel = Math.max(1, xpTarget - xpFloor);
+  const xpPercent = Math.max(0, Math.min(100, xpInLevel / xpForLevel * 100));
   const winRate = save.matches ? Math.round((save.wins / save.matches) * 100) : 0;
   const shownName = save.username === "Guest" && user?.displayName ? user.displayName : save.username;
+  const requestedFrame = save.avatar.frame as FrameId;
   const activeFrame: "none" | "vip" | "admin" | "owner" =
-    badges.owner ? "owner" : badges.admin ? "admin" : badges.vip ? "vip" : "none";
+    requestedFrame === "vip" && badges.vip ? "vip"
+      : requestedFrame === "admin" && badges.admin ? "admin"
+        : requestedFrame === "owner" && badges.owner ? "owner" : "none";
   const frameSrc = activeFrame === "none" ? "" : "/frames/" + activeFrame + ".svg";
 
   return <PortalShell active="profile" title="PLAYER PROFILE" description="Your identity, rank, cosmetics and arena record — saved to your account.">
@@ -170,6 +216,12 @@ function ProfilePage() {
       {!connected && authEnabled && <a className="portal-button secondary profile-connect-button" href="/login?callbackURL=%2Fprofile">CONNECT ACCOUNT ↗</a>}
     </section>
 
+    <section className="portal-panel profile-xp-panel" aria-label="Experience progression">
+      <div className="profile-xp-heading"><div><span className="portal-kicker">PROGRESSION SYSTEM</span><h2>LEVEL {level} <span>›</span> {level + 1}</h2></div><strong>{save.xp.toLocaleString()} TOTAL XP</strong></div>
+      <div className="profile-xp-track" role="progressbar" aria-label={"Progress to level " + (level + 1)} aria-valuemin={0} aria-valuemax={xpForLevel} aria-valuenow={Math.min(xpForLevel, xpInLevel)} aria-valuetext={xpInLevel + " of " + xpForLevel + " XP in level " + level}><span style={{ width: xpPercent + "%" }} /></div>
+      <div className="profile-xp-foot"><span>{Math.min(xpForLevel, xpInLevel).toLocaleString()} / {xpForLevel.toLocaleString()} XP THIS LEVEL</span><span>{Math.max(0, xpTarget - save.xp).toLocaleString()} XP TO LEVEL {level + 1}</span></div>
+    </section>
+
     <div className="portal-stat-grid profile-stat-grid">
       <article className="portal-stat"><span>🏆 TROPHIES</span><strong>{save.trophies.toLocaleString()}</strong><small>Current division points</small></article>
       <article className="portal-stat"><span>⚔ MATCHES</span><strong>{save.matches.toLocaleString()}</strong><small>Duels played</small></article>
@@ -184,6 +236,11 @@ function ProfilePage() {
       </div>
       <p className="profile-vault-intro">Unlock animated identity frames with in-game gems. Purchases are saved to your signed-in account; no real-money checkout is used.</p>
       <div className="profile-frame-grid">
+        <article className={"profile-frame-card profile-frame-card-iron" + (activeFrame === "none" ? " is-equipped" : "")}>
+          <div className="profile-frame-preview"><span className="profile-iron-preview" aria-hidden="true">BA</span></div>
+          <div className="profile-frame-copy"><span className="profile-frame-subtitle">STANDARD ALLOY</span><h3>IRON FRAME</h3><p>The standard identity treatment, available to every player.</p></div>
+          <button className={"portal-button " + (activeFrame === "none" ? "owned" : "secondary")} type="button" disabled={equippingFrame || activeFrame === "none"} onClick={() => void equipFrame("iron")}>{activeFrame === "none" ? "✓ EQUIPPED" : equippingFrame ? "SAVING…" : "EQUIP FRAME"}</button>
+        </article>
         {FRAME_ITEMS.map((item) => {
           const owned = badges[item.id];
           const equipped = activeFrame === item.id;
@@ -195,8 +252,8 @@ function ProfilePage() {
               <p>{item.description}</p>
               {item.id === "admin" && <small className="profile-cosmetic-note">Cosmetic badge only — it does not grant moderation permissions.</small>}
             </div>
-            <button className={"portal-button " + (owned ? "owned" : "secondary")} type="button" disabled={Boolean(buyingBadge) || owned || !connected} onClick={() => void buyBadge(item.id)}>
-              {owned ? (equipped ? "✓ OWNED · ACTIVE" : "✓ OWNED") : buyingBadge === item.id ? "UNLOCKING…" : "UNLOCK · ◈ " + item.price}
+            <button className={"portal-button " + (owned ? (equipped ? "owned" : "primary") : "secondary")} type="button" disabled={Boolean(buyingBadge) || equippingFrame || (!owned && !connected) || (owned && equipped)} onClick={() => owned ? void equipFrame(item.id) : void buyBadge(item.id)}>
+              {owned ? (equipped ? "✓ EQUIPPED" : equippingFrame ? "SAVING…" : "EQUIP FRAME") : buyingBadge === item.id ? "UNLOCKING…" : !connected ? "SIGN IN TO UNLOCK" : "UNLOCK · ◈ " + item.price}
             </button>
           </article>;
         })}
@@ -207,6 +264,7 @@ function ProfilePage() {
             <h3>OWNER FRAME</h3>
             <p>{badges.owner ? "Ownership verified. The royal silver-black frame is active on this account." : "Reserved for the verified owner account or a valid one-time redemption."}</p>
           </div>
+          <button className={"portal-button " + (activeFrame === "owner" ? "owned" : "secondary")} type="button" disabled={!badges.owner || equippingFrame || activeFrame === "owner"} onClick={() => void equipFrame("owner")}>{!badges.owner ? "RESTRICTED" : activeFrame === "owner" ? "✓ EQUIPPED" : equippingFrame ? "SAVING…" : "EQUIP FRAME"}</button>
           <span className={"profile-frame-state" + (badges.owner ? " is-owned" : "")}>{badges.owner ? "✓ VERIFIED" : "RESTRICTED"}</span>
         </article>
       </div>

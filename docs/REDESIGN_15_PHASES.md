@@ -66,6 +66,7 @@ Public screens reviewed: home arena, profile, shop, inventory, leaderboard, sett
 - Acceptance: selected and owned states are unambiguous; stats match simulation data; previews scale across devices without layout shift.
 
 ### Phase 07 — Shop, inventory, cosmetics, profile
+**Status:** Phase 07 implementation is pushed to main. The shop now searches names/roles/tags, filters by rarity and actual ownership, sorts by name/price/rarity, shows real save-sync state, and avoids claiming a purchase failed when a response is uncertain. Inventory search/sorting and empty-filter recovery are added; favorites and loadout changes now pass through the existing serialized cloud-save path with local fallback messaging. Profile XP progress derives from the real XP thresholds, and standard/VIP/ADMIN/OWNER frame cards separate ownership from equip state; equip choice is saved to the existing avatar save field. The design-system contract gate now checks Phase 07 behaviors. CI and Vercel must pass for the latest commit; a production visual review remains required before calling the phase accepted.
 - Turn each screen into a complete, consistent product experience: searchable/filterable catalogue, ownership, equipped state, profile identity, rank/XP, frames, cosmetics, and useful empty/loading/error states.
 - Keep price and rarity semantics truthful; buying/equipping and persistence must continue to use existing economy/persistence logic.
 - Acceptance: purchase, insufficient balance, already owned, equip/unequip, save/hydration, and error scenarios are exercised.

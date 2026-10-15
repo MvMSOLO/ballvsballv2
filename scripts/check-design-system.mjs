@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [tokens, primitives, root, packageText, wordmark, loadingMark, seasonBadge, brandGuide, homeRoute, portalShell, worldRenderer] = await Promise.all([
+const [tokens, primitives, root, packageText, wordmark, loadingMark, seasonBadge, brandGuide, homeRoute, portalShell, worldRenderer, shopRoute, inventoryRoute, profileRoute] = await Promise.all([
   readFile(new URL("../src/design-system.css", import.meta.url), "utf8"),
   readFile(new URL("../src/ui-primitives.css", import.meta.url), "utf8"),
   readFile(new URL("../src/routes/__root.tsx", import.meta.url), "utf8"),
@@ -13,6 +13,9 @@ const [tokens, primitives, root, packageText, wordmark, loadingMark, seasonBadge
   readFile(new URL("../src/routes/index.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/portal-shell.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/render/world.ts", import.meta.url), "utf8"),
+  readFile(new URL("../src/routes/shop.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/routes/inventory.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/routes/profile.tsx", import.meta.url), "utf8"),
 ]);
 const pkg = JSON.parse(packageText);
 
@@ -138,3 +141,17 @@ assert.ok(arenaRoute.includes('view.confirmed ? "✓ LOCKED IN" : "✓ SELECTED"
 assert.ok(arenaRoute.includes("AVAILABLE FOR THIS MATCH") && arenaRoute.includes("MATCH PICK LOCKED"), "Match inspect status must distinguish an available pick from a locked one");
 assert.ok(tokens.includes(".ball-card-select {") && tokens.includes(".ball-card-inspect {") && tokens.includes(".ball-card.confirmed.selected"), "Match selection and inspect controls require responsive interaction styling");
 assert.ok(tokens.includes("@media (max-height: 500px)") && tokens.includes("min-height: 27px"), "Inspect action must remain touchable in short landscape");
+
+
+// Phase 07: truthful catalogue states, searchable owned collection, and explicit cosmetic equip.
+assert.ok(shopRoute.includes('aria-label="Filter ownership"') && shopRoute.includes('value={ownership}'), "Shop must filter by real owned/unowned state");
+assert.ok(shopRoute.includes('aria-label="Sort ball catalogue"') && shopRoute.includes('price-low') && shopRoute.includes('price-high'), "Shop must support explicit name/price/rarity sorting");
+assert.ok(shopRoute.includes('ball.ai_hints.role') && shopRoute.includes('...ball.tags'), "Shop search must cover ball identity, role, and tags");
+assert.ok(shopRoute.includes('setSaveStatus("syncing")') && shopRoute.includes('ACCOUNT SYNCED') && shopRoute.includes('Purchase could not be confirmed'), "Shop must expose hydration/sync state and avoid claiming an uncertain purchase succeeded or failed");
+assert.ok(inventoryRoute.includes('aria-label="Search owned balls by name, role, or tag"') && inventoryRoute.includes('aria-label="Sort owned balls"'), "Inventory must support searchable/sortable owned collection");
+assert.ok(inventoryRoute.includes('syncArenaSave(next)') && inventoryRoute.includes('Changes are saved locally, but cloud sync failed'), "Inventory updates must use the existing account-sync path and report fallback truthfully");
+assert.ok(inventoryRoute.includes('" · EQUIPPED"') && inventoryRoute.includes('RESET COLLECTION FILTERS'), "Inventory must label active cosmetics and provide empty-filter recovery");
+assert.ok(profileRoute.includes('async function equipFrame(frameId: FrameId)') && profileRoute.includes('save.avatar.frame: frameId'), "Profile frame selection must be an explicit persisted equip action");
+assert.ok(profileRoute.includes('aria-label={"Progress to level " + (level + 1)}') && profileRoute.includes('xpForNext(level)'), "Profile XP progress must derive from the real XP/level model");
+assert.ok(profileRoute.includes('✓ EQUIPPED') && profileRoute.includes('EQUIP FRAME'), "Owned profile frames must separate ownership from equipped state");
+assert.ok(tokens.includes('.shop-save-state[data-state="error"]') && tokens.includes('.profile-xp-track') && tokens.includes('.profile-frame-card-iron'), "Phase 07 catalogue, XP, and baseline-frame styles must exist");
