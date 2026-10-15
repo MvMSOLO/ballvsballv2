@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { levelOf, xpForNext, loadSave, writeSave, defaultSave, migrateSave, type Save } from "@/economy/save";
+import { xpForNext } from "@/config";
+import { levelOf, loadSave, writeSave, defaultSave, migrateSave, type Save } from "@/economy/save";
 import { hydrateArenaSave, syncArenaSave } from "@/economy/persistence";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { authEnabled } from "@/lib/auth/client";
