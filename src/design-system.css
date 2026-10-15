@@ -1311,6 +1311,8 @@ button { touch-action: manipulation; }
   .world-guide-controls-label { font-size: 6px; letter-spacing: .025em; }
   .world-guide-keys kbd { width: 17px; height: 17px; }
   .world-guide-controls-or { font-size: 6px; }
+  /* Decorative season footer collided with the movement key on 844×390. Keep the HUD readable. */
+  .world-guide::after { display: none; }
 }
 
 /* Phase 02 — the official lockup replaces separate hand-built header lettering. */

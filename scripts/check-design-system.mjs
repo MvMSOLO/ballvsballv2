@@ -52,6 +52,10 @@ assert.match(seasonBadge, /Season 01 — Origin/i, "Season badge identity is mis
 assert.ok(brandGuide.includes("Never fabricate online player counts"), "Brand guide must prohibit deceptive marketing");
 
 assert.match(worldRenderer, /aspect >= 1\.85 \? 56 : aspect >= 1\.35 \? 48 : 44/, "Lobby camera must widen on desktop and landscape screens");
+assert.ok(worldRenderer.includes("new THREE.InstancedMesh(pillarGeometry, pillarMaterial, 12)"), "Repeated lobby pillars must use instanced rendering");
+assert.ok(worldRenderer.includes("if (targetQuality !== this.quality) this.setQuality(targetQuality, true)"), "Adaptive quality must not resize the renderer every frame");
+assert.ok(worldRenderer.includes("this.quality === \"low\" ? 0.8 : this.quality === \"medium\" ? 1.25 : 1.75"), "Low graphics mode must reduce render resolution for GPU headroom");
+assert.ok(tokens.includes(".world-guide::after { display: none; }"), "Decorative footer must not overlap controls in short landscape");
 assert.ok(worldRenderer.includes('name = "lobby-crown"'), "Lobby must build the stadium crown architecture");
 assert.ok(worldRenderer.includes('name = "lobby-crown-ring"'), "Lobby architecture needs its restrained signal pulse");
 assert.ok(worldRenderer.includes('name = "arena-starfield"'), "Arena must have a lightweight deep-space background");

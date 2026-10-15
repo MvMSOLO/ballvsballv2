@@ -821,6 +821,7 @@ export class World {
   private lobbyBallId = "";
   private dpr = 1;
   private frameMs = 16;
+  private slowFrameStreak = 0;
   quality: "low" | "medium" | "high" = "medium";
   auto = true;
   host: HTMLElement;
@@ -906,7 +907,8 @@ export class World {
     const want = aspect < 0.85 ? 52 : aspect >= 1.85 ? 56 : aspect >= 1.35 ? 48 : 44;
     if (Math.abs(this.camera.fov - want) > 0.4) this.camera.fov = want;
     this.camera.updateProjectionMatrix();
-    const cap = this.quality === "low" ? 1 : this.quality === "medium" ? 1.5 : 2;
+    // Low mode intentionally renders below CSS resolution to reduce pixel workload on weaker GPUs.
+    const cap = this.quality === "low" ? 0.8 : this.quality === "medium" ? 1.25 : 1.75;
     this.dpr = Math.min(cap, window.devicePixelRatio || 1);
     this.renderer.setPixelRatio(this.dpr);
     this.renderer.setSize(w, h, false);
@@ -1020,29 +1022,49 @@ export class World {
       roughness: 0.3,
       metalness: 0.64,
     });
+    // Batch repeated architecture into instanced draws: the stadium still has 12 pylons,
+    // but its repeated pillar/trim geometry no longer adds dozens of separate draw calls.
+    const pillarGeometry = new THREE.BoxGeometry(0.42, 5.25, 0.42);
+    const seamGeometry = new THREE.BoxGeometry(0.055, 4.25, 0.055);
+    const footGeometry = new THREE.CylinderGeometry(0.34, 0.42, 0.16, 8);
+    const pillars = new THREE.InstancedMesh(pillarGeometry, pillarMaterial, 12);
+    const cyanSeams = new THREE.InstancedMesh(seamGeometry, cyanRail, 8);
+    const orangeSeams = new THREE.InstancedMesh(seamGeometry, orangeRail, 4);
+    const cyanFeet = new THREE.InstancedMesh(footGeometry, pillarMaterial, 8);
+    const orangeFeet = new THREE.InstancedMesh(footGeometry, orangeRail, 4);
+    pillars.castShadow = true;
+    pillars.receiveShadow = true;
+    const crownTransform = new THREE.Object3D();
+    let cyanSeamIndex = 0;
+    let orangeSeamIndex = 0;
+    let cyanFootIndex = 0;
+    let orangeFootIndex = 0;
     for (let i = 0; i < 12; i++) {
       const angle = (i / 12) * Math.PI * 2;
       const radius = 14.05;
-      const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.42, 5.25, 0.42), pillarMaterial);
-      pillar.position.set(Math.cos(angle) * radius, 2.64, Math.sin(angle) * radius);
-      pillar.rotation.y = -angle;
-      pillar.castShadow = true;
-      pillar.receiveShadow = true;
-      crown.add(pillar);
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
 
-      const seam = new THREE.Mesh(
-        new THREE.BoxGeometry(0.055, 4.25, 0.055),
-        i % 3 === 0 ? orangeRail : cyanRail,
-      );
-      seam.position.set(Math.cos(angle) * (radius - 0.235), 2.72, Math.sin(angle) * (radius - 0.235));
-      crown.add(seam);
+      crownTransform.position.set(x, 2.64, z);
+      crownTransform.rotation.set(0, -angle, 0);
+      crownTransform.updateMatrix();
+      pillars.setMatrixAt(i, crownTransform.matrix);
 
-      const foot = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.34, 0.42, 0.16, 8),
-        i % 3 === 0 ? orangeRail : pillarMaterial,
-      );
-      foot.position.set(Math.cos(angle) * radius, 0.1, Math.sin(angle) * radius);
-      crown.add(foot);
+      crownTransform.position.set(Math.cos(angle) * (radius - 0.235), 2.72, Math.sin(angle) * (radius - 0.235));
+      crownTransform.rotation.set(0, -angle, 0);
+      crownTransform.updateMatrix();
+      if (i % 3 === 0) orangeSeams.setMatrixAt(orangeSeamIndex++, crownTransform.matrix);
+      else cyanSeams.setMatrixAt(cyanSeamIndex++, crownTransform.matrix);
+
+      crownTransform.position.set(x, 0.1, z);
+      crownTransform.rotation.set(0, 0, 0);
+      crownTransform.updateMatrix();
+      if (i % 3 === 0) orangeFeet.setMatrixAt(orangeFootIndex++, crownTransform.matrix);
+      else cyanFeet.setMatrixAt(cyanFootIndex++, crownTransform.matrix);
+    }
+    for (const mesh of [pillars, cyanSeams, orangeSeams, cyanFeet, orangeFeet]) {
+      mesh.instanceMatrix.needsUpdate = true;
+      crown.add(mesh);
     }
     for (const [radius, y, material, tube] of [
       [14.05, 5.18, cyanRail, 0.075],
@@ -1412,9 +1434,14 @@ export class World {
     this.updateBattleTrails(draw, dt);
     this.renderer.render(this.scene, this.camera);
     this.frameMs = this.frameMs * 0.9 + (performance.now() - t0) * 0.1;
-    if (this.auto && this.frameMs > 22 && this.quality !== "low") {
-      this.quality = this.frameMs > 28 ? "low" : "medium";
-      this.setQuality(this.quality, true);
+    if (this.auto && this.quality !== "low") {
+      // Require repeated slow frames before dropping to Low, and never resize the canvas
+      // every frame when the target remains Medium. Repeated setSize/setPixelRatio calls
+      // were creating avoidable work during borderline performance.
+      if (this.frameMs > 28) this.slowFrameStreak += 1;
+      else this.slowFrameStreak = 0;
+      const targetQuality = this.slowFrameStreak >= 3 ? "low" : this.frameMs > 22 ? "medium" : this.quality;
+      if (targetQuality !== this.quality) this.setQuality(targetQuality, true);
     }
   }
 
