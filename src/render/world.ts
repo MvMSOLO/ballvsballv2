@@ -824,6 +824,9 @@ export class World {
   private slowFrameStreak = 0;
   private battleTrailsActive = false;
   private readonly nameTagWorldQuaternion = new THREE.Quaternion();
+  private lobbyWater: THREE.Mesh | null = null;
+  private lobbyCrownRing: THREE.Mesh<THREE.TorusGeometry, THREE.MeshBasicMaterial> | null = null;
+  private arenaCenterSignal: THREE.Mesh<THREE.TorusGeometry, THREE.MeshBasicMaterial> | null = null;
   quality: "low" | "medium" | "high" = "medium";
   auto = true;
   host: HTMLElement;
@@ -863,6 +866,15 @@ export class World {
     this.player.group.add(this.player.nameTag);
     this.buildLobby();
     this.buildArena();
+    this.lobbyWater = this.lobby.getObjectByName("water") as THREE.Mesh | null;
+    this.lobbyCrownRing = this.lobby.getObjectByName("lobby-crown-ring") as THREE.Mesh<
+      THREE.TorusGeometry,
+      THREE.MeshBasicMaterial
+    > | null;
+    this.arenaCenterSignal = this.arena.getObjectByName("arena-center-signal") as THREE.Mesh<
+      THREE.TorusGeometry,
+      THREE.MeshBasicMaterial
+    > | null;
     this.trailGeometry = new THREE.IcosahedronGeometry(0.11, 0);
     for (let i = 0; i < 44; i++) {
       const material = new THREE.MeshBasicMaterial({
@@ -1370,40 +1382,37 @@ export class World {
     this.impactShake = Math.max(0, this.impactShake - dt * 0.85);
     this.lobby.visible = draw.mode === "lobby";
     this.arena.visible = draw.mode === "arena";
-    this.player.group.position.set(draw.px, 0, draw.pz);
-    this.player.group.rotation.y = draw.face;
-    this.paintAvatar(this.player, draw.colors);
-    tickRig(this.player, dt, draw.moving, draw.emote);
-    this.updateNameTagFacing(this.player, true);
-    for (let i = 0; i < this.crowd.length; i++) {
-      const b = draw.bots[i];
-      const rig = this.crowd[i];
-      if (!b) {
-        rig.group.visible = false;
-        continue;
+    if (draw.mode === "lobby") {
+      // The free-roam avatar and five rivals belong only to the lobby. Updating their
+      // articulated rigs while the entire lobby is hidden wastes CPU during every duel.
+      this.player.group.position.set(draw.px, 0, draw.pz);
+      this.player.group.rotation.y = draw.face;
+      this.paintAvatar(this.player, draw.colors);
+      tickRig(this.player, dt, draw.moving, draw.emote);
+      this.updateNameTagFacing(this.player, true);
+      for (let i = 0; i < this.crowd.length; i++) {
+        const b = draw.bots[i];
+        const rig = this.crowd[i];
+        if (!b) {
+          rig.group.visible = false;
+          continue;
+        }
+        rig.group.visible = true;
+        rig.group.position.set(b.x, 0, b.z);
+        rig.group.rotation.y = b.yaw;
+        if (b.name && !rig.nameTag) {
+          rig.nameTag = makeNameTag(b.name, b.shirt);
+          rig.group.add(rig.nameTag);
+        }
+        tickRig(rig, dt, b.moving, b.emote ? "wave" : "");
+        this.updateNameTagFacing(rig, false);
       }
-      rig.group.visible = true;
-      rig.group.position.set(b.x, 0, b.z);
-      rig.group.rotation.y = b.yaw;
-      if (b.name && !rig.nameTag) {
-        rig.nameTag = makeNameTag(b.name, b.shirt);
-        rig.group.add(rig.nameTag);
-      }
-      tickRig(rig, dt, b.moving, b.emote ? "wave" : "");
-      this.updateNameTagFacing(rig, false);
+      if (this.lobbyWater) this.lobbyWater.position.y = 0.05 + Math.sin(this.clock * 2) * 0.03;
+      if (this.lobbyCrownRing) this.lobbyCrownRing.material.opacity = 0.68 + (Math.sin(this.clock * 1.15) + 1) * 0.09;
     }
-    const water = this.lobby.getObjectByName("water");
-    if (water) water.position.y = 0.05 + Math.sin(this.clock * 2) * 0.03;
-    const crownRing = this.lobby.getObjectByName("lobby-crown-ring") as THREE.Mesh<
-      THREE.TorusGeometry,
-      THREE.MeshBasicMaterial
-    > | undefined;
-    if (crownRing) crownRing.material.opacity = 0.68 + (Math.sin(this.clock * 1.15) + 1) * 0.09;
-    const centerSignal = this.arena.getObjectByName("arena-center-signal") as THREE.Mesh<
-      THREE.TorusGeometry,
-      THREE.MeshBasicMaterial
-    > | undefined;
-    if (centerSignal) centerSignal.material.opacity = 0.52 + (Math.sin(this.clock * 2.1) + 1) * 0.07;
+    if (draw.mode === "arena" && this.arenaCenterSignal) {
+      this.arenaCenterSignal.material.opacity = 0.52 + (Math.sin(this.clock * 2.1) + 1) * 0.07;
+    }
     if (draw.showcase && draw.mode === "lobby") {
       if (this.lobbyBallId !== draw.showcase.id || !this.lobbyBall) {
         if (this.lobbyBall) this.lobby.remove(this.lobbyBall);

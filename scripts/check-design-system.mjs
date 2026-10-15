@@ -59,6 +59,9 @@ assert.ok(worldRenderer.includes("antialias: false"), "WebGL renderer must avoid
 assert.ok(worldRenderer.includes("update(dt: number, draw: DrawState, frameDeltaMs = dt * 1000)"), "Adaptive quality must receive the real animation-frame interval");
 assert.ok(worldRenderer.includes("Math.max(updateCostMs, Math.max(0, frameDeltaMs))"), "Adaptive quality must account for GPU-bound frame pacing");
 assert.ok(worldRenderer.includes("if (this.battleTrailsActive)"), "Idle lobby frames must not reset the full battle-trail pool");
+assert.ok(worldRenderer.includes('if (draw.mode === "lobby") {\n      // The free-roam avatar and five rivals belong only to the lobby.'), "Hidden lobby rigs must not animate during duel frames");
+assert.ok(worldRenderer.includes("this.lobbyWater = this.lobby.getObjectByName(\"water\")"), "Static decorative scene nodes should be cached once");
+assert.ok(tokens.includes(".match-hud .lobby-button { position: relative; top: -3px; }"), "Short landscape duel lobby button must stay inside the viewport");
 assert.ok(worldRenderer.includes("collectResources(this.scene)"), "Scene resources must be explicitly disposed on route teardown");
 assert.ok(homeRoute.includes("world.update(dt, draw, frameDeltaMs)"), "Frame timing must flow from requestAnimationFrame to the renderer");
 assert.ok(homeRoute.includes("const LOBBY_BOTS = RIVALS.map"), "Static rival draw data must be prepared once, not allocated each frame");

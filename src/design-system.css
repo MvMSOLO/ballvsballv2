@@ -1147,6 +1147,8 @@ button { touch-action: manipulation; }
   .lobby-panel > p { font-size: 10px; }
   .lobby-stats { margin: 12px 0; }
   .match-hud { top: calc(45px + env(safe-area-inset-top)); max-height: calc(100svh - 52px); }
+  /* Avoid a 1–2 px bottom-edge crop in the duel HUD at short landscape heights. */
+  .match-hud .lobby-button { position: relative; top: -3px; }
   .bottom-status { bottom: 5px; }
 }
 @media (prefers-reduced-motion: reduce) {

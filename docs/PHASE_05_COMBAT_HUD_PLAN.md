@@ -1,6 +1,6 @@
 # BALL ARENA — Phase 05 Combat HUD Handoff
 
-**State:** ready to implement after Phase 04's post-patch performance retest. This is an audit and implementation contract, not a claim that Phase 05 code changes are already shipped.
+**State:** ready to implement. Phase 04's latest production visual checks passed for WebGL2 startup, the stadium scene, the fixed landscape guide/joystick layout, and no captured app runtime errors. Frame pacing remains below 60 Hz in the hosted browser environment, and a small duel LOBBY-button crop has a follow-up CSS fix in the current patch; this should be retested on target hardware when a browser session is available. This is an audit and implementation contract, not a claim that Phase 05 code changes are already shipped.
 
 ## Scope and invariants
 
