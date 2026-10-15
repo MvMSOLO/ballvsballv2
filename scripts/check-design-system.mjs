@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [tokens, primitives, root, packageText, wordmark, loadingMark, seasonBadge, brandGuide, homeRoute, portalShell, worldRenderer, shopRoute, inventoryRoute, profileRoute] = await Promise.all([
+const [tokens, primitives, root, packageText, wordmark, loadingMark, seasonBadge, brandGuide, homeRoute, portalShell, worldRenderer, profileRoute] = await Promise.all([
   readFile(new URL("../src/design-system.css", import.meta.url), "utf8"),
   readFile(new URL("../src/ui-primitives.css", import.meta.url), "utf8"),
   readFile(new URL("../src/routes/__root.tsx", import.meta.url), "utf8"),
@@ -13,8 +13,6 @@ const [tokens, primitives, root, packageText, wordmark, loadingMark, seasonBadge
   readFile(new URL("../src/routes/index.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/components/portal-shell.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/render/world.ts", import.meta.url), "utf8"),
-  readFile(new URL("../src/routes/shop.tsx", import.meta.url), "utf8"),
-  readFile(new URL("../src/routes/inventory.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/routes/profile.tsx", import.meta.url), "utf8"),
 ]);
 const pkg = JSON.parse(packageText);
