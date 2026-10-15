@@ -75,7 +75,7 @@ export function friendlyCredentialError(error: unknown, mode: CredentialMode): s
       : "";
   const message = candidate.toLowerCase();
 
-  if (/invalid[_ -]?credentials?|invalid email or password|incorrect password|wrong password/.test(message)) {
+  if (/invalid[_ -]?credentials?|invalid[_ -]?email[_ -]?(or[_ -]?)?password|invalid email or password|incorrect password|wrong password/.test(message)) {
     return "That email and password combination was not recognized. Check both and try again.";
   }
   if (/already exists|user_exists|email.*taken|duplicate/.test(message)) {
