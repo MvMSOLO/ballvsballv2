@@ -1,6 +1,6 @@
 # BALL ARENA — Phase 05 Combat HUD Handoff
 
-**State:** ready to implement. Phase 04's latest production visual checks passed for WebGL2 startup, the stadium scene, the fixed landscape guide/joystick layout, and no captured app runtime errors. Frame pacing remains below 60 Hz in the hosted browser environment, and a small duel LOBBY-button crop has a follow-up CSS fix in the current patch; this should be retested on target hardware when a browser session is available. This is an audit and implementation contract, not a claim that Phase 05 code changes are already shipped.
+**State:** Phase 05 initial combat-HUD pass implemented: aim state syncs from the session view, confirmed picks disable reroll, fight status no longer implies a zero-second limit, and both HP bars expose proportional values plus accessible text. Remaining: verify real transition/error paths and layouts after the current patch, run the project test suite, and measure rendering on target hardware. This is an incremental HUD pass, not a claim that the complete Phase 05 acceptance checklist is finished.
 
 ## Scope and invariants
 
@@ -24,10 +24,10 @@
 
 ## Evidence-based gaps to address first
 
-1. **Aim slider state can drift.** PublicView.myAim already returns the current side's aim during aim state, while the slider uses a separate React aim state (initially 90°). A rematch or later round can reset Session.aim to its default while the local slider still shows its previous value. Phase 05 should derive/seed the slider from view.myAim at phase entry and keep changes flowing through applyCommand().
-2. **Reroll affordance after confirm.** During pick, the confirm button disables after confirmation, but reroll has no matching disabled state. It should communicate that a confirmed choice is locked and avoid inviting a no-op click.
-3. **Fight timer semantics.** beginFight() sets the session timer to zero; the shared phase chip still renders Math.max(0, Math.ceil(view.timer)), so “AUTO FIGHT 0s” is an unhelpful status readout. Replace that display for fight with a meaningful label or elapsed/live status that does not invent a time limit.
-4. **Combat readability.** The current fight HUD prints numeric HP and ability text but does not provide an equally prominent proportional HP bar. Add accessible bars with readable values and a non-color-only low-health state.
+1. **Aim slider state can drift — first fix implemented.** The slider now re-seeds from PublicView.myAim during aim state and normalizes it to 0–359°. Verify again on a new round and rematch.
+2. **Reroll affordance after confirm — first fix implemented.** The control disables after confirmation and its title communicates the locked state; pricing and balance logic are unchanged.
+3. **Fight timer semantics — first fix implemented.** Fight now shows LIVE MATCH, 2× SPEED, or SUDDEN DEATH rather than a misleading zero-second timer.
+4. **Combat readability — first fix implemented.** Each side has an ARIA progressbar bound to view.hp/view.maxHp, numeric values, and a visible CRITICAL warning below 25% HP.
 5. **Transitions and error cases.** Make bot lock/timeout, empty offers, failed/denied reroll, countdown-to-fight, round continuation, end rewards, rematch, and lobby return visually predictable. Do not present a success state before applyCommand() or persistence reports success.
 
 ## Proposed sequence
@@ -42,10 +42,10 @@
 ## Acceptance checklist
 
 - [ ] All seven states have one obvious headline, one primary action (where actionable), and no conflicting secondary action.
-- [ ] Aim slider represents the session's current side angle whenever flow is aim; opponent aim remains hidden.
-- [ ] Reroll can't be triggered from a confirmed pick and pricing/balance logic remains unchanged.
-- [ ] HP bars match view.hp and view.maxHp; exact values remain readable without color.
-- [ ] Fight doesn't display a misleading zero-second countdown.
+- [x] Aim slider represents the session's current side angle whenever flow is aim; opponent aim remains hidden. Verify again across round/rematch transitions.
+- [x] Reroll control disables after a confirmed pick; pricing/balance logic remains unchanged.
+- [x] HP bars derive from view.hp and view.maxHp; exact values remain readable without color.
+- [x] Fight no longer displays a misleading zero-second countdown.
 - [ ] Mouse, keyboard, and touch controls all work; focus order and labels are preserved.
 - [ ] Desktop, tablet, 844×390, 390px and 320px views have no clipped controls or arena-obscuring panels.
 - [ ] Match outcome, rewards, rematch and lobby return are checked against real session state, not demo-only UI.
