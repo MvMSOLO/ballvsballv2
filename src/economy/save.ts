@@ -38,6 +38,7 @@ export interface SaveSettings {
   leftHanded: boolean;
   master: number;
   music: number;
+  ui: number;
   sfx: number;
   colorblind: boolean;
   reduceMotion: boolean;
@@ -188,6 +189,7 @@ export function defaultSave(): Save {
       leftHanded: false,
       master: 0.8,
       music: 0.45,
+      ui: 0.7,
       sfx: 0.8,
       colorblind: false,
       reduceMotion: false,
@@ -286,7 +288,14 @@ export function migrateSave(raw: unknown): Save {
     explosion: typeof o.explosion === "string" ? o.explosion : base.explosion,
     flyer: typeof o.flyer === "string" ? o.flyer : base.flyer,
     avatar: { ...base.avatar, ...(o.avatar ?? {}) },
-    settings: { ...base.settings, ...(o.settings ?? {}) },
+    settings: {
+      ...base.settings,
+      ...(o.settings ?? {}),
+      master: Math.max(0, Math.min(1, num(o.settings?.master, base.settings.master))),
+      music: Math.max(0, Math.min(1, num(o.settings?.music, base.settings.music))),
+      ui: Math.max(0, Math.min(1, num(o.settings?.ui, base.settings.ui))),
+      sfx: Math.max(0, Math.min(1, num(o.settings?.sfx, base.settings.sfx))),
+    },
     streak: Math.max(0, num(o.streak, 0)),
     questPlay: Math.max(0, num(o.questPlay, 0)),
     questWin: Math.max(0, num(o.questWin, 0)),
