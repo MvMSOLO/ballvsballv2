@@ -42,8 +42,8 @@ jobs:
       - name: Core, economy, controls and match-speed tests
         run: npm run test:arena
 
-      - name: Authentication, navigation, motion, adaptive graphics, lifecycle and audio policy tests
-        run: node --experimental-strip-types --test src/lib/auth/auth-return.test.ts src/lib/auth/auth-capabilities-policy.test.ts src/lib/player-navigation.test.ts src/lib/motion-policy.test.ts src/lib/graphics-quality-policy.test.ts src/lib/session-lifecycle-policy.test.ts src/audio/audio-policy.test.ts
+      - name: Authentication, navigation, motion, adaptive graphics, lifecycle, match-history and audio policy tests
+        run: node --experimental-strip-types --test src/lib/auth/auth-return.test.ts src/lib/auth/auth-capabilities-policy.test.ts src/lib/player-navigation.test.ts src/lib/motion-policy.test.ts src/lib/graphics-quality-policy.test.ts src/lib/session-lifecycle-policy.test.ts src/economy/match-history.test.ts src/audio/audio-policy.test.ts
 
       - name: Validate ball packs
         run: npm run validate-packs
