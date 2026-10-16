@@ -1,4 +1,5 @@
 import { CONFIG, levelFromXp, type Lang, type QualityName } from "../config";
+import { mergeMatchHistory } from "./match-history";
 
 export interface AvatarLook {
   skin: string;
@@ -265,9 +266,7 @@ export function migrateSave(raw: unknown): Save {
   if (!raw || typeof raw !== "object") return base;
   const o = raw as Partial<Save> & { settings?: Partial<SaveSettings>; avatar?: Partial<AvatarLook> };
   const owned = strList(o.owned, base.owned);
-  const history = Array.isArray(o.history)
-    ? o.history.filter((row) => row && typeof row === "object" && typeof (row as MatchRecord).id === "string").slice(0, 20) as MatchRecord[]
-    : [];
+  const history = Array.isArray(o.history) ? mergeMatchHistory([o.history]) : [];
   const quest = Array.isArray(o.questClaimed) && o.questClaimed.length === 3
     ? [Boolean(o.questClaimed[0]), Boolean(o.questClaimed[1]), Boolean(o.questClaimed[2])] as [boolean, boolean, boolean]
     : base.questClaimed;
