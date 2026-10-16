@@ -4,6 +4,7 @@ import type { FrameEnt, FrameFx } from "../game/session";
 import { previewAim } from "../sim/engine";
 import { CONFIG } from "../config";
 import { resolveImpactMotion } from "@/lib/motion-policy";
+import { createAdaptiveQualityState, stepAdaptiveQuality, type AdaptiveQualityState } from "@/lib/graphics-quality-policy";
 
 export interface AvatarColors {
   skin: string;
@@ -825,7 +826,7 @@ export class World {
   private lobbyBallId = "";
   private dpr = 1;
   private frameMs = 16;
-  private slowFrameStreak = 0;
+  private adaptiveQualityState: AdaptiveQualityState = createAdaptiveQualityState();
   private battleTrailsActive = false;
   private readonly nameTagWorldQuaternion = new THREE.Quaternion();
   private lobbyWater: THREE.Mesh | null = null;
@@ -933,10 +934,10 @@ export class World {
     this.renderer.setSize(w, h, false);
   }
 
-  setQuality(q: "low" | "medium" | "high", auto: boolean): void {
+  setQuality(q: "low" | "medium" | "high", auto: boolean, preserveAdaptiveState = false): void {
     this.quality = q;
     this.auto = auto;
-    this.slowFrameStreak = 0;
+    if (!preserveAdaptiveState) this.adaptiveQualityState = createAdaptiveQualityState();
     const high = q === "high";
     this.renderer.shadowMap.enabled = high;
     this.key.castShadow = high;
@@ -1453,16 +1454,13 @@ export class World {
     // Use the measured RAF interval as well as synchronous update/render cost. A renderer
     // can block mostly on GPU work that performance.now() around render() does not expose.
     const updateCostMs = performance.now() - t0;
-    const observedFrameMs = Math.max(updateCostMs, Math.max(0, frameDeltaMs));
+    // Clamp rare tab-resume/render stalls; policy timing separately requires sustained pressure.
+    const observedFrameMs = Math.min(50, Math.max(updateCostMs, Math.max(0, frameDeltaMs)));
     this.frameMs = this.frameMs * 0.9 + observedFrameMs * 0.1;
-    if (this.auto && this.quality !== "low") {
-      // Require repeated slow frames before dropping to Low, and never resize the canvas
-      // every frame when the target remains Medium. Repeated setSize/setPixelRatio calls
-      // were creating avoidable work during borderline performance.
-      if (this.frameMs > 28) this.slowFrameStreak += 1;
-      else this.slowFrameStreak = 0;
-      const targetQuality = this.slowFrameStreak >= 3 ? "low" : this.frameMs > 22 ? "medium" : this.quality;
-      if (targetQuality !== this.quality) this.setQuality(targetQuality, true);
+    if (this.auto) {
+      const decision = stepAdaptiveQuality(this.quality, this.frameMs, frameDeltaMs, this.adaptiveQualityState);
+      this.adaptiveQualityState = decision.state;
+      if (decision.changed) this.setQuality(decision.quality, true, true);
     }
   }
 
