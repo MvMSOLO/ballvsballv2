@@ -10,7 +10,7 @@ import { loadSave, writeSave } from "../economy/save";
 import { hydrateArenaSave, syncArenaSave } from "@/economy/persistence";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { authEnabled } from "@/lib/auth/client";
-import { sfx, setMuted, unlockAudio } from "../audio/synth";
+import { sfx, setAudioLevels, setMuted, unlockAudio } from "../audio/synth";
 import { BallInspectDialog } from "@/components/ball-inspect-dialog";
 import { PLAYER_HUB_NAV, canAccessOwnerTools } from "@/lib/player-navigation";
 import { shouldReduceMotion } from "@/lib/motion-policy";
@@ -444,6 +444,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     setInfiniteDiamonds(saved.adminInfiniteDiamonds);
     diamondsRef.current = saved.diamonds;
     setAudioMuted(!saved.settings.sound);
+    setAudioLevels({ master: saved.settings.master, music: saved.settings.music, ui: saved.settings.ui, sfx: saved.settings.sfx });
     setMuted(!saved.settings.sound);
     if (saved.settings.quality !== "auto") setQuality(saved.settings.quality);
     if (cloudSyncRef.current) {
@@ -452,6 +453,9 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         setCoins(merged.coins);
         setDiamonds(merged.diamonds);
         diamondsRef.current = merged.diamonds;
+        setAudioMuted(!merged.settings.sound);
+        setAudioLevels({ master: merged.settings.master, music: merged.settings.music, ui: merged.settings.ui, sfx: merged.settings.sfx });
+        setMuted(!merged.settings.sound, false);
       }).catch(() => {
         if (active) setNotice("Cloud save unavailable; continuing with local progress.");
       });
