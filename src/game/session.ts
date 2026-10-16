@@ -50,6 +50,8 @@ export interface Session {
   fast: boolean;
   coins: number;
   xp: number;
+  /** Cumulative damage credited to each side across all rounds in this match. */
+  matchDamage: [number, number];
   ballName: [string, string];
 }
 
@@ -210,6 +212,7 @@ export function createSession(opts: {
     fast: opts.fast ?? false,
     coins: 0,
     xp: 0,
+    matchDamage: [0, 0],
     ballName: ["", ""],
   };
   return s;
@@ -365,6 +368,10 @@ function beginFight(s: Session): void {
 
 function endRound(s: Session): void {
   if (!s.fight) return;
+  const roundDamage0 = Number.isFinite(s.fight.dmg0) ? Math.max(0, s.fight.dmg0) : 0;
+  const roundDamage1 = Number.isFinite(s.fight.dmg1) ? Math.max(0, s.fight.dmg1) : 0;
+  s.matchDamage[0] = Math.min(1_000_000_000, s.matchDamage[0] + roundDamage0);
+  s.matchDamage[1] = Math.min(1_000_000_000, s.matchDamage[1] + roundDamage1);
   s.roundWinner = s.fight.winner;
   s.oob += s.fight.oob;
   s.nans += s.fight.nans;

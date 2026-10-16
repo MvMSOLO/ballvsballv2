@@ -7,6 +7,7 @@ import { advanceSession, applyCommand, createSession, publicView, renderFrame, v
 import { allPacks, enabledBalls } from "../packs/registry";
 import { playerMoveInput } from "../game/controls";
 import { loadSave, writeSave } from "../economy/save";
+import { appendMatchRecord, createMatchRecord } from "../economy/match-history";
 import { hydrateArenaSave, syncArenaSave } from "@/economy/persistence";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { authEnabled } from "@/lib/auth/client";
@@ -635,26 +636,47 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
             setDiamonds(diamondsRef.current);
             return true;
           });
-          if (s.flow === "end" && rewardedSessionRef.current !== s) {
+          if (!adminMode && s.flow === "end" && rewardedSessionRef.current !== s) {
             rewardedSessionRef.current = s;
-            sfx(s.matchWinner === 0 ? "win" : "lose");
-            try {
-              const saved = loadSave();
-              saved.coins += s.coins;
-              saved.diamonds = diamondsRef.current;
-              saved.xp += s.xp;
-              saved.matches += 1;
-              if (s.matchWinner === 0) saved.wins += 1;
-              writeSave(saved);
-              setCoins(saved.coins);
-              if (cloudSyncRef.current) {
-                void syncArenaSave(saved).then((merged) => {
-                  setCoins(merged.coins);
-                  setDiamonds(merged.diamonds);
-                  diamondsRef.current = merged.diamonds;
-                }).catch(() => setNotice("Match saved locally, but cloud sync failed."));
-              }
-            } catch { setNotice("Match finished, but progress could not be saved on this device."); }
+            sfx(s.matchWinner === s.viewSide ? "win" : "lose");
+            const hasValidResult = (s.matchWinner === 0 || s.matchWinner === 1)
+              && Boolean(s.ballName[0] && s.ballName[1]);
+            if (!hasValidResult) {
+              setNotice("Match ended without a valid result. No rewards or history were saved.");
+            } else {
+              try {
+                const saved = loadSave();
+                saved.coins += s.coins;
+                saved.diamonds = diamondsRef.current;
+                saved.xp += s.xp;
+                saved.matches += 1;
+                if (s.matchWinner === s.viewSide) saved.wins += 1;
+                const playerSide = s.viewSide;
+                const rivalSide: 0 | 1 = playerSide === 0 ? 1 : 0;
+                const matchRecord = createMatchRecord({
+                  at: Date.now(),
+                  opponent: s.names[rivalSide],
+                  // This game's draft is per-round; label the last round's choices honestly.
+                  ball: s.ballName[playerSide],
+                  oppBall: s.ballName[rivalSide],
+                  win: s.matchWinner === playerSide,
+                  // Local bot duels are not ranked; do not fabricate trophy changes.
+                  trophies: 0,
+                  seed: s.seed,
+                  damage: s.matchDamage[playerSide],
+                });
+                saved.history = appendMatchRecord(saved.history, matchRecord);
+                writeSave(saved);
+                setCoins(saved.coins);
+                if (cloudSyncRef.current) {
+                  void syncArenaSave(saved).then((merged) => {
+                    setCoins(merged.coins);
+                    setDiamonds(merged.diamonds);
+                    diamondsRef.current = merged.diamonds;
+                  }).catch(() => setNotice("Match saved locally, but cloud sync failed."));
+                }
+              } catch { setNotice("Match finished, but progress could not be saved on this device."); }
+            }
           }
           if (now - lastUiRef.current > 100) {
             lastUiRef.current = now;
