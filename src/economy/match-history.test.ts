@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import type { MatchRecord } from "./save.ts";
-import { appendMatchRecord, createMatchRecord, MAX_MATCH_HISTORY } from "./match-history.ts";
+import { appendMatchRecord, createMatchRecord, mergeMatchHistory, normalizeMatchRecord, MAX_MATCH_HISTORY } from "./match-history.ts";
 
 function record(id: string, at: number): MatchRecord {
   return createMatchRecord({
@@ -75,5 +75,44 @@ describe("match history integrity", () => {
     const original = [record("old", 10)];
     assert.deepEqual(appendMatchRecord(original, record("new", 20), 0), []);
     assert.equal(original.length, 1);
+  });
+});
+
+
+describe("legacy history recovery", () => {
+  it("normalizes malformed record fields and drops rows without an ID", () => {
+    const normalized = normalizeMatchRecord({
+      id: "  safe-id\u0000 ",
+      at: Number.NaN,
+      opponent: " \u0000 ",
+      ball: "",
+      oppBall: null,
+      win: "true",
+      trophies: Number.POSITIVE_INFINITY,
+      seed: "bad",
+      damage: Number.NEGATIVE_INFINITY,
+    });
+    assert.ok(normalized);
+    assert.equal(normalized.id, "safe-id");
+    assert.equal(normalized.at, 0);
+    assert.equal(normalized.opponent, "Rival");
+    assert.equal(normalized.ball, "Unknown ball");
+    assert.equal(normalized.oppBall, "Unknown ball");
+    assert.equal(normalized.win, false);
+    assert.equal(normalized.trophies, 0);
+    assert.equal(normalized.seed, 1);
+    assert.equal(normalized.damage, 0);
+    assert.equal(normalizeMatchRecord({ opponent: "No ID" }), null);
+  });
+
+  it("merges multiple devices newest-first and deduplicates by ID", () => {
+    const old = record("shared-id", 100);
+    const updated = record("shared-id", 200);
+    const merged = mergeMatchHistory([
+      [old, record("older", 50)],
+      [updated, record("newest", 500), { id: "", at: 9_999 }],
+    ]);
+    assert.deepEqual(merged.map((item) => item.id), ["newest", "shared-id", "older"]);
+    assert.equal(merged.find((item) => item.id === "shared-id")?.at, 200);
   });
 });

@@ -8,6 +8,7 @@ import {
   type MatchRecord,
   type Save,
 } from "./save";
+import { mergeMatchHistory } from "./match-history";
 
 export interface Reward {
   coins: number;
@@ -448,7 +449,7 @@ export function mergeCloud(local: Save, remote: Save | null): Save {
   const a = migrateSave(local);
   const b = migrateSave(remote);
   const owned = [...new Set([...a.owned, ...b.owned])];
-  const history = [...a.history, ...b.history].filter((row, index, list) => list.findIndex((other) => other.id === row.id) === index).slice(0, 20);
+  const history = mergeMatchHistory([a.history, b.history]);
   const achievements: Save["achievements"] = { ...a.achievements };
   for (const [id, state] of Object.entries(b.achievements)) {
     const prev = achievements[id];
