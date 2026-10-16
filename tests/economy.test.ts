@@ -125,6 +125,65 @@ describe("claims and cloud merge", () => {
     expect(merged.owned.sort()).toEqual(["boom_pebble", "web_weaver"]);
   });
 
+  it("keeps the newest history across devices instead of relying on array order", () => {
+    const local = defaultSave();
+    local.history = Array.from({ length: 20 }, (_, index) => ({
+      id: `local-${index}`,
+      at: 100 + index,
+      opponent: "Local rival",
+      ball: "Local",
+      oppBall: "Local rival ball",
+      win: index % 2 === 0,
+      trophies: 0,
+      seed: index,
+      damage: index,
+    }));
+    const remote = defaultSave();
+    remote.history = Array.from({ length: 20 }, (_, index) => ({
+      id: `remote-${index}`,
+      at: 10_000 + index,
+      opponent: "Cloud rival",
+      ball: "Cloud",
+      oppBall: "Cloud rival ball",
+      win: index % 2 !== 0,
+      trophies: 0,
+      seed: index + 100,
+      damage: index + 100,
+    }));
+
+    const merged = mergeCloud(local, remote);
+    expect(merged.history).toHaveLength(20);
+    expect(merged.history[0]?.id).toBe("remote-19");
+    expect(merged.history[19]?.id).toBe("remote-0");
+    expect(merged.history.every((row) => row.id.startsWith("remote-"))).toBe(true);
+  });
+
+  it("migrates legacy history to finite, complete, unique newest-first records", () => {
+    const migrated = migrateSave({
+      history: [
+        { id: "old", at: 10, opponent: "Rival", ball: "A", oppBall: "B", win: true, trophies: 0, seed: 1, damage: 5 },
+        { id: "broken", at: Number.NaN, opponent: null, ball: "", oppBall: null, win: "win", trophies: Infinity, seed: "bad", damage: NaN },
+        { id: "old", at: 5, opponent: "Stale duplicate", ball: "X", oppBall: "Y", win: false, trophies: 4, seed: 9, damage: 1 },
+        { opponent: "Missing ID" },
+        null,
+      ],
+    });
+
+    expect(migrated.history.map((row) => row.id)).toEqual(["broken", "old"]);
+    expect(migrated.history[0]).toMatchObject({
+      id: "broken",
+      at: 0,
+      opponent: "Rival",
+      ball: "Unknown ball",
+      oppBall: "Unknown ball",
+      win: false,
+      trophies: 0,
+      seed: 1,
+      damage: 0,
+    });
+    expect(migrated.history[1]?.opponent).toBe("Rival");
+  });
+
   it("does not double-claim a daily", () => {
     const now = new Date("2026-10-14T12:00:00Z");
     const first = claimDaily(defaultSave(), now);
