@@ -87,7 +87,7 @@ assert.ok(worldRenderer.includes("new THREE.PointsMaterial"), "Background stars 
 assert.ok(worldRenderer.includes('name = "arena-force-field"'), "Arena force field must stay above, not intersect, fighters");
 assert.ok(worldRenderer.includes('name = "arena-graphic-inlays"'), "Arena floor needs broadcast-style spatial markings");
 assert.ok(worldRenderer.includes('name = "arena-center-signal"'), "Arena center signal should have a controlled pulse");
-assert.ok(worldRenderer.includes("const orbit = this.clock * 0.12"), "Lobby camera must use subtle eased cinematic parallax");
+assert.ok(worldRenderer.includes("const orbit = draw.reduceMotion ? 0 : this.clock * 0.12") && worldRenderer.includes("draw.reduceMotion ? 0 : Math.sin(this.clock * 0.38)"), "Lobby camera must use subtle parallax and disable ornamental motion when reduced motion is active");
 assert.ok(homeRoute.includes('x: -1.8, z: 3.7'), "Front-left rival must stay inside the lobby safe framing");
 assert.ok(homeRoute.includes('x: 4.2, z: 3.7'), "Front-right rival must stay inside the lobby safe framing");
 assert.ok(homeRoute.includes('x: -1.8, z: -2.4'), "Rear-left rival must stay inside the lobby safe framing");
@@ -201,3 +201,20 @@ assert.ok(root.includes("SavedPreferenceRuntime") && root.includes("dataset.redu
 assert.ok(audioRuntime.includes("setAudioLevels") && audioRuntime.includes("BASE_MASTER_GAIN * masterLevel") && audioRuntime.includes("volume * sfxLevel"), "Audio mixer controls must affect actual master and SFX gain");
 assert.ok(tokens.includes('html[data-reduce-motion="true"]') && tokens.includes('html[data-colorblind="true"]') && tokens.includes(".owner-lab-gate"), "Reduced motion, palette and route guard must be styled");
 assert.ok(tokens.includes(".rank-row { grid-template-columns: minmax(0, 1fr) auto;") && tokens.includes(".portal-nav { grid-column: 1 / -1;"), "Leaderboard and hub navigation need narrow-screen layouts");
+
+
+// Phase 10: unified motion tokens, result-state feedback, impact intensity, and saved/system reduced-motion behavior.
+const motionPolicy = await readFile(new URL("../src/lib/motion-policy.ts", import.meta.url), "utf8");
+const motionPolicyTests = await readFile(new URL("../src/lib/motion-policy.test.ts", import.meta.url), "utf8");
+const inspectDialog = await readFile(new URL("../src/components/ball-inspect-dialog.tsx", import.meta.url), "utf8");
+assert.ok(tokens.includes("--ba-motion-press: 90ms") && tokens.includes("--ba-motion-enter: 260ms") && tokens.includes("--ba-motion-result: 360ms"), "Motion timings must use the shared duration scale");
+assert.ok(tokens.includes("--ba-ease-enter:") && tokens.includes("--ba-ease-exit:") && tokens.includes("--ba-ease-spring:"), "Motion easings must be named and shared");
+assert.ok(tokens.includes("@keyframes ba-ui-enter") && tokens.includes("@keyframes ba-dialog-enter") && tokens.includes("@keyframes ba-result-enter"), "Common UI, dialog and result states need reusable entrance motion");
+assert.ok(tokens.includes(".result-victory .pulse-ring") && tokens.includes(".result-defeat .pulse-ring") && homeRoute.includes("result-victory"), "Match outcome feedback must distinguish victory and defeat without relying on animation alone");
+assert.ok(tokens.includes(".reward-summary > span:nth-child(2)") && tokens.includes(".ball-inspect-dialog { animation: ba-dialog-enter"), "Rewards and ball inspection must use the shared micro-interaction language");
+assert.ok(tokens.includes("@media (prefers-reduced-motion: reduce)") && tokens.includes('html[data-reduce-motion="true"]'), "Both system and saved reduced-motion preferences must suppress ornamental UI motion");
+assert.ok(homeRoute.includes("shouldReduceMotion(") && homeRoute.includes("reduceMotionRef.current") && homeRoute.includes("MutationObserver"), "Arena must react to saved/system preference changes without rebuilding the renderer");
+assert.ok(worldRenderer.includes("resolveImpactMotion(event.magnitude, false)") && worldRenderer.includes("resolveImpactMotion(event.magnitude, reduceMotion)"), "Hit effects must scale from actual impact magnitude and suppress camera shake in reduced-motion mode");
+assert.ok(worldRenderer.includes("if (draw.mode !== \"arena\" || draw.reduceMotion)") && worldRenderer.includes("if (draw.reduceMotion) continue;"), "Reduced-motion gameplay should retain physics but omit ornamental trails and entity rotation");
+assert.ok(inspectDialog.includes("shouldReduceMotion(document.documentElement.dataset.reduceMotion === \"true\", motionQuery.matches)") && inspectDialog.includes("motionObserver.disconnect()"), "3D ball preview must stop scheduling frames and listen for motion preference changes");
+assert.ok(motionPolicy.includes("particles: 0") && motionPolicy.includes("shake: 0") && motionPolicyTests.includes("strong hits more noticeable") && motionPolicyTests.includes("either saved or operating-system preference"), "Impact and reduced-motion policy must have deterministic automated coverage");

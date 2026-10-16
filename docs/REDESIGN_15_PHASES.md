@@ -85,6 +85,7 @@ Public screens reviewed: home arena, profile, shop, inventory, leaderboard, sett
 - Acceptance: every navigation path is reachable and consistent; admin controls remain owner-only; no normal player can invoke protected actions.
 
 ### Phase 10 — Motion language and micro-interactions
+**Implementation on `phase-10-motion-language`:** consolidated motion duration/easing tokens and short state-enter animations cover navigation, panels, focus/hover/press, ball inspect, phase changes, rewards and win/loss. Hit rings now scale from actual impact magnitude; reduced-motion removes camera shake, cosmetic rotations and trails while retaining hit color/ring cues and the deterministic fight. The 3D Codex preview listens to both the saved setting and OS preference and stops scheduling render frames when reduced motion is active. Unit/contract tests are added; CI and deployed visual QA remain pending.
 - Define duration/easing tokens and reusable transitions for navigation, panels, focus/hover/press, ball inspect, state change, rewards, and win/loss.
 - Gameplay VFX must communicate hit strength and ability type; idle screens remain calm. Respect prefers-reduced-motion and user settings.
 - Acceptance: transitions are smooth at common refresh rates and low-performance mode; no infinite attention-grabbing animations compete with play.

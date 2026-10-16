@@ -13,6 +13,7 @@ import { authEnabled } from "@/lib/auth/client";
 import { sfx, setMuted, unlockAudio } from "../audio/synth";
 import { BallInspectDialog } from "@/components/ball-inspect-dialog";
 import { PLAYER_HUB_NAV, canAccessOwnerTools } from "@/lib/player-navigation";
+import { shouldReduceMotion } from "@/lib/motion-policy";
 
 export const Route = createFileRoute("/")({ component: BallArenaPage });
 
@@ -153,6 +154,28 @@ export type ArenaRouteMode = "free-roam" | "duel" | "admin";
 
 export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } = {}) {
   const { user: currentUser } = useCurrentUserState();
+  const [reduceMotion, setReduceMotion] = useState(() => typeof window !== "undefined" && shouldReduceMotion(
+    document.documentElement.dataset.reduceMotion === "true",
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  ));
+  const reduceMotionRef = useRef(reduceMotion);
+  reduceMotionRef.current = reduceMotion;
+
+  useEffect(() => {
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncMotionPreference = () => setReduceMotion(shouldReduceMotion(
+      document.documentElement.dataset.reduceMotion === "true",
+      motionQuery.matches,
+    ));
+    const observer = new MutationObserver(syncMotionPreference);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-reduce-motion"] });
+    motionQuery.addEventListener("change", syncMotionPreference);
+    syncMotionPreference();
+    return () => {
+      observer.disconnect();
+      motionQuery.removeEventListener("change", syncMotionPreference);
+    };
+  }, []);
   const cloudSyncRef = useRef(false);
   cloudSyncRef.current = authEnabled && Boolean(currentUser && !currentUser.isDevFallback);
   const adminMode = mode === "admin";
@@ -593,7 +616,8 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
           ballA: mine,
           ballB: opponent,
           arrow: frame?.arrow ?? null,
-          shake: current?.fight && current.fight.over ? 0.2 : 0,
+          shake: reduceMotionRef.current ? 0 : current?.fight && current.fight.over ? 0.2 : 0,
+          reduceMotion: reduceMotionRef.current,
           finisher: 0,
           winner: current?.roundWinner ?? -1,
           spectate: null,
@@ -756,7 +780,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         {flow === "aim" && <div className="aim-area"><div className="aim-icon">⌖</div><h2>Set your launch vector</h2><p>Your aim is private until both players lock in.</p><label className="aim-label">ANGLE <b>{aim}°</b></label><input aria-label="Aim angle" type="range" min="0" max="359" value={aim} onChange={(e) => { const n = Number(e.target.value); setAim(n); send({ t: "aim", side: 0, angle: n * Math.PI / 180 }); }} /><div className="action-row"><button className="primary-button compact" disabled={view.aimLocked} onClick={() => send({ t: "lock", side: 0 })}>LOCK AIM ✓</button><span className="hint-line">Opponent: {view.oppAimLocked ? "LOCKED" : "AIMING…"} · SECRET</span></div></div>}
         {flow === "countdown" && <div className="status-panel"><div className="pulse-ring">{Math.max(1, Math.ceil(view.timer))}</div><h2>GET READY</h2><p>Balls revealed. The duel starts automatically.</p></div>}
         {flow === "fight" && <div className="fight-panel"><div className="fight-player"><span>YOUR BALL</span><b>{selectedBall?.name.en ?? "Locked"}</b><small>{Math.ceil(view.hp[0])} / {view.maxHp[0]} HP</small><div className={`fight-health ${view.maxHp[0] > 0 && view.hp[0] / view.maxHp[0] <= 0.25 ? "critical" : ""}`}><div className="fight-health-track" role="progressbar" aria-label={`${view.names[0]} HP`} aria-valuemin={0} aria-valuemax={Math.max(1, Math.ceil(view.maxHp[0]))} aria-valuenow={Math.max(0, Math.ceil(view.hp[0]))} aria-valuetext={`${Math.max(0, Math.ceil(view.hp[0]))} of ${view.maxHp[0]} HP`}><span className="fight-health-fill" style={{ width: `${Math.max(0, Math.min(100, view.maxHp[0] > 0 ? view.hp[0] / view.maxHp[0] * 100 : 0))}%` }} /></div>{view.maxHp[0] > 0 && view.hp[0] / view.maxHp[0] <= 0.25 && <strong className="fight-health-warning">CRITICAL</strong>}</div><em className="fight-ability" style={{ color: selectedBall?.visual.accentColor ?? "#67e8f9" }}>{selectedBall?.abilities[0] ? `${abilityGlyph(selectedBall.abilities[0].actions[0])} ${abilityTriggerLabel(selectedBall.abilities[0].trigger, selectedBall.abilities[0].interval)} · ${selectedBall.abilities[0].actions.slice(0, 2).map(actionLabel).join(" + ")}` : "PHYSICS IMPACT"}</em></div><div className="fight-vs">VS</div><div className="fight-player"><span>RIVAL BALL</span><b>{opponentBall?.name.en ?? "Rival"}</b><small>{Math.ceil(view.hp[1])} / {view.maxHp[1]} HP</small><div className={`fight-health ${view.maxHp[1] > 0 && view.hp[1] / view.maxHp[1] <= 0.25 ? "critical" : ""}`}><div className="fight-health-track" role="progressbar" aria-label={`${view.names[1]} HP`} aria-valuemin={0} aria-valuemax={Math.max(1, Math.ceil(view.maxHp[1]))} aria-valuenow={Math.max(0, Math.ceil(view.hp[1]))} aria-valuetext={`${Math.max(0, Math.ceil(view.hp[1]))} of ${view.maxHp[1]} HP`}><span className="fight-health-fill" style={{ width: `${Math.max(0, Math.min(100, view.maxHp[1] > 0 ? view.hp[1] / view.maxHp[1] * 100 : 0))}%` }} /></div>{view.maxHp[1] > 0 && view.hp[1] / view.maxHp[1] <= 0.25 && <strong className="fight-health-warning">CRITICAL</strong>}</div><em className="fight-ability" style={{ color: opponentBall?.visual.accentColor ?? "#fb7185" }}>{opponentBall?.abilities[0] ? `${abilityGlyph(opponentBall.abilities[0].actions[0])} ${abilityTriggerLabel(opponentBall.abilities[0].trigger, opponentBall.abilities[0].interval)} · ${opponentBall.abilities[0].actions.slice(0, 2).map(actionLabel).join(" + ")}` : "PHYSICS IMPACT"}</em></div></div>}
-        {(flow === "round" || flow === "end") && <div className="status-panel"><div className="pulse-ring">{view.matchWinner === 0 ? "W" : view.matchWinner === 1 ? "L" : view.roundWinner === 0 ? "✓" : "×"}</div><h2>{flow === "end" ? (view.matchWinner === 0 ? "VICTORY" : "DEFEAT") : (view.roundWinner === 0 ? "ROUND WON" : "ROUND LOST")}</h2><p>{flow === "end" ? "Match rewards earned. Run it back?" : "Next round loading…"}</p>{flow === "end" && <div className="reward-summary" aria-label="Match rewards"><span><strong>+{sessionRef.current?.coins ?? 0}</strong><small>COINS</small></span><span><strong>+{sessionRef.current?.xp ?? 0}</strong><small>XP</small></span></div>}{flow === "end" && <button className="primary-button compact" onClick={() => startMatch(opponentName)}>REMATCH ↗</button>}</div>}
+        {(flow === "round" || flow === "end") && <div className={"status-panel " + (flow === "end" ? (view.matchWinner === 0 ? "result-victory" : "result-defeat") : (view.roundWinner === 0 ? "result-round-win" : "result-round-loss"))}><div className="pulse-ring">{view.matchWinner === 0 ? "W" : view.matchWinner === 1 ? "L" : view.roundWinner === 0 ? "✓" : "×"}</div><h2>{flow === "end" ? (view.matchWinner === 0 ? "VICTORY" : "DEFEAT") : (view.roundWinner === 0 ? "ROUND WON" : "ROUND LOST")}</h2><p>{flow === "end" ? "Match rewards earned. Run it back?" : "Next round loading…"}</p>{flow === "end" && <div className="reward-summary" aria-label="Match rewards"><span><strong>+{sessionRef.current?.coins ?? 0}</strong><small>COINS</small></span><span><strong>+{sessionRef.current?.xp ?? 0}</strong><small>XP</small></span></div>}{flow === "end" && <button className="primary-button compact" onClick={() => startMatch(opponentName)}>REMATCH ↗</button>}</div>}
         <button className="lobby-button" onClick={() => { sessionRef.current = null; setView(null); nearbyRivalRef.current = null; setNearbyRival(null); setNotice("Back to the plaza."); }}>← LOBBY</button>
       </section>}
 
