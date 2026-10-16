@@ -1,0 +1,87 @@
+alse);
+  const diamondsRef = useRef(diamonds);
+  diamondsRef.current = diamonds;
+  const rewardedSessionRef = useRef<Session | null>(null);
+  const keysRef = useRef<Set<string>>(new Set());
+  const ballMapRef = useRef<Map<string, BallDef>>(new Map());
+
+  const requestLandscape = useCallback(() => {
+    const enterFullscreenAndLock = async () => {
+      try {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        }
+      } catch {
+        // Fullscreen is optional; the on-screen rotate prompt handles browsers that deny it.
+      }
+      try {
+        const orientation = screen.orientation as ScreenOrientation & {
+          lock?: (type: "landscape") => Promise<void>;
+        };
+        await orientation.lock?.("landscape");
+      } catch {
+        // Not all mobile browsers allow orientation locking from a web page.
+      }
+    };
+    void enterFullscreenAndLock();
+  }, []);
+
+  const startMatch = useCallback((rival: string) => {
+    unlockAudio();
+    sfx("lock");
+    const all = enabledBalls();
+    const byId = new Map(all.map((b) => [b.id, b]));
+    ballMapRef.current = byId;
+    const starter = CONFIG.starterBalls.map((id) => byId.get(id)).filter((b): b is BallDef => Boolean(b));
+    const pool = starter.length >= 3 ? starter : all;
+    if (pool.length < 2) {
+      setNotice("No valid balls were loaded. Check the core pack.");
+      return;
+    }
+    requestLandscape();
+    const stored = loadSave();
+    if (stored && typeof stored.coins === "number") setCoins(stored.coins);
+    if (stored && typeof stored.adminInfiniteCoins === "boolean") setInfiniteCoins(stored.adminInfiniteCoins);
+    if (stored && typeof stored.adminInfiniteDiamonds === "boolean") setInfiniteDiamonds(stored.adminInfiniteDiamonds);
+    if (stored && typeof stored.diamonds === "number") {
+      setDiamonds(stored.diamonds);
+      diamondsRef.current = stored.diamonds;
+    }
+    setOpponentName(rival);
+    nearbyRivalRef.current = null;
+    setNearbyRival(null);
+    sessionRef.current = createSession({
+      seed: Math.floor(Math.random() * 2_000_000_000),
+      pool0: pool,
+      pool1: all.length >= 3 ? all : pool,
+      names: ["You", rival],
+      diff: "normal",
+      control: ["human", "bot"],
+    });
+    setView(publicView(sessionRef.current));
+    setNotice("Challenge accepted · " + rival);
+  }, [requestLandscape]);
+
+  useEffect(() => {
+    if (mode !== "duel" || directBootRef.current) return;
+    directBootRef.current = true;
+    startMatch("NovaByte");
+  }, [mode, startMatch]);
+
+  const send = useCallback((cmd: Parameters<typeof applyCommand>[1]) => {
+    if (cmd.t !== "aim") sfx("click");
+    const s = sessionRef.current;
+    if (!s) return;
+    const err = applyCommand(s, cmd, (cost) => {
+      if (diamonds < cost) return false;
+      setDiamonds((d) => d - cost);
+      return true;
+    });
+    if (err === "diamonds") setNotice("Not enough diamonds for that reroll.");
+    else if (err) setNotice(err);
+    else setNotice("");
+    setView(publicView(s));
+  }, [diamonds]);
+
+  // NOTE: truncated in this attempt - will fix with exact file content
+  const PLACEHOLDER_PART1 = true;
