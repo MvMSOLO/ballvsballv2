@@ -1682,3 +1682,72 @@ button { touch-action: manipulation; }
 @media (prefers-reduced-motion: reduce) {
   .auth-onboarding *, .auth-onboarding *::before, .auth-onboarding *::after { transition: none !important; animation: none !important; }
 }
+
+
+/* Phase 09 — shared route navigation, settings groups, and persisted preferences. */
+.portal-topbar { min-width: 0; gap: clamp(8px, 1.6vw, 20px); }
+.portal-brand { min-width: 0; }
+.portal-nav { min-width: 0; flex-wrap: wrap; justify-content: center; }
+.portal-nav-link { min-height: 38px; white-space: nowrap; }
+.portal-session { min-width: 0; }
+.settings-category-intro { max-width: 760px; margin: 8px 0 16px; color: var(--ba-color-text-secondary); font-size: 12px; line-height: 1.65; }
+.settings-audio-panel .volume-grid { margin-top: 18px; }
+.settings-audio-panel .volume-grid input[type="range"] { min-height: 24px; cursor: pointer; }
+.settings-panel .setting-row select { min-height: 40px; max-width: min(220px, 48vw); }
+.settings-panel .setting-row input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; }
+.settings-panel .setting-row:focus-within { outline: 1px solid var(--ba-color-focus); outline-offset: 4px; }
+.owner-lab-gate { min-height: 100dvh; display: grid; place-items: center; padding: max(20px, env(safe-area-inset-top)) 18px max(20px, env(safe-area-inset-bottom)); background: radial-gradient(ellipse at 15% 10%, #ff4d371c, transparent 42%), var(--ba-void); color: var(--ba-color-text); }
+.owner-lab-gate > section { width: min(560px, 100%); display: grid; justify-items: start; gap: 14px; padding: clamp(24px, 5vw, 42px); border: 1px solid var(--ba-color-border-strong); border-radius: 5px 22px 5px 22px; background: linear-gradient(145deg, var(--ba-panel-raised), var(--ba-panel)); box-shadow: var(--ba-shadow-md); }
+.owner-lab-gate > section > span { color: var(--ba-color-danger); font: 800 9px var(--ba-font-data); letter-spacing: .16em; }
+.owner-lab-gate h1 { margin: 0; font: 800 clamp(27px, 6vw, 42px) var(--ba-font-display); letter-spacing: -.04em; }
+.owner-lab-gate p { margin: 0 0 6px; color: var(--ba-color-text-secondary); font-size: 13px; line-height: 1.7; }
+.owner-lab-gate .portal-button { display: inline-flex; align-items: center; justify-content: center; min-height: 42px; }
+html[data-colorblind="true"] {
+  --ba-color-success: #e6ab02;
+  --ba-color-danger: #0072b2;
+  --ba-color-warning: #cc79a7;
+  --ba-color-info: #009e73;
+}
+html[data-reduce-motion="true"] *,
+html[data-reduce-motion="true"] *::before,
+html[data-reduce-motion="true"] *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+@media (max-width: 1100px) {
+  .portal-topbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 14px; padding-top: calc(10px + env(safe-area-inset-top)); }
+  .portal-nav { grid-column: 1 / -1; grid-row: 2; width: 100%; justify-self: stretch; justify-content: flex-start; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; padding: 4px 1px 6px; margin: 0; }
+  .portal-session { grid-column: 2; grid-row: 1; justify-self: end; }
+  .portal-content { width: min(1320px, calc(100% - 32px)); }
+}
+@media (max-width: 720px) {
+  .settings-category-intro { font-size: 11px; }
+  .settings-panel .setting-row { gap: 10px; padding: 13px 0; }
+  .settings-panel .setting-row > span { min-width: 0; }
+  .settings-panel .setting-row strong { font-size: 13px; }
+  .settings-panel .setting-row small { display: block; max-width: 34ch; }
+  .volume-grid { grid-template-columns: minmax(0, 1fr); gap: 19px; }
+  .volume-grid label { font-size: 10px; }
+  .danger-panel { flex-direction: column; align-items: stretch; }
+  .danger-panel .portal-button { width: 100%; }
+  .rank-table-head { display: none; }
+  .rank-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "player trophies" "country favorite"; gap: 8px 12px; padding: 14px 10px; }
+  .rank-player { grid-area: player; }
+  .rank-trophies { grid-area: trophies; }
+  .rank-row > span:nth-child(2) { grid-area: country; padding-left: 32px; }
+  .rank-row > span:nth-child(4) { grid-area: favorite; text-align: right; overflow-wrap: anywhere; }
+}
+@media (max-width: 520px) {
+  .portal-topbar { padding: calc(8px + env(safe-area-inset-top)) 12px 10px; }
+  .portal-content { width: calc(100% - 24px); padding-top: 18px; }
+  .portal-nav-link { min-height: 37px; flex: 0 0 auto; padding: 0 10px; font-size: 8px; }
+  .portal-session-state { font-size: 7px; }
+  .settings-panel .setting-row select { max-width: 44vw; width: 150px; font-size: 11px; }
+  .owner-lab-gate > section { gap: 12px; }
+}
+@media (max-width: 360px) {
+  .portal-nav-link { padding: 0 8px; letter-spacing: .02em; }
+  .portal-signin { padding: 0 9px; min-height: 36px; }
+}
