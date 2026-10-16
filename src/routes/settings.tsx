@@ -37,11 +37,18 @@ function SettingsPage() {
     applyAudioSettings(local);
     announceSettingsChange(local);
     if (cloudSync) {
+      // A late cloud response must not overwrite a mixer change the player already made.
+      const hydrationRevision = ++syncRevision.current;
       void hydrateArenaSave(local).then((merged) => {
+        if (syncRevision.current !== hydrationRevision) return;
         setSave(merged);
         applyAudioSettings(merged);
         announceSettingsChange(merged);
-      }).catch(() => setNotice("Cloud settings unavailable; local preferences are loaded."));
+      }).catch(() => {
+        if (syncRevision.current === hydrationRevision) {
+          setNotice("Cloud settings unavailable; local preferences are loaded.");
+        }
+      });
     }
   }, [cloudSync, isPending]);
 
