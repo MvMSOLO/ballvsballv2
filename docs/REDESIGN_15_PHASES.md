@@ -78,6 +78,7 @@ Public screens reviewed: home arena, profile, shop, inventory, leaderboard, sett
 - Acceptance: local validation and callback/provider policy are covered by automated tests; live sign-in/up and invalid-credential outcomes still require a controlled end-to-end auth test.
 
 ### Phase 09 — Navigation, settings, leaderboard, admin boundary
+**Implementation on `phase-09-navigation-settings-boundary`:** arena and player hub now use one route registry; owner links and the internal `/1v1/admin` control deck require the verified owner identity in the client route gate, while database-backed admin reads/actions retain server-side owner verification. Settings are grouped into Display, Accessibility, Audio, and Local Data; master/ambience/SFX levels drive real audio gains, reduced motion and the color-blind palette are applied globally, local reset confirms scope, and leaderboard/navigation receive narrow-screen layouts. Automated design-contract and navigation-policy checks have been added; CI and post-deployment visual QA are still pending.
 - Unify nav structure across arena and player hub; use discoverable labels at desktop and mobile; clarify route hierarchy.
 - Decide if the 1V1 lab is public product functionality or internal testing. Enforce actual authorization on protected functions/routes; hiding a link alone is not security.
 - Improve settings categories, language, graphics, sound sliders, reduced motion, and destructive reset confirmation.
