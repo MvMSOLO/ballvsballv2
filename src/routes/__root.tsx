@@ -7,6 +7,7 @@ import { setAudioLevels, setMuted } from "@/audio/synth";
 import appCss from "../styles.css?url";
 import designSystemCss from "../design-system.css?url";
 import uiPrimitivesCss from "../ui-primitives.css?url";
+import nextgenUiCss from "../nextgen-ui.css?url";
 
 const APP_NAME = "BALL ARENA";
 
@@ -67,6 +68,7 @@ export const Route = createRootRoute({
       { rel: "stylesheet", href: appCss },
       { rel: "stylesheet", href: designSystemCss },
       { rel: "stylesheet", href: uiPrimitivesCss },
+      { rel: "stylesheet", href: nextgenUiCss },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
     ],
