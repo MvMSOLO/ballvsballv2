@@ -77,6 +77,12 @@ assert.ok(tokens.includes(".pick-empty-state {") && tokens.includes(".reward-sum
 assert.ok(homeRoute.includes('className="fight-health-warning">CRITICAL</strong>'), "Critical HP must have a non-color-only warning");
 assert.ok(tokens.includes(".fight-health-track {"), "Combat HUD health bar styling is missing");
 assert.ok(homeRoute.includes("world.update(dt, draw, frameDeltaMs)"), "Frame timing must flow from requestAnimationFrame to the renderer");
+assert.ok(homeRoute.includes('document.addEventListener("visibilitychange", onVisibilityChange)'), "Arena loop must respond to document visibility");
+assert.ok(homeRoute.includes('canvas?.addEventListener("webglcontextlost", onWebglContextLost)'), "Arena must stop rendering after WebGL context loss");
+assert.ok(homeRoute.includes('canvas?.addEventListener("webglcontextrestored", onWebglContextRestored)'), "Arena must resume after WebGL context restoration");
+assert.ok(homeRoute.includes("keysRef.current.clear()") && homeRoute.includes("touchMoveRef.current = { x: 0, y: 0 }"), "Lifecycle suspension must clear held movement inputs");
+assert.ok(homeRoute.includes('className="renderer-recovery" role="status" aria-live="polite"'), "WebGL recovery must expose an accessible status overlay");
+assert.ok(homeRoute.includes("if (disposed || frameScheduled || !canRunFrame()) return;"), "The arena loop must not queue frames while hidden or context-lost");
 assert.ok(homeRoute.includes("const LOBBY_BOTS = RIVALS.map"), "Static rival draw data must be prepared once, not allocated each frame");
 assert.ok(homeRoute.includes("if (world.quality !== qualityRef.current)"), "Automatic quality changes must keep the quality HUD in sync");
 assert.ok(!tokens.includes(".world-host canvas.gl { filter: saturate(1.12) contrast(1.04); }"), "Canvas must not use an extra full-screen CSS filter");

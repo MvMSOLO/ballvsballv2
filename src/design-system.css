@@ -1854,3 +1854,49 @@ html[data-reduce-motion="true"] *::after {
     translate: none !important;
   }
 }
+
+
+/* Phase 13 — clear, accessible recovery state for a lost mobile WebGL context. */
+.renderer-recovery {
+  position: absolute;
+  z-index: 12;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: clamp(20px, 5vw, 48px);
+  text-align: center;
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(31, 94, 145, .42), transparent 58%),
+    rgba(3, 8, 18, .97);
+  color: #f3f7ff;
+}
+.renderer-recovery-icon {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border: 1px solid rgba(101, 231, 255, .46);
+  border-radius: 19px;
+  color: #7cecff;
+  font-size: 32px;
+  box-shadow: 0 0 32px rgba(34, 211, 238, .12), inset 0 0 24px rgba(34, 211, 238, .08);
+}
+.renderer-recovery strong {
+  color: #dffaff;
+  font-family: var(--ba-font-display);
+  font-size: clamp(14px, 3vw, 19px);
+  letter-spacing: .16em;
+}
+.renderer-recovery p {
+  max-width: 40ch;
+  margin: 0;
+  color: #9fb4cc;
+  font-size: 12px;
+  line-height: 1.7;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .renderer-recovery-icon { animation: renderer-recovery-spin 2.2s linear infinite; }
+  @keyframes renderer-recovery-spin { to { transform: rotate(360deg); } }
+}
