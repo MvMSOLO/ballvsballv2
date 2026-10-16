@@ -77,6 +77,11 @@ assert.ok(tokens.includes(".pick-empty-state {") && tokens.includes(".reward-sum
 assert.ok(homeRoute.includes('className="fight-health-warning">CRITICAL</strong>'), "Critical HP must have a non-color-only warning");
 assert.ok(tokens.includes(".fight-health-track {"), "Combat HUD health bar styling is missing");
 assert.ok(homeRoute.includes("world.update(dt, draw, frameDeltaMs)"), "Frame timing must flow from requestAnimationFrame to the renderer");
+assert.ok(homeRoute.includes("saved.history = appendMatchRecord(saved.history, matchRecord)"), "Completed player duels must be persisted to match history");
+assert.ok(homeRoute.includes("if (!adminMode && s.flow === \"end\""), "Admin lab matches must not be counted as player progress");
+assert.ok(homeRoute.includes("damage: s.matchDamage[playerSide]"), "Match history must record cumulative per-match damage");
+assert.ok(profileRoute.includes('className="portal-history-details"') && profileRoute.includes("match.oppBall") && profileRoute.includes("match.damage.toLocaleString()"), "Recent duels must show both balls and total damage");
+assert.ok(profileRoute.includes('className="portal-history-unranked">UNRANKED</b>'), "Local non-ranked duels must not display fabricated trophy deltas");
 assert.ok(homeRoute.includes('document.addEventListener("visibilitychange", onVisibilityChange)'), "Arena loop must respond to document visibility");
 assert.ok(homeRoute.includes('canvas?.addEventListener("webglcontextlost", onWebglContextLost)'), "Arena must stop rendering after WebGL context loss");
 assert.ok(homeRoute.includes('canvas?.addEventListener("webglcontextrestored", onWebglContextRestored)'), "Arena must resume after WebGL context restoration");
