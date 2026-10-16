@@ -54,11 +54,12 @@ assert.ok(brandGuide.includes("Never fabricate online player counts"), "Brand gu
 
 assert.match(worldRenderer, /aspect >= 1\.85 \? 56 : aspect >= 1\.35 \? 48 : 44/, "Lobby camera must widen on desktop and landscape screens");
 assert.ok(worldRenderer.includes("new THREE.InstancedMesh(pillarGeometry, pillarMaterial, 12)"), "Repeated lobby pillars must use instanced rendering");
-assert.ok(worldRenderer.includes("if (targetQuality !== this.quality) this.setQuality(targetQuality, true)"), "Adaptive quality must not resize the renderer every frame");
+assert.ok(worldRenderer.includes("if (decision.changed) this.setQuality(decision.quality, true, true)"), "Adaptive quality must resize only when the policy changes preset");
+assert.ok(worldRenderer.includes("stepAdaptiveQuality(this.quality, this.frameMs, frameDeltaMs, this.adaptiveQualityState)"), "Adaptive quality decisions must pass through the tested policy");
 assert.ok(worldRenderer.includes("this.quality === \"low\" ? 0.75 : this.quality === \"medium\" ? 1 : 1.5"), "Quality modes must cap framebuffer resolution for GPU headroom");
 assert.ok(worldRenderer.includes("antialias: false"), "WebGL renderer must avoid expensive default MSAA on integrated GPUs");
 assert.ok(worldRenderer.includes("update(dt: number, draw: DrawState, frameDeltaMs = dt * 1000)"), "Adaptive quality must receive the real animation-frame interval");
-assert.ok(worldRenderer.includes("Math.max(updateCostMs, Math.max(0, frameDeltaMs))"), "Adaptive quality must account for GPU-bound frame pacing");
+assert.ok(worldRenderer.includes("Math.min(50, Math.max(updateCostMs, Math.max(0, frameDeltaMs)))"), "Adaptive quality must account for GPU-bound pacing and cap resume spikes");
 assert.ok(worldRenderer.includes("if (this.battleTrailsActive)"), "Idle lobby frames must not reset the full battle-trail pool");
 assert.ok(worldRenderer.includes('if (draw.mode === "lobby") {\n      // The free-roam avatar and five rivals belong only to the lobby.'), "Hidden lobby rigs must not animate during duel frames");
 assert.ok(worldRenderer.includes("this.lobbyWater = this.lobby.getObjectByName(\"water\")"), "Static decorative scene nodes should be cached once");

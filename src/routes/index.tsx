@@ -202,7 +202,9 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   const closeBallInspect = useCallback(() => setInspectedBall(null), []);
   const [notice, setNotice] = useState("");
   const [quality, setQuality] = useState<"low" | "medium" | "high">("medium");
+  const [autoQuality, setAutoQuality] = useState(true);
   const qualityRef = useRef(quality);
+  const autoQualityRef = useRef(true);
   const playerPosRef = useRef({ x: 0, z: 0 });
   const touchMoveRef = useRef({ x: 0, y: 0 });
   const stickPointerRef = useRef<number | null>(null);
@@ -446,7 +448,12 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     setAudioMuted(!saved.settings.sound);
     setAudioLevels({ master: saved.settings.master, music: saved.settings.music, ui: saved.settings.ui, sfx: saved.settings.sfx });
     setMuted(!saved.settings.sound);
-    if (saved.settings.quality !== "auto") setQuality(saved.settings.quality);
+    autoQualityRef.current = saved.settings.quality === "auto";
+    setAutoQuality(autoQualityRef.current);
+    const initialQuality: "low" | "medium" | "high" = saved.settings.quality === "auto" ? "medium" : saved.settings.quality;
+    qualityRef.current = initialQuality;
+    setQuality(initialQuality);
+    worldRef.current?.setQuality(initialQuality, autoQualityRef.current);
     if (cloudSyncRef.current) {
       void hydrateArenaSave(saved).then((merged) => {
         if (!active) return;
@@ -456,6 +463,12 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         setAudioMuted(!merged.settings.sound);
         setAudioLevels({ master: merged.settings.master, music: merged.settings.music, ui: merged.settings.ui, sfx: merged.settings.sfx });
         setMuted(!merged.settings.sound, false);
+        autoQualityRef.current = merged.settings.quality === "auto";
+        setAutoQuality(autoQualityRef.current);
+        const mergedQuality: "low" | "medium" | "high" = merged.settings.quality === "auto" ? "medium" : merged.settings.quality;
+        qualityRef.current = mergedQuality;
+        setQuality(mergedQuality);
+        worldRef.current?.setQuality(mergedQuality, autoQualityRef.current);
       }).catch(() => {
         if (active) setNotice("Cloud save unavailable; continuing with local progress.");
       });
@@ -476,7 +489,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     let raf = 0;
     try {
       const world = new World(host);
-      world.setQuality(qualityRef.current, true);
+      world.setQuality(qualityRef.current, autoQualityRef.current);
       worldRef.current = world;
       const resize = () => world.resize();
       window.addEventListener("resize", resize);
@@ -652,12 +665,15 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   useEffect(() => {
     qualityRef.current = quality;
     const world = worldRef.current;
-    if (world && world.quality !== quality) world.setQuality(quality, true);
+    if (world && world.quality !== quality) world.setQuality(quality, autoQualityRef.current);
   }, [quality]);
 
   const changeGraphicsQuality = useCallback((next: "low" | "medium" | "high") => {
+    // Choosing a concrete preset in the HUD intentionally locks that preset.
+    autoQualityRef.current = false;
+    setAutoQuality(false);
     qualityRef.current = next;
-    worldRef.current?.setQuality(next, true);
+    worldRef.current?.setQuality(next, false);
     setQuality(next);
     try {
       const saved = loadSave();
@@ -696,7 +712,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
           })}
         </nav>}
         {mode === "admin" ? <a className="admin-route-link" href="/1v1/" title="Return to standard duel mode">↗ DUEL</a> : mode === "duel" && ownerToolsAvailable ? <a className="admin-route-link" href="/1v1/admin" title="Owner-only bot and ball-pack testing lab" aria-label="Open owner-only pack testing lab">⚙ OWNER LAB</a> : null}
-        <div className="wallet">{view?.flow === "fight" && <button className={"speed-vote-button" + (view.matchSpeed === 2 ? " active" : "")} onClick={toggleMatchSpeed} aria-pressed={view.matchSpeed === 2} title="Both sides must approve 2x speed"><strong>2×</strong><span>{view.matchSpeed === 2 ? "BOTH READY" : "MATCH SPEED"}</span></button>}<span title={infiniteDiamonds ? "Infinite diamonds enabled" : "Diamonds"}>◈ {infiniteDiamonds ? "∞" : diamonds.toLocaleString()}</span><span title={infiniteCoins ? "Infinite coins enabled" : "Coins"}>● {infiniteCoins ? "∞" : coins.toLocaleString()}</span><button className="icon-button sound-toggle" onClick={() => { const next = !audioMuted; setAudioMuted(next); setMuted(next); try { const saved = loadSave(); saved.settings.sound = !next; writeSave(saved); } catch { /* keep the in-memory toggle */ } }} aria-label={audioMuted ? "Enable sound" : "Mute sound"}>{audioMuted ? "◌" : "♫"}</button><button className="icon-button" onClick={() => { const next = quality === "medium" ? "high" : quality === "high" ? "low" : "medium"; changeGraphicsQuality(next); }} aria-label="Change graphics quality">◉ {quality.toUpperCase()}</button></div>
+        <div className="wallet">{view?.flow === "fight" && <button className={"speed-vote-button" + (view.matchSpeed === 2 ? " active" : "")} onClick={toggleMatchSpeed} aria-pressed={view.matchSpeed === 2} title="Both sides must approve 2x speed"><strong>2×</strong><span>{view.matchSpeed === 2 ? "BOTH READY" : "MATCH SPEED"}</span></button>}<span title={infiniteDiamonds ? "Infinite diamonds enabled" : "Diamonds"}>◈ {infiniteDiamonds ? "∞" : diamonds.toLocaleString()}</span><span title={infiniteCoins ? "Infinite coins enabled" : "Coins"}>● {infiniteCoins ? "∞" : coins.toLocaleString()}</span><button className="icon-button sound-toggle" onClick={() => { const next = !audioMuted; setAudioMuted(next); setMuted(next); try { const saved = loadSave(); saved.settings.sound = !next; writeSave(saved); } catch { /* keep the in-memory toggle */ } }} aria-label={audioMuted ? "Enable sound" : "Mute sound"}>{audioMuted ? "◌" : "♫"}</button><button className="icon-button" onClick={() => { const next = quality === "medium" ? "high" : quality === "high" ? "low" : "medium"; changeGraphicsQuality(next); }} aria-label={autoQuality ? "Automatic graphics quality, currently " + quality + ". Click to lock a fixed preset." : "Change fixed graphics quality"} title={autoQuality ? "Auto adjusts after sustained frame-time changes; choose a fixed preset with this button." : "Fixed preset active. Select Auto in Settings to enable adaptive quality."}>◉ {autoQuality ? "AUTO " : ""}{quality.toUpperCase()}</button></div>
       </header>
 
       {!view && mode === "free-roam" && <section className="world-guide" aria-label="Arena briefing">
