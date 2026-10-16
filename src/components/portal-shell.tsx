@@ -1,25 +1,11 @@
 import type { ReactNode } from "react";
 import { UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { PLAYER_HUB_NAV, canAccessOwnerTools } from "@/lib/player-navigation";
 
-const OWNER_EMAIL = "mirzayevavazbek15@gmail.com";
-
-const AUTH_RETURN_PATHS: Record<string, string> = {
-  profile: "/profile",
-  shop: "/shop",
-  inventory: "/inventory",
-  leaderboard: "/leaderboard",
-  settings: "/settings",
-  admin: "/admin",
-};
-
-const LINKS = [
-  { href: "/profile", label: "PROFILE", key: "profile" },
-  { href: "/shop", label: "SHOP", key: "shop" },
-  { href: "/inventory", label: "INVENTORY", key: "inventory" },
-  { href: "/leaderboard", label: "RANKS", key: "leaderboard" },
-  { href: "/settings", label: "SETTINGS", key: "settings" },
-];
+const AUTH_RETURN_PATHS: Record<string, string> = Object.fromEntries(
+  PLAYER_HUB_NAV.map((item) => [item.key, item.href]),
+);
 
 export function PortalShell({ active, title, description, children }: {
   active: string; title: string; description: string; children: ReactNode;
@@ -33,8 +19,8 @@ export function PortalShell({ active, title, description, children }: {
         <img className="portal-brand-wordmark" src="/brand/ball-arena-wordmark.svg" alt="BALL ARENA — Physics Duel League" />
       </a>
       <nav className="portal-nav" aria-label="Main navigation">
-        {LINKS.map((item) => <a key={item.key} href={item.href} className={"portal-nav-link" + (active === item.key ? " active" : "")} aria-current={active === item.key ? "page" : undefined}>{item.label}</a>)}
-        {!isPending && user && !user.isDevFallback && user.primaryEmail?.trim().toLowerCase() === OWNER_EMAIL && <a href="/admin" className={"portal-nav-link portal-admin-nav" + (active === "admin" ? " active" : "")} aria-current={active === "admin" ? "page" : undefined}>ADMIN</a>}
+        {PLAYER_HUB_NAV.map((item) => <a key={item.key} href={item.href} title={item.title} className={"portal-nav-link" + (active === item.key ? " active" : "")} aria-current={active === item.key ? "page" : undefined}>{item.label}</a>)}
+        {!isPending && canAccessOwnerTools(user) && <a href="/admin" className={"portal-nav-link portal-admin-nav" + (active === "admin" ? " active" : "")} aria-current={active === "admin" ? "page" : undefined}>ADMIN</a>}
       </nav>
       <div className="portal-session">
         {isPending ? <span className="portal-session-state">CHECKING SESSION…</span> : user ? <div className="portal-account"><UserButton /></div> : <a className="portal-signin" href={signInHref}>SIGN IN ↗</a>}
