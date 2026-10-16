@@ -57,6 +57,7 @@ interface LiveFx {
   key: string;
   type: number;
   magnitude: number;
+  impactScale?: number;
   group: THREE.Group;
   ring: THREE.Mesh<THREE.TorusGeometry, THREE.MeshBasicMaterial>;
   ring2?: THREE.Mesh<THREE.TorusGeometry, THREE.MeshBasicMaterial>;
@@ -1633,7 +1634,7 @@ export class World {
         : event.type === 13 ? 0.68 : event.type === 14 ? 0.72 : event.type === 15 ? 0.58
         : event.type === 6 ? 0.46 : 0.48;
       const duration = baseDuration * (hitMotion?.duration ?? (reduceMotion ? 0.38 : 1));
-      this.activeEffects.push({ key: event.key, type: event.type, magnitude: event.magnitude, group, ring, ring2, shell, core, particles, line, tube, age: 0, duration });
+      this.activeEffects.push({ key: event.key, type: event.type, magnitude: event.magnitude, impactScale: hitMotion?.scale, group, ring, ring2, shell, core, particles, line, tube, age: 0, duration });
       if (this.activeEffects.length > 32) this.removeCombatEffect(0);
     }
     for (let i = this.activeEffects.length - 1; i >= 0; i--) {
@@ -1641,7 +1642,7 @@ export class World {
       fx.age += dt;
       const p = Math.min(1, fx.age / fx.duration);
       const ease = 1 - (1 - p) * (1 - p);
-      const maxSize = fx.type === 1 ? Math.min(2.25, 0.62 + Math.max(0, fx.magnitude) * 0.1) : fx.type === 8 ? Math.min(4.2, 1.8 + fx.magnitude * 0.35) : fx.type === 9 ? 1.75 : fx.type === 12 ? 2.35 : fx.type === 11 ? 1.35 : fx.type === 6 ? 1.9 : 1.65;
+      const maxSize = fx.type === 1 ? Math.min(2.2, 0.55 + (fx.impactScale ?? 1) * 0.9) : fx.type === 8 ? Math.min(4.2, 1.8 + fx.magnitude * 0.35) : fx.type === 9 ? 1.75 : fx.type === 12 ? 2.35 : fx.type === 11 ? 1.35 : fx.type === 6 ? 1.9 : 1.65;
       const startSize = fx.type === 9 ? 0.86 : fx.type === 13 ? 1.0 : 0.22;
       fx.ring.scale.setScalar(fx.type === 15 ? 1.7 - ease * 1.25 : startSize + ease * (maxSize - startSize));
       if (!reduceMotion) fx.ring.rotation.z += dt * (fx.type === 12 ? 2.4 : 1.2 + p * 2);
