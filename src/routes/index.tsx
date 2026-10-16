@@ -12,6 +12,7 @@ import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { authEnabled } from "@/lib/auth/client";
 import { sfx, setMuted, unlockAudio } from "../audio/synth";
 import { BallInspectDialog } from "@/components/ball-inspect-dialog";
+import { PLAYER_HUB_NAV, canAccessOwnerTools } from "@/lib/player-navigation";
 
 export const Route = createFileRoute("/")({ component: BallArenaPage });
 
@@ -155,6 +156,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   const cloudSyncRef = useRef(false);
   cloudSyncRef.current = authEnabled && Boolean(currentUser && !currentUser.isDevFallback);
   const adminMode = mode === "admin";
+  const ownerToolsAvailable = canAccessOwnerTools(currentUser);
   const availablePacks = useMemo(() => allPacks(), []);
   const hostRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<World | null>(null);
@@ -655,8 +657,17 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
       <div className="game-vignette" />
       <header className={"topbar" + (mode === "free-roam" ? " topbar-main" : "")}>
         <div className="brand-mark"><img className="brand-wordmark" src="/brand/ball-arena-wordmark.svg" alt="BALL ARENA — Physics Duel League" /></div>
-        {mode !== "admin" && <nav className="game-nav" aria-label="Player hub">{currentUser && !currentUser.isDevFallback ? <a className="hub-icon-link" href="/profile" title="Profile" aria-label="Profile"><HubLogo kind="profile" /><span className="hub-icon-label">PROFILE</span></a> : <a className="hub-icon-link" href="/login" title="Sign in" aria-label="Sign in"><HubLogo kind="login" /><span className="hub-icon-label">SIGN IN</span></a>}<a className="hub-icon-link" href="/shop" title="Shop" aria-label="Shop"><HubLogo kind="shop" /><span className="hub-icon-label">SHOP</span></a><a className="hub-icon-link" href="/inventory" title="Inventory" aria-label="Inventory"><HubLogo kind="inventory" /><span className="hub-icon-label">INVENTORY</span></a><a className="hub-icon-link" href="/leaderboard" title="Ranks" aria-label="Ranks"><HubLogo kind="ranks" /><span className="hub-icon-label">RANKS</span></a><a className="hub-icon-link" href="/settings" title="Settings" aria-label="Settings"><HubLogo kind="settings" /><span className="hub-icon-label">SETTINGS</span></a></nav>}
-        {mode === "admin" ? <a className="admin-route-link" href="/1v1/" title="Return to standard duel mode">↗ DUEL</a> : mode === "duel" ? <a className="admin-route-link" href="/1v1/admin" title="Open the auto-bot pack testing lab">⚙ 1V1 LAB</a> : null}
+        {mode !== "admin" && <nav className="game-nav" aria-label="Player hub">
+          {PLAYER_HUB_NAV.map((item) => {
+            const guestProfile = item.key === "profile" && (!currentUser || currentUser.isDevFallback);
+            const destination = guestProfile ? "/login?callbackURL=" + encodeURIComponent(item.href) : item.href;
+            return <a key={item.key} className="hub-icon-link" href={destination} title={guestProfile ? "Sign in to open your profile" : item.title} aria-label={guestProfile ? "Sign in to open your profile" : item.title}>
+              <HubLogo kind={guestProfile ? "login" : item.icon} />
+              <span className="hub-icon-label">{guestProfile ? "SIGN IN" : item.label}</span>
+            </a>;
+          })}
+        </nav>}
+        {mode === "admin" ? <a className="admin-route-link" href="/1v1/" title="Return to standard duel mode">↗ DUEL</a> : mode === "duel" && ownerToolsAvailable ? <a className="admin-route-link" href="/1v1/admin" title="Owner-only bot and ball-pack testing lab" aria-label="Open owner-only pack testing lab">⚙ OWNER LAB</a> : null}
         <div className="wallet">{view?.flow === "fight" && <button className={"speed-vote-button" + (view.matchSpeed === 2 ? " active" : "")} onClick={toggleMatchSpeed} aria-pressed={view.matchSpeed === 2} title="Both sides must approve 2x speed"><strong>2×</strong><span>{view.matchSpeed === 2 ? "BOTH READY" : "MATCH SPEED"}</span></button>}<span title={infiniteDiamonds ? "Infinite diamonds enabled" : "Diamonds"}>◈ {infiniteDiamonds ? "∞" : diamonds.toLocaleString()}</span><span title={infiniteCoins ? "Infinite coins enabled" : "Coins"}>● {infiniteCoins ? "∞" : coins.toLocaleString()}</span><button className="icon-button sound-toggle" onClick={() => { const next = !audioMuted; setAudioMuted(next); setMuted(next); try { const saved = loadSave(); saved.settings.sound = !next; writeSave(saved); } catch { /* keep the in-memory toggle */ } }} aria-label={audioMuted ? "Enable sound" : "Mute sound"}>{audioMuted ? "◌" : "♫"}</button><button className="icon-button" onClick={() => { const next = quality === "medium" ? "high" : quality === "high" ? "low" : "medium"; changeGraphicsQuality(next); }} aria-label="Change graphics quality">◉ {quality.toUpperCase()}</button></div>
       </header>
 
