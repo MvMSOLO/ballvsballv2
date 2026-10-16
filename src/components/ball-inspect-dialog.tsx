@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import type { Action, BallDef } from "@/sim/types";
+import { shouldReduceMotion } from "@/lib/motion-policy";
 
 const RARITY: Record<BallDef["rarity"], string> = {
   common: "#aebdce", rare: "#58c9ff", epic: "#c39aff", legendary: "#f5c96a", mythic: "#ff718b",
@@ -101,24 +102,45 @@ function BallPreview3D({ ball }: { ball: BallDef }) {
     plinth.position.y = -1.12; root.add(plinth);
     const plinthRing = new THREE.Mesh(new THREE.TorusGeometry(1.18, .022, 7, 40), rarity);
     plinthRing.rotation.x = Math.PI / 2; plinthRing.position.y = -1.055; root.add(plinthRing);
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reduced = shouldReduceMotion(document.documentElement.dataset.reduceMotion === "true", motionQuery.matches);
+    let raf = 0, last = 0;
+    const renderStatic = () => renderer.render(scene, camera);
     const resize = () => {
       const width = Math.max(1, el.clientWidth), height = Math.max(1, el.clientHeight);
       renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix();
+      if (reduced) renderStatic();
     };
     const observer = new ResizeObserver(resize); observer.observe(el); resize();
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let raf = 0, last = 0;
     const tick = (now: number) => {
+      if (reduced) { raf = 0; renderStatic(); return; }
       if (now - last > 32 || !last) {
         const dt = last ? Math.min(.06, (now - last) / 1000) : 0;
-        if (!reduced) { root.rotation.y += dt * .46; root.rotation.x = Math.sin(now * .00035) * .055; }
+        root.rotation.y += dt * .46;
+        root.rotation.x = Math.sin(now * .00035) * .055;
         renderer.render(scene, camera); last = now;
       }
       raf = window.requestAnimationFrame(tick);
     };
-    raf = window.requestAnimationFrame(tick);
+    const syncMotion = () => {
+      const next = shouldReduceMotion(document.documentElement.dataset.reduceMotion === "true", motionQuery.matches);
+      if (next === reduced) return;
+      reduced = next;
+      if (raf) window.cancelAnimationFrame(raf);
+      raf = 0; last = 0;
+      if (reduced) renderStatic();
+      else raf = window.requestAnimationFrame(tick);
+    };
+    const motionObserver = new MutationObserver(syncMotion);
+    motionObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-reduce-motion"] });
+    motionQuery.addEventListener("change", syncMotion);
+    if (reduced) renderStatic();
+    else raf = window.requestAnimationFrame(tick);
     return () => {
-      window.cancelAnimationFrame(raf); observer.disconnect();
+      if (raf) window.cancelAnimationFrame(raf);
+      observer.disconnect();
+      motionObserver.disconnect();
+      motionQuery.removeEventListener("change", syncMotion);
       root.traverse(node => {
         if (node instanceof THREE.Mesh) {
           node.geometry.dispose();
