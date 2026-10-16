@@ -1,11 +1,48 @@
+import { useEffect } from "react";
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
+import { loadSave, type Save } from "@/economy/save";
+import { setAudioLevels, setMuted } from "@/audio/synth";
 import appCss from "../styles.css?url";
 import designSystemCss from "../design-system.css?url";
 import uiPrimitivesCss from "../ui-primitives.css?url";
 
 const APP_NAME = "BALL ARENA";
+
+function SavedPreferenceRuntime() {
+  useEffect(() => {
+    const apply = (save: Save) => {
+      const settings = save.settings;
+      document.documentElement.lang = settings.lang;
+      document.documentElement.dataset.reduceMotion = String(settings.reduceMotion);
+      document.documentElement.dataset.colorblind = String(settings.colorblind);
+      setAudioLevels({ master: settings.master, music: settings.music, sfx: settings.sfx });
+      // A settings-page visit must not start ambience without a user gesture.
+      setMuted(!settings.sound, false);
+    };
+    const loadAndApply = () => {
+      try { apply(loadSave()); } catch { /* Keep browser/app defaults if storage is blocked. */ }
+    };
+    const onSettingsChange = (event: Event) => {
+      const detail = (event as CustomEvent<Save>).detail;
+      if (detail && typeof detail === "object" && detail.settings) {
+        try { apply(detail); } catch { loadAndApply(); }
+      } else loadAndApply();
+    };
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === "ball-arena-save") loadAndApply();
+    };
+    loadAndApply();
+    window.addEventListener("ball-arena-settings-change", onSettingsChange);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener("ball-arena-settings-change", onSettingsChange);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+  return null;
+}
 
 export const Route = createRootRoute({
   head: () => ({
@@ -38,6 +75,7 @@ export const Route = createRootRoute({
     <html lang="en" suppressHydrationWarning>
       <head><HeadContent /></head>
       <body>
+        <SavedPreferenceRuntime />
         <PreviewHostBridge />
         <AuthProvider><Outlet /></AuthProvider>
         <Scripts />
