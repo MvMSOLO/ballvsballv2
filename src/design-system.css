@@ -105,13 +105,22 @@
   --ba-focus-offset: 3px;
   --ba-focus-shadow: 0 0 0 3px rgba(74, 163, 255, .22);
 
-  /* Motion scale — fast controls, normal UI, and scene-level transitions. */
-  --ba-motion-instant: 90ms;
+  /* Motion scale — shared timings. Keep feedback quick, entrances short, and exit calmer. */
+  --ba-motion-instant: 70ms;
+  --ba-motion-press: 90ms;
   --ba-motion-fast: 140ms;
+  --ba-motion-exit: 160ms;
   --ba-motion-ui: 220ms;
+  --ba-motion-enter: 260ms;
+  --ba-motion-result: 360ms;
   --ba-motion-scene: 480ms;
+  --ba-motion-vfx-light: 220ms;
+  --ba-motion-vfx-heavy: 520ms;
   --ba-ease-standard: cubic-bezier(.2, .7, .25, 1);
+  --ba-ease-enter: cubic-bezier(.16, 1, .3, 1);
+  --ba-ease-exit: cubic-bezier(.4, 0, 1, 1);
   --ba-ease-emphasized: cubic-bezier(.16, 1, .3, 1);
+  --ba-ease-spring: cubic-bezier(.2, .85, .25, 1);
 
   /* Predictable viewport layers avoid arbitrary z-index escalation. */
   --ba-layer-world: 0;
@@ -1750,4 +1759,90 @@ html[data-reduce-motion="true"] *::after {
 @media (max-width: 360px) {
   .portal-nav-link { padding: 0 8px; letter-spacing: .02em; }
   .portal-signin { padding: 0 9px; min-height: 36px; }
+}
+
+
+/* Phase 10 — motion language. One timing scale; state transitions never replace actual game state. */
+@keyframes ba-ui-enter {
+  from { opacity: 0; translate: 0 9px; scale: .988; }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+@keyframes ba-ui-enter-soft {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes ba-dialog-enter {
+  from { opacity: 0; translate: 0 12px; scale: .982; }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+@keyframes ba-result-enter {
+  0% { opacity: 0; translate: 0 10px; scale: .975; }
+  68% { opacity: 1; translate: 0 -2px; scale: 1.006; }
+  100% { opacity: 1; translate: 0 0; scale: 1; }
+}
+@keyframes ba-reward-reveal {
+  from { opacity: 0; translate: 0 7px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+/* Reusable interactive states: no layout shifts, reduced motion handled below. */
+.portal-nav-link, .portal-button, .na-btn, .hub-icon-link, .icon-button,
+.admin-action-button, .ball-card, .shop-ball-card, .profile-frame-card, .rank-row,
+.ball-inspect-close, .ball-inspect-action {
+  transition-duration: var(--ba-motion-fast);
+  transition-timing-function: var(--ba-ease-standard);
+}
+.portal-nav-link:hover, .hub-icon-link:hover,
+.shop-ball-card:hover, .profile-frame-card:hover {
+  translate: 0 -1px;
+}
+.portal-button:active:not(:disabled), .na-btn:active:not(:disabled),
+.admin-action-button:active:not(:disabled), .ball-inspect-close:active {
+  translate: 0 1px;
+}
+.portal-nav-link:focus-visible, .hub-icon-link:focus-visible,
+.portal-button:focus-visible, .na-btn:focus-visible,
+.ball-inspect-close:focus-visible, .ball-inspect-action:focus-visible {
+  outline-offset: var(--ba-focus-offset);
+}
+
+/* The arena's phase UI mounts with the relevant state; no success is implied before the simulation reports it. */
+.match-hud { animation: ba-ui-enter var(--ba-motion-enter) var(--ba-ease-enter) both; }
+.status-panel { animation: ba-result-enter var(--ba-motion-result) var(--ba-ease-enter) both; }
+.setup-hud { animation: ba-ui-enter var(--ba-motion-enter) var(--ba-ease-enter) both; }
+.fight-panel { animation: ba-ui-enter-soft var(--ba-motion-fast) var(--ba-ease-standard) both; }
+.admin-console { animation: ba-ui-enter var(--ba-motion-enter) var(--ba-ease-enter) both; }
+.phase-chip { transition: background-color var(--ba-motion-fast), border-color var(--ba-motion-fast), color var(--ba-motion-fast); }
+.fight-health-fill { transition: width var(--ba-motion-vfx-light) var(--ba-ease-standard); }
+.ball-card { transition: border-color var(--ba-motion-fast), box-shadow var(--ba-motion-ui), background-color var(--ba-motion-fast), translate var(--ba-motion-fast); }
+.ball-card:hover { translate: 0 -2px; }
+.ball-card:active { translate: 0 1px; }
+.ball-card[aria-pressed="true"], .ball-card.selected { transition-duration: var(--ba-motion-press); }
+.result-victory .pulse-ring { border-color: rgba(97,230,172,.58); background: rgba(97,230,172,.1); box-shadow: 0 0 0 7px rgba(97,230,172,.06), 0 0 32px rgba(97,230,172,.11); }
+.result-defeat .pulse-ring { border-color: rgba(255,101,123,.62); background: rgba(255,101,123,.09); box-shadow: 0 0 0 7px rgba(255,101,123,.05); }
+.result-round-win .pulse-ring { border-color: rgba(97,230,172,.5); background: rgba(97,230,172,.08); }
+.result-round-loss .pulse-ring { border-color: rgba(255,101,123,.5); background: rgba(255,101,123,.08); }
+.reward-summary > span { animation: ba-reward-reveal var(--ba-motion-ui) var(--ba-ease-enter) both; }
+.reward-summary > span:nth-child(2) { animation-delay: 55ms; }
+.ball-inspect-backdrop { animation: ba-ui-enter-soft var(--ba-motion-fast) var(--ba-ease-standard) both; }
+.ball-inspect-dialog { animation: ba-dialog-enter var(--ba-motion-enter) var(--ba-ease-enter) both; transform-origin: center; }
+.ball-inspect-stat-track span { transition: width var(--ba-motion-scene) var(--ba-ease-standard); }
+.portal-page-heading, .portal-panel { animation: ba-ui-enter var(--ba-motion-enter) var(--ba-ease-enter) both; }
+.portal-panel:nth-of-type(2) { animation-delay: 28ms; }
+.portal-panel:nth-of-type(3) { animation-delay: 56ms; }
+.portal-panel:nth-of-type(4) { animation-delay: 84ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .match-hud, .status-panel, .setup-hud, .fight-panel, .admin-console,
+  .reward-summary > span, .ball-inspect-backdrop, .ball-inspect-dialog,
+  .portal-page-heading, .portal-panel {
+    animation: none !important;
+    translate: none !important;
+    scale: none !important;
+  }
+  .portal-nav-link:hover, .hub-icon-link:hover, .shop-ball-card:hover,
+  .profile-frame-card:hover, .ball-card:hover,
+  .portal-button:active, .na-btn:active, .admin-action-button:active {
+    translate: none !important;
+  }
 }
