@@ -14,6 +14,7 @@ import { sfx, setAudioLevels, setMuted, unlockAudio } from "../audio/synth";
 import { BallInspectDialog } from "@/components/ball-inspect-dialog";
 import { PLAYER_HUB_NAV, canAccessOwnerTools } from "@/lib/player-navigation";
 import { shouldReduceMotion } from "@/lib/motion-policy";
+import { createArenaLifecycleState, shouldRunArenaLoop, transitionArenaLifecycle, type ArenaLifecycleEvent } from "@/lib/session-lifecycle-policy";
 
 export const Route = createFileRoute("/")({ component: BallArenaPage });
 
@@ -201,6 +202,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   const [inspectedBall, setInspectedBall] = useState<BallDef | null>(null);
   const closeBallInspect = useCallback(() => setInspectedBall(null), []);
   const [notice, setNotice] = useState("");
+  const [rendererRecovering, setRendererRecovering] = useState(false);
   const [quality, setQuality] = useState<"low" | "medium" | "high">("medium");
   const [autoQuality, setAutoQuality] = useState(true);
   const qualityRef = useRef(quality);
@@ -487,13 +489,48 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     if (!host) return;
     let disposed = false;
     let raf = 0;
+    let frameScheduled = false;
+    let lifecycle = createArenaLifecycleState(!document.hidden);
     try {
       const world = new World(host);
       world.setQuality(qualityRef.current, autoQualityRef.current);
       worldRef.current = world;
+
+      const clearInputState = () => {
+        keysRef.current.clear();
+        touchMoveRef.current = { x: 0, y: 0 };
+        smoothedMoveRef.current = { x: 0, z: 0 };
+        stickPointerRef.current = null;
+        setStickOffset({ x: 0, y: 0 });
+      };
+      const canRunFrame = () => shouldRunArenaLoop(lifecycle);
+      let tick: (now: number) => void = () => undefined;
+      const scheduleFrame = () => {
+        if (disposed || frameScheduled || !canRunFrame()) return;
+        frameScheduled = true;
+        raf = window.requestAnimationFrame(tick);
+      };
+      const stopFrame = () => {
+        if (!frameScheduled) return;
+        window.cancelAnimationFrame(raf);
+        frameScheduled = false;
+      };
+      const applyLifecycleEvent = (event: ArenaLifecycleEvent) => {
+        const transition = transitionArenaLifecycle(lifecycle, event);
+        lifecycle = transition.state;
+        if (transition.clearInput) clearInputState();
+        if (transition.resetFrameClock) {
+          lastFrameRef.current = 0;
+          lastUiRef.current = 0;
+        }
+        setRendererRecovering(lifecycle.webglContextLost);
+        if (canRunFrame()) scheduleFrame();
+        else stopFrame();
+      };
       const resize = () => world.resize();
       window.addEventListener("resize", resize);
       const onDown = (e: KeyboardEvent) => {
+        if (!canRunFrame()) return;
         unlockAudio();
         if (["w", "a", "s", "d", "arrowup", "arrowleft", "arrowdown", "arrowright"].includes(e.key.toLowerCase())) {
           e.preventDefault();
@@ -505,8 +542,35 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
       };
       window.addEventListener("keydown", onDown);
       window.addEventListener("keyup", onUp);
-      const tick = (now: number) => {
-        if (disposed) return;
+      const onVisibilityChange = () => applyLifecycleEvent({ type: "visibility", visible: !document.hidden });
+      const onPageHide = () => applyLifecycleEvent({ type: "visibility", visible: false });
+      const onPageShow = () => applyLifecycleEvent({ type: "visibility", visible: !document.hidden });
+      const onWindowBlur = () => clearInputState();
+      const canvas = host.querySelector<HTMLCanvasElement>("canvas.gl");
+      const onWebglContextLost = (event: Event) => {
+        event.preventDefault();
+        applyLifecycleEvent({ type: "webgl-context", lost: true });
+        setNotice("Graphics context lost. Waiting for the browser to restore the arena…");
+      };
+      const onWebglContextRestored = () => {
+        try {
+          world.resize();
+          applyLifecycleEvent({ type: "webgl-context", lost: false });
+          setNotice("Graphics restored. Arena resumed.");
+        } catch {
+          setRendererRecovering(true);
+          setNotice("Graphics recovery failed. Refresh the page to restart the arena.");
+        }
+      };
+      document.addEventListener("visibilitychange", onVisibilityChange);
+      window.addEventListener("pagehide", onPageHide);
+      window.addEventListener("pageshow", onPageShow);
+      window.addEventListener("blur", onWindowBlur);
+      canvas?.addEventListener("webglcontextlost", onWebglContextLost);
+      canvas?.addEventListener("webglcontextrestored", onWebglContextRestored);
+      tick = (now: number) => {
+        frameScheduled = false;
+        if (disposed || !canRunFrame()) return;
         const frameDeltaMs = lastFrameRef.current ? Math.max(0, now - lastFrameRef.current) : 16;
         const dt = Math.min(0.05, frameDeltaMs / 1000);
         lastFrameRef.current = now;
@@ -645,12 +709,18 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
           qualityRef.current = world.quality;
           setQuality(world.quality);
         }
-        raf = window.requestAnimationFrame(tick);
+        scheduleFrame();
       };
-      raf = window.requestAnimationFrame(tick);
+      scheduleFrame();
       return () => {
         disposed = true;
-        cancelAnimationFrame(raf);
+        stopFrame();
+        document.removeEventListener("visibilitychange", onVisibilityChange);
+        window.removeEventListener("pagehide", onPageHide);
+        window.removeEventListener("pageshow", onPageShow);
+        window.removeEventListener("blur", onWindowBlur);
+        canvas?.removeEventListener("webglcontextlost", onWebglContextLost);
+        canvas?.removeEventListener("webglcontextrestored", onWebglContextRestored);
         window.removeEventListener("resize", resize);
         window.removeEventListener("keydown", onDown);
         window.removeEventListener("keyup", onUp);
@@ -698,6 +768,11 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   return (
     <main className="game-shell">
       <div className="world-host" ref={hostRef} aria-label="3D BALL ARENA world" />
+      {rendererRecovering && <div className="renderer-recovery" role="status" aria-live="polite" aria-atomic="true">
+        <span className="renderer-recovery-icon" aria-hidden="true">↻</span>
+        <strong>GRAPHICS RECOVERY</strong>
+        <p>The 3D graphics context is unavailable. Waiting for the browser to restore the arena.</p>
+      </div>}
       <div className="game-vignette" />
       <header className={"topbar" + (mode === "free-roam" ? " topbar-main" : "")}>
         <div className="brand-mark"><img className="brand-wordmark" src="/brand/ball-arena-wordmark.svg" alt="BALL ARENA — Physics Duel League" /></div>
