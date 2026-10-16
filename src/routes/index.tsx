@@ -450,7 +450,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     setMuted(!saved.settings.sound);
     autoQualityRef.current = saved.settings.quality === "auto";
     setAutoQuality(autoQualityRef.current);
-    const initialQuality: "low" | "medium" | "high" = autoQualityRef.current ? "medium" : saved.settings.quality;
+    const initialQuality: "low" | "medium" | "high" = saved.settings.quality === "auto" ? "medium" : saved.settings.quality;
     qualityRef.current = initialQuality;
     setQuality(initialQuality);
     worldRef.current?.setQuality(initialQuality, autoQualityRef.current);
@@ -465,7 +465,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         setMuted(!merged.settings.sound, false);
         autoQualityRef.current = merged.settings.quality === "auto";
         setAutoQuality(autoQualityRef.current);
-        const mergedQuality: "low" | "medium" | "high" = autoQualityRef.current ? "medium" : merged.settings.quality;
+        const mergedQuality: "low" | "medium" | "high" = merged.settings.quality === "auto" ? "medium" : merged.settings.quality;
         qualityRef.current = mergedQuality;
         setQuality(mergedQuality);
         worldRef.current?.setQuality(mergedQuality, autoQualityRef.current);
