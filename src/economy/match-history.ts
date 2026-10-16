@@ -16,7 +16,10 @@ export interface MatchRecordInput {
 
 function safeLabel(value: unknown, fallback: string): string {
   const clean = typeof value === "string"
-    ? value.replace(/[\u0000-\u001f\u007f]/g, "").trim()
+    ? value.split("").filter((character) => {
+      const code = character.charCodeAt(0);
+      return code >= 32 && code !== 127;
+    }).join("").trim()
     : "";
   return (clean || fallback).slice(0, 48);
 }
