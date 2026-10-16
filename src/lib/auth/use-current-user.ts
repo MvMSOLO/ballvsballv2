@@ -6,6 +6,7 @@ export type AppUser = {
   id: string;
   displayName: string | null;
   primaryEmail: string | null;
+  emailVerified: boolean;
   profileImageUrl: string | null;
   /** True when this is the sandbox/dev fallback (auth not configured). */
   isDevFallback: boolean;
@@ -22,6 +23,7 @@ export const DEV_USER: AppUser = {
   id: "dev-user",
   displayName: "Dev User",
   primaryEmail: "dev@example.com",
+  emailVerified: false,
   profileImageUrl: null,
   isDevFallback: true,
 };
@@ -68,10 +70,11 @@ function useSessionUserState(): CurrentUserState {
   const id = data?.user.id;
   const displayName = data?.user.name ?? null;
   const primaryEmail = data?.user.email ?? null;
+  const emailVerified = data?.user.emailVerified === true;
   const profileImageUrl = data?.user.image ?? null;
   const user = useMemo<AppUser | null>(
-    () => (id ? { id, displayName, primaryEmail, profileImageUrl, isDevFallback: false } : null),
-    [id, displayName, primaryEmail, profileImageUrl],
+    () => (id ? { id, displayName, primaryEmail, emailVerified, profileImageUrl, isDevFallback: false } : null),
+    [id, displayName, primaryEmail, emailVerified, profileImageUrl],
   );
   return useMemo(() => ({ user, isPending }), [user, isPending]);
 }
