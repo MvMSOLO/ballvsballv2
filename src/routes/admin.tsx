@@ -3,9 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { getAdminOverview, performAdminAction } from "@/lib/arena/admin-fns";
 import { PortalShell } from "@/components/portal-shell";
+import { OWNER_ACCOUNT_EMAIL, canAccessOwnerTools } from "@/lib/player-navigation";
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
-const OWNER_EMAIL = "mirzayevavazbek15@gmail.com";
 type AdminActionKey =
   | "kick" | "ban" | "unban" | "toggle_inf_coins" | "toggle_inf_diamonds"
   | "grant_ball" | "remove_ball" | "grant_all_balls" | "set_trophies" | "set_xp" | "set_pass_xp"
@@ -29,7 +29,7 @@ type Overview = {
 
 function AdminPage() {
   const { user, isPending } = useCurrentUserState();
-  const isOwnerClient = Boolean(user && !user.isDevFallback && user.primaryEmail?.trim().toLowerCase() === OWNER_EMAIL);
+  const isOwnerClient = canAccessOwnerTools(user);
   const [overview, setOverview] = useState<Overview | null>(null);
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState("");
@@ -121,7 +121,7 @@ function AdminPage() {
     setPassXp(String(player.pass_xp));
   }
 
-  const ownerTarget = Boolean(selected?.email?.trim().toLowerCase() === OWNER_EMAIL && selected.email_verified);
+  const ownerTarget = Boolean(selected?.email?.trim().toLowerCase() === OWNER_ACCOUNT_EMAIL && selected.email_verified);
   const selfTarget = selected?.id === user?.id;
   // Owner can edit their own profile. Only a duplicate owner identity viewed
   // from another record stays protected.
@@ -134,7 +134,7 @@ function AdminPage() {
     {canRenderAdmin && <>
       <section className="admin-hero portal-panel">
         <div><span className="admin-kicker"><i /> SECURE OWNER SESSION / VERIFIED</span><h2>CONTROL <em>EVERYTHING.</em></h2><p>Every action is checked against the verified account on the server and recorded in the audit log.</p></div>
-        <div className="admin-hero-side"><span>AUTHENTICATED OWNER</span><strong>{overview?.viewerEmail ?? OWNER_EMAIL}</strong><button className="portal-button secondary" disabled={loading || busy} onClick={() => void refresh()}>↻ REFRESH DATA</button></div>
+        <div className="admin-hero-side"><span>AUTHENTICATED OWNER</span><strong>{overview?.viewerEmail ?? OWNER_ACCOUNT_EMAIL}</strong><button className="portal-button secondary" disabled={loading || busy} onClick={() => void refresh()}>↻ REFRESH DATA</button></div>
       </section>
       {error && <div className="admin-alert error" role="alert"><strong>REQUEST BLOCKED</strong><span>{error}</span></div>}
       {notice && <div className="admin-alert success" role="status"><strong>ACTION LOGGED</strong><span>{notice}</span></div>}
