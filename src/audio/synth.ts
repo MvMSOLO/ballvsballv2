@@ -117,10 +117,6 @@ export function setMuted(v: boolean, startAmbience = true): void {
   if (!v && startAmbience) unlockAudio();
 }
 
-function clampAudioLevel(value: number): number {
-  return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
-}
-
 /** Apply the saved mixer to generated sounds, the ambient bed, and audio assets. */
 export function setAudioLevels(levels: { master?: number; music?: number; ui?: number; sfx?: number }): void {
   if (typeof levels.master === "number") masterLevel = clampAudioLevel(levels.master);
