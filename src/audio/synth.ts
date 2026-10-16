@@ -5,6 +5,12 @@ let master: GainNode | null = null;
 let muted = false;
 let ambientStarted = false;
 let lastSfxAt = 0;
+const BASE_MASTER_GAIN = 0.42;
+let masterLevel = 1;
+let sfxLevel = 1;
+let ambienceLevel = 1;
+let ambienceGainNode: GainNode | null = null;
+const assetBaseVolumes = new WeakMap<HTMLAudioElement, number>();
 
 type SoundAsset = "footstep" | "ui" | "impact" | "ability";
 const assetPaths: Record<SoundAsset, string> = {
@@ -36,7 +42,10 @@ function playGeneratedAsset(key: SoundAsset, now: number): void {
     pool = Array.from({ length: count }, () => {
       const audio = new Audio(assetPaths[key]);
       audio.preload = "auto";
-      audio.volume = key === "impact" ? 0.47 : key === "footstep" ? 0.4 : key === "ui" ? 0.46 : 0.4;
+      const baseVolume = key === "impact" ? 0.47 : key === "footstep" ? 0.4 : key === "ui" ? 0.46 : 0.4;
+      assetBaseVolumes.set(audio, baseVolume);
+      audio.volume = baseVolume * masterLevel * sfxLevel;
+      audio.muted = muted;
       return audio;
     });
     assetPools.set(key, pool);
@@ -56,7 +65,7 @@ function ac(): AudioContext | null {
     if (!Ctor) return null;
     ctx = new Ctor();
     master = ctx.createGain();
-    master.gain.value = 0.42;
+    master.gain.value = muted ? 0 : BASE_MASTER_GAIN * masterLevel;
     master.connect(ctx.destination);
   }
   if (ctx.state === "suspended") void ctx.resume();
@@ -78,21 +87,44 @@ export function unlockAudio(): void {
   filter.type = "lowpass";
   filter.frequency.value = 260;
   const gain = c.createGain();
-  gain.gain.value = 0.018;
+  gain.gain.value = 0.018 * ambienceLevel;
+  ambienceGainNode = gain;
   source.connect(filter);
   filter.connect(gain);
   gain.connect(master!);
   source.start();
 }
 
-export function setMuted(v: boolean): void {
+export function setMuted(v: boolean, startAmbience = true): void {
   muted = v;
-  if (master) master.gain.setTargetAtTime(v ? 0 : 0.42, ctx?.currentTime ?? 0, 0.035);
+  if (master) master.gain.setTargetAtTime(v ? 0 : BASE_MASTER_GAIN * masterLevel, ctx?.currentTime ?? 0, 0.035);
   for (const pool of assetPools.values()) for (const audio of pool) {
     if (v) audio.pause();
     audio.muted = v;
   }
-  if (!v) unlockAudio();
+  if (!v && startAmbience) unlockAudio();
+}
+
+function clampAudioLevel(value: number): number {
+  return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
+}
+
+/** Apply the saved mixer to generated sounds, the ambient bed, and audio assets. */
+export function setAudioLevels(levels: { master?: number; music?: number; sfx?: number }): void {
+  if (typeof levels.master === "number") masterLevel = clampAudioLevel(levels.master);
+  if (typeof levels.music === "number") ambienceLevel = clampAudioLevel(levels.music);
+  if (typeof levels.sfx === "number") sfxLevel = clampAudioLevel(levels.sfx);
+
+  if (master) master.gain.setTargetAtTime(muted ? 0 : BASE_MASTER_GAIN * masterLevel, ctx?.currentTime ?? 0, 0.035);
+  if (ambienceGainNode) ambienceGainNode.gain.setTargetAtTime(0.018 * ambienceLevel, ctx?.currentTime ?? 0, 0.05);
+
+  for (const pool of assetPools.values()) {
+    for (const audio of pool) {
+      const baseVolume = assetBaseVolumes.get(audio) ?? audio.volume;
+      audio.volume = clampAudioLevel(baseVolume * masterLevel * sfxLevel);
+      audio.muted = muted;
+    }
+  }
 }
 
 function envelope(gain: GainNode, start: number, peak: number, end: number, attack: number, decay: number): void {
@@ -117,7 +149,7 @@ function tone(freq: number, duration: number, type: OscillatorType, volume: numb
   filter.frequency.setValueAtTime(Math.min(9000, freq * 5), start);
   filter.frequency.exponentialRampToValueAtTime(Math.max(150, freq * 1.3), start + duration);
   panner.pan.value = pan;
-  envelope(gain, start, volume, 0.0001, Math.min(0.012, duration * 0.12), duration);
+  envelope(gain, start, volume * sfxLevel, 0.0001, Math.min(0.012, duration * 0.12), duration);
   osc.connect(filter);
   filter.connect(gain);
   gain.connect(panner);
@@ -143,7 +175,7 @@ function noiseBurst(duration: number, volume: number, cutoff: number, pan = 0): 
   filter.frequency.value = cutoff;
   filter.Q.value = 0.45;
   const gain = c.createGain();
-  gain.gain.value = volume;
+  gain.gain.value = volume * sfxLevel;
   const panner = c.createStereoPanner();
   panner.pan.value = pan;
   src.connect(filter);
