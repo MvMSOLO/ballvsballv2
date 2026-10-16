@@ -173,3 +173,31 @@ assert.ok(loginRoute.includes('friendlyCredentialError') && loginRoute.includes(
 assert.ok(authClient.includes('if (!data?.url) throw new Error("Google sign-in is not configured') && authClient.includes('if (!data?.url) throw new Error("This sign-in provider is unavailable'), "A missing OAuth redirect URL must not leave the UI stuck in a false pending state");
 assert.ok(portalShell.includes('AUTH_RETURN_PATHS[active]') && portalShell.includes('href={signInHref}'), "Player hub sign-in must preserve the requested route");
 assert.ok(tokens.includes('.auth-provider-button') && tokens.includes('.auth-status-panel') && tokens.includes('.auth-benefit-list'), "Phase 08 needs responsive provider/status/onboarding styles");
+
+
+// Phase 09: shared navigation, verified-owner lab boundary, settings application and responsive route hierarchy.
+const playerNavigation = await readFile(new URL("../src/lib/player-navigation.ts", import.meta.url), "utf8");
+const playerNavigationTests = await readFile(new URL("../src/lib/player-navigation.test.ts", import.meta.url), "utf8");
+const ownerLabRoute = await readFile(new URL("../src/routes/1v1.admin.tsx", import.meta.url), "utf8");
+const adminFunctions = await readFile(new URL("../src/lib/arena/admin-fns.ts", import.meta.url), "utf8");
+const currentUserHook = await readFile(new URL("../src/lib/auth/use-current-user.ts", import.meta.url), "utf8");
+const settingsRoute = await readFile(new URL("../src/routes/settings.tsx", import.meta.url), "utf8");
+const audioRuntime = await readFile(new URL("../src/audio/synth.ts", import.meta.url), "utf8");
+
+assert.ok(homeRoute.includes("PLAYER_HUB_NAV.map") && portalShell.includes("PLAYER_HUB_NAV.map"), "Arena and player hub must share the same navigation definitions");
+assert.ok(playerNavigation.includes('href: "/leaderboard"') && playerNavigation.includes('href: "/settings"'), "Shared navigation must preserve rankings and settings destinations");
+assert.ok(playerNavigation.includes("user.emailVerified === true") && playerNavigation.includes("OWNER_ACCOUNT_EMAIL"), "Owner tools visibility must require a verified owner identity");
+assert.ok(currentUserHook.includes("emailVerified: boolean") && currentUserHook.includes("data?.user.emailVerified === true"), "Client identity shape must carry the server session's verified-email flag");
+assert.ok(portalShell.includes("canAccessOwnerTools(user)") && homeRoute.includes("ownerToolsAvailable"), "Owner-only links must follow the same verified-owner policy");
+assert.ok(ownerLabRoute.includes("canAccessOwnerTools(user)") && ownerLabRoute.includes('<BallArenaPage mode="admin" />') && ownerLabRoute.includes('href="/1v1/"'), "Internal 1V1 lab route must gate entry and offer a safe return to duel");
+assert.ok(adminFunctions.includes('.middleware([authMiddleware])') && (adminFunctions.match(/await assertOwner\(db, context\.userId\)/g) || []).length >= 2, "Admin overview and mutations must retain server-side owner verification");
+assert.ok(playerNavigationTests.includes("owner tools visibility policy") && playerNavigationTests.includes("PLAYER_HUB_NAV"), "Shared navigation and owner visibility policy must have automated tests");
+
+assert.ok(settingsRoute.includes('01 / DISPLAY') && settingsRoute.includes('02 / ACCESSIBILITY') && settingsRoute.includes('03 / AUDIO') && settingsRoute.includes('04 / LOCAL DATA'), "Settings must be grouped by user intent");
+assert.ok(settingsRoute.includes('ball-arena-settings-change') && settingsRoute.includes('syncArenaSave(next)'), "Settings changes must notify the active app and preserve cloud-sync behavior");
+assert.ok(settingsRoute.includes('window.confirm("Reset all local game progress and preferences') && settingsRoute.includes("Cloud account data was not deleted"), "Local reset must require confirmation and explain the cloud-data boundary");
+assert.ok(settingsRoute.includes('aria-label="Master audio volume"') && settingsRoute.includes('aria-label="Arena ambience volume"') && settingsRoute.includes('aria-label="Sound effects volume"'), "Audio sliders must have explicit accessible labels");
+assert.ok(root.includes("SavedPreferenceRuntime") && root.includes("dataset.reduceMotion") && root.includes("dataset.colorblind"), "Saved accessibility settings must be applied globally");
+assert.ok(audioRuntime.includes("setAudioLevels") && audioRuntime.includes("BASE_MASTER_GAIN * masterLevel") && audioRuntime.includes("volume * sfxLevel"), "Audio mixer controls must affect actual master and SFX gain");
+assert.ok(tokens.includes('html[data-reduce-motion="true"]') && tokens.includes('html[data-colorblind="true"]') && tokens.includes(".owner-lab-gate"), "Reduced motion, palette and route guard must be styled");
+assert.ok(tokens.includes(".rank-row { grid-template-columns: minmax(0, 1fr) auto;") && tokens.includes(".portal-nav { grid-column: 1 / -1;"), "Leaderboard and hub navigation need narrow-screen layouts");
