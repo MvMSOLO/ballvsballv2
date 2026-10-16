@@ -1,4 +1,5 @@
 /** Premium procedural audio layer: soft tactile foley and layered sci-fi transients, no retro square-wave bleeps. */
+import { audioChannelForSound, clampAudioLevel, createSoundGate } from "./audio-policy";
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -8,7 +9,10 @@ let lastSfxAt = 0;
 const BASE_MASTER_GAIN = 0.42;
 let masterLevel = 1;
 let sfxLevel = 1;
+let uiLevel = 0.7;
+let activeSfxLevel = 1;
 let ambienceLevel = 1;
+const allowSoundAt = createSoundGate();
 let ambienceGainNode: GainNode | null = null;
 const assetBaseVolumes = new WeakMap<HTMLAudioElement, number>();
 
@@ -22,9 +26,13 @@ const assetPaths: Record<SoundAsset, string> = {
 const assetPools = new Map<SoundAsset, HTMLAudioElement[]>();
 const lastAssetPlayedAt = new Map<SoundAsset, number>();
 
+function levelForAsset(key: SoundAsset): number {
+  return key === "ui" ? uiLevel : sfxLevel;
+}
+
 function soundAssetFor(id: string): SoundAsset | null {
   if (id === "footstep") return "footstep";
-  if (id === "click" || id === "lock") return "ui";
+  if (["click", "lock", "select", "confirm", "open", "close", "cancel"].includes(id)) return "ui";
   if (id === "hit" || id === "boom" || id === "explode") return "impact";
   if (["ability", "dash", "zap", "whoosh", "beam", "chain", "shield", "zone", "projectile", "orbit", "split", "spawn"].includes(id)) return "ability";
   return null;
@@ -44,7 +52,7 @@ function playGeneratedAsset(key: SoundAsset, now: number): void {
       audio.preload = "auto";
       const baseVolume = key === "impact" ? 0.47 : key === "footstep" ? 0.4 : key === "ui" ? 0.46 : 0.4;
       assetBaseVolumes.set(audio, baseVolume);
-      audio.volume = baseVolume * masterLevel * sfxLevel;
+      audio.volume = clampAudioLevel(baseVolume * masterLevel * levelForAsset(key));
       audio.muted = muted;
       return audio;
     });
@@ -53,6 +61,10 @@ function playGeneratedAsset(key: SoundAsset, now: number): void {
   let audio = pool.find((item) => item.paused || item.ended);
   if (!audio) audio = pool.reduce((oldest, item) => item.currentTime > oldest.currentTime ? item : oldest);
   audio.currentTime = 0;
+  // Tiny pitch/level variation prevents repeated pool hits from sounding stamped.
+  audio.playbackRate = 0.96 + Math.random() * 0.08;
+  const baseVolume = assetBaseVolumes.get(audio) ?? 0.4;
+  audio.volume = clampAudioLevel(baseVolume * masterLevel * levelForAsset(key) * (0.96 + Math.random() * 0.08));
   void audio.play().catch(() => {
     // Browser may defer media playback until a user gesture; later inputs retry.
   });
@@ -105,14 +117,11 @@ export function setMuted(v: boolean, startAmbience = true): void {
   if (!v && startAmbience) unlockAudio();
 }
 
-function clampAudioLevel(value: number): number {
-  return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
-}
-
 /** Apply the saved mixer to generated sounds, the ambient bed, and audio assets. */
-export function setAudioLevels(levels: { master?: number; music?: number; sfx?: number }): void {
+export function setAudioLevels(levels: { master?: number; music?: number; ui?: number; sfx?: number }): void {
   if (typeof levels.master === "number") masterLevel = clampAudioLevel(levels.master);
   if (typeof levels.music === "number") ambienceLevel = clampAudioLevel(levels.music);
+  if (typeof levels.ui === "number") uiLevel = clampAudioLevel(levels.ui);
   if (typeof levels.sfx === "number") sfxLevel = clampAudioLevel(levels.sfx);
 
   if (master) master.gain.setTargetAtTime(muted ? 0 : BASE_MASTER_GAIN * masterLevel, ctx?.currentTime ?? 0, 0.035);
@@ -121,7 +130,8 @@ export function setAudioLevels(levels: { master?: number; music?: number; sfx?: 
   for (const pool of assetPools.values()) {
     for (const audio of pool) {
       const baseVolume = assetBaseVolumes.get(audio) ?? audio.volume;
-      audio.volume = clampAudioLevel(baseVolume * masterLevel * sfxLevel);
+      const key = [...assetPools.entries()].find(([, pool]) => pool.includes(audio))?.[0];
+      audio.volume = clampAudioLevel(baseVolume * masterLevel * (key ? levelForAsset(key) : sfxLevel));
       audio.muted = muted;
     }
   }
@@ -149,7 +159,7 @@ function tone(freq: number, duration: number, type: OscillatorType, volume: numb
   filter.frequency.setValueAtTime(Math.min(9000, freq * 5), start);
   filter.frequency.exponentialRampToValueAtTime(Math.max(150, freq * 1.3), start + duration);
   panner.pan.value = pan;
-  envelope(gain, start, volume * sfxLevel, 0.0001, Math.min(0.012, duration * 0.12), duration);
+  envelope(gain, start, volume * activeSfxLevel, 0.0001, Math.min(0.012, duration * 0.12), duration);
   osc.connect(filter);
   filter.connect(gain);
   gain.connect(panner);
@@ -175,7 +185,7 @@ function noiseBurst(duration: number, volume: number, cutoff: number, pan = 0): 
   filter.frequency.value = cutoff;
   filter.Q.value = 0.45;
   const gain = c.createGain();
-  gain.gain.value = volume * sfxLevel;
+  gain.gain.value = volume * activeSfxLevel;
   const panner = c.createStereoPanner();
   panner.pan.value = pan;
   src.connect(filter);
@@ -188,6 +198,8 @@ function noiseBurst(duration: number, volume: number, cutoff: number, pan = 0): 
 export function sfx(id: string): void {
   if (muted) return;
   const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+  if (!allowSoundAt(id, now)) return;
+  activeSfxLevel = audioChannelForSound(id) === "ui" ? uiLevel : sfxLevel;
   // Use the original Mirelo recordings for signature game events; keep procedural foley for pack-specific cues.
   const asset = soundAssetFor(id);
   if (asset) {
@@ -198,10 +210,23 @@ export function sfx(id: string): void {
   // Prevent high-speed physics callbacks from turning into a wall of noise.
   if (["hiss", "tink", "tick", "dice", "pop", "clink", "shing", "sip", "web", "zap"].includes(id) && now - lastSfxAt < 55) return;
   lastSfxAt = now;
-  if (id === "click" || id === "lock") {
-    tone(id === "lock" ? 620 : 760, 0.12, "sine", 0.055, id === "lock" ? 420 : -150, 0.08);
+  if (["click", "lock", "confirm", "select", "open", "close", "cancel"].includes(id)) {
+    tone(id === "lock" ? 620 : id === "close" || id === "cancel" ? 530 : 760, 0.12, "sine", 0.055, id === "lock" ? 420 : -150, 0.08);
     tone(1180, 0.075, "sine", 0.018, -240, -0.08);
     noiseBurst(0.045, 0.012, 4200, 0);
+  } else if (id === "error") {
+    tone(330, 0.13, "sine", 0.05, -90, -0.08);
+    tone(245, 0.16, "triangle", 0.025, -55, 0.08);
+  } else if (id === "roundStart" || id === "round-start") {
+    tone(440, 0.12, "sine", 0.045, 180);
+    tone(660, 0.16, "triangle", 0.025, 120, 0.1);
+  } else if (id === "charge") {
+    tone(190, 0.28, "sine", 0.045, 620);
+    noiseBurst(0.16, 0.018, 2500, 0);
+  } else if (id === "reward") {
+    tone(523, 0.14, "sine", 0.04, 70);
+    tone(659, 0.17, "sine", 0.032, 90, 0.1);
+    tone(784, 0.22, "triangle", 0.025, 80, -0.1);
   } else if (id === "hit" || id === "tink") {
     tone(id === "tink" ? 980 : 155, id === "tink" ? 0.18 : 0.14, "sine", id === "tink" ? 0.075 : 0.11, id === "tink" ? 480 : -75, -0.15);
     tone(id === "tink" ? 1480 : 92, 0.11, "triangle", 0.035, id === "tink" ? -300 : -35, 0.18);

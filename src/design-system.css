@@ -1702,6 +1702,14 @@ button { touch-action: manipulation; }
 .settings-category-intro { max-width: 760px; margin: 8px 0 16px; color: var(--ba-color-text-secondary); font-size: 12px; line-height: 1.65; }
 .settings-audio-panel .volume-grid { margin-top: 18px; }
 .settings-audio-panel .volume-grid input[type="range"] { min-height: 24px; cursor: pointer; }
+.audio-preview-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--ba-line); }
+.audio-preview-row .portal-kicker { margin-right: auto; }
+.audio-preview-row .portal-button { min-height: 38px; padding: 0 12px; font-size: 9px; }
+@media (max-width: 600px) {
+  .audio-preview-row { align-items: stretch; }
+  .audio-preview-row .portal-kicker { width: 100%; }
+  .audio-preview-row .portal-button { flex: 1 1 28%; padding-inline: 6px; font-size: 8px; }
+}
 .settings-panel .setting-row select { min-height: 40px; max-width: min(220px, 48vw); }
 .settings-panel .setting-row input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; }
 .settings-panel .setting-row:focus-within { outline: 1px solid var(--ba-color-focus); outline-offset: 4px; }

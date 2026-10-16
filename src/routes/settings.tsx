@@ -5,11 +5,22 @@ import { hydrateArenaSave, syncArenaSave } from "@/economy/persistence";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { authEnabled } from "@/lib/auth/client";
 import { PortalShell } from "@/components/portal-shell";
+import { setAudioLevels, setMuted, sfx, unlockAudio } from "../audio/synth";
 
 export const Route = createFileRoute("/settings")({ component: SettingsPage });
 
 function announceSettingsChange(save: Save) {
   window.dispatchEvent(new CustomEvent("ball-arena-settings-change", { detail: save }));
+}
+
+function applyAudioSettings(save: Save, startAmbience = false) {
+  setAudioLevels({
+    master: save.settings.master,
+    music: save.settings.music,
+    ui: save.settings.ui,
+    sfx: save.settings.sfx,
+  });
+  setMuted(!save.settings.sound, startAmbience);
 }
 
 function SettingsPage() {
@@ -23,10 +34,12 @@ function SettingsPage() {
   useEffect(() => {
     const local = loadSave();
     setSave(local);
+    applyAudioSettings(local);
     announceSettingsChange(local);
     if (cloudSync) {
       void hydrateArenaSave(local).then((merged) => {
         setSave(merged);
+        applyAudioSettings(merged);
         announceSettingsChange(merged);
       }).catch(() => setNotice("Cloud settings unavailable; local preferences are loaded."));
     }
@@ -40,6 +53,10 @@ function SettingsPage() {
     const next = { ...save, settings: { ...save.settings, [key]: value } };
     const revision = ++syncRevision.current;
     setSave(next);
+    if (key === "sound") setMuted(!next.settings.sound, next.settings.sound);
+    if (key === "master" || key === "music" || key === "ui" || key === "sfx") {
+      setAudioLevels({ master: next.settings.master, music: next.settings.music, ui: next.settings.ui, sfx: next.settings.sfx });
+    }
     try {
       writeSave(next);
       announceSettingsChange(next);
@@ -107,7 +124,14 @@ function SettingsPage() {
       <div className="volume-grid">
         <label>MASTER <strong>{Math.round(save.settings.master * 100)}%</strong><input aria-label="Master audio volume" type="range" min="0" max="1" step="0.05" value={save.settings.master} onChange={(event) => update("master", Number(event.target.value))} /></label>
         <label>AMBIENCE <strong>{Math.round(save.settings.music * 100)}%</strong><input aria-label="Arena ambience volume" type="range" min="0" max="1" step="0.05" value={save.settings.music} onChange={(event) => update("music", Number(event.target.value))} /></label>
-        <label>SFX <strong>{Math.round(save.settings.sfx * 100)}%</strong><input aria-label="Sound effects volume" type="range" min="0" max="1" step="0.05" value={save.settings.sfx} onChange={(event) => update("sfx", Number(event.target.value))} /></label>
+        <label>INTERFACE <strong>{Math.round(save.settings.ui * 100)}%</strong><input aria-label="Interface sound volume" type="range" min="0" max="1" step="0.05" value={save.settings.ui} onChange={(event) => update("ui", Number(event.target.value))} /></label>
+        <label>EFFECTS <strong>{Math.round(save.settings.sfx * 100)}%</strong><input aria-label="Gameplay sound effects volume" type="range" min="0" max="1" step="0.05" value={save.settings.sfx} onChange={(event) => update("sfx", Number(event.target.value))} /></label>
+      </div>
+      <div className="audio-preview-row" aria-label="Audio preview controls">
+        <span className="portal-kicker">SOUND CHECK</span>
+        <button className="portal-button" type="button" onClick={() => { unlockAudio(); sfx("confirm"); }}>UI CONFIRM</button>
+        <button className="portal-button" type="button" onClick={() => { unlockAudio(); sfx("hit"); }}>IMPACT</button>
+        <button className="portal-button" type="button" onClick={() => { unlockAudio(); sfx("win"); }}>VICTORY</button>
       </div>
       {notice && <p className="portal-notice" role="status" aria-live="polite">{notice}</p>}
     </section>
