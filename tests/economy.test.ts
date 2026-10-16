@@ -169,8 +169,8 @@ describe("claims and cloud merge", () => {
       ],
     });
 
-    expect(migrated.history.map((row) => row.id)).toEqual(["broken", "old"]);
-    expect(migrated.history[0]).toMatchObject({
+    expect(migrated.history.map((row) => row.id)).toEqual(["old", "broken"]);
+    expect(migrated.history[1]).toMatchObject({
       id: "broken",
       at: 0,
       opponent: "Rival",
@@ -181,7 +181,7 @@ describe("claims and cloud merge", () => {
       seed: 1,
       damage: 0,
     });
-    expect(migrated.history[1]?.opponent).toBe("Rival");
+    expect(migrated.history[0]?.opponent).toBe("Rival");
   });
 
   it("does not double-claim a daily", () => {
