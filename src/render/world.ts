@@ -3,6 +3,7 @@ import type { BallDef } from "../sim/types";
 import type { FrameEnt, FrameFx } from "../game/session";
 import { previewAim } from "../sim/engine";
 import { CONFIG } from "../config";
+import { resolveImpactMotion } from "@/lib/motion-policy";
 
 export interface AvatarColors {
   skin: string;
@@ -48,6 +49,8 @@ export interface DrawState {
   oppColor: string;
   showcase?: BallDef | null;
   orbit?: number;
+  /** Disable ornamental motion while preserving the deterministic fight and readable hit cues. */
+  reduceMotion?: boolean;
 }
 
 interface LiveFx {
@@ -1378,8 +1381,8 @@ export class World {
 
   update(dt: number, draw: DrawState, frameDeltaMs = dt * 1000): void {
     const t0 = performance.now();
-    this.clock += dt;
-    this.impactShake = Math.max(0, this.impactShake - dt * 0.85);
+    this.clock += draw.reduceMotion ? 0 : dt;
+    this.impactShake = draw.reduceMotion ? 0 : Math.max(0, this.impactShake - dt * 0.85);
     this.lobby.visible = draw.mode === "lobby";
     this.arena.visible = draw.mode === "arena";
     if (draw.mode === "lobby") {
@@ -1388,7 +1391,7 @@ export class World {
       this.player.group.position.set(draw.px, 0, draw.pz);
       this.player.group.rotation.y = draw.face;
       this.paintAvatar(this.player, draw.colors);
-      tickRig(this.player, dt, draw.moving, draw.emote);
+      if (!draw.reduceMotion || draw.moving) tickRig(this.player, dt, draw.moving, draw.emote);
       this.updateNameTagFacing(this.player, true);
       for (let i = 0; i < this.crowd.length; i++) {
         const b = draw.bots[i];
@@ -1404,13 +1407,13 @@ export class World {
           rig.nameTag = makeNameTag(b.name, b.shirt);
           rig.group.add(rig.nameTag);
         }
-        tickRig(rig, dt, b.moving, b.emote ? "wave" : "");
+        if (!draw.reduceMotion || b.moving) tickRig(rig, dt, b.moving, draw.reduceMotion ? "" : b.emote ? "wave" : "");
         this.updateNameTagFacing(rig, false);
       }
-      if (this.lobbyWater) this.lobbyWater.position.y = 0.05 + Math.sin(this.clock * 2) * 0.03;
-      if (this.lobbyCrownRing) this.lobbyCrownRing.material.opacity = 0.68 + (Math.sin(this.clock * 1.15) + 1) * 0.09;
+      if (!draw.reduceMotion && this.lobbyWater) this.lobbyWater.position.y = 0.05 + Math.sin(this.clock * 2) * 0.03;
+      if (!draw.reduceMotion && this.lobbyCrownRing) this.lobbyCrownRing.material.opacity = 0.68 + (Math.sin(this.clock * 1.15) + 1) * 0.09;
     }
-    if (draw.mode === "arena" && this.arenaCenterSignal) {
+    if (!draw.reduceMotion && draw.mode === "arena" && this.arenaCenterSignal) {
       this.arenaCenterSignal.material.opacity = 0.52 + (Math.sin(this.clock * 2.1) + 1) * 0.07;
     }
     if (draw.showcase && draw.mode === "lobby") {
@@ -1421,18 +1424,18 @@ export class World {
         this.lobby.add(this.lobbyBall);
         this.lobbyBallId = draw.showcase.id;
       }
-      const ang = this.clock * 0.7 + (draw.orbit ?? 0);
-      this.lobbyBall.position.set(Math.cos(ang) * 1.25, 1.65 + Math.sin(this.clock * 1.7) * 0.1, Math.sin(ang) * 1.25);
-      this.lobbyBall.rotation.y += dt;
+      const ang = draw.reduceMotion ? (draw.orbit ?? 0) : this.clock * 0.7 + (draw.orbit ?? 0);
+      this.lobbyBall.position.set(Math.cos(ang) * 1.25, 1.65 + (draw.reduceMotion ? 0 : Math.sin(this.clock * 1.7) * 0.1), Math.sin(ang) * 1.25);
+      if (!draw.reduceMotion) this.lobbyBall.rotation.y += dt;
       this.lobbyBall.visible = true;
     } else if (this.lobbyBall) this.lobbyBall.visible = false;
     if (draw.mode === "lobby") {
       // Slow, sub-degree camera parallax makes the lobby feel alive without affecting control aim.
-      const orbit = this.clock * 0.12;
+      const orbit = draw.reduceMotion ? 0 : this.clock * 0.12;
       const dist = 9.2;
-      const desiredX = draw.px + Math.sin(orbit) * 0.32;
-      const desiredY = 5.15 + Math.sin(this.clock * 0.38) * 0.045;
-      const desiredZ = draw.pz + dist + Math.cos(orbit) * 0.18;
+      const desiredX = draw.px + Math.sin(orbit) * (draw.reduceMotion ? 0 : 0.32);
+      const desiredY = 5.15 + (draw.reduceMotion ? 0 : Math.sin(this.clock * 0.38) * 0.045);
+      const desiredZ = draw.pz + dist + Math.cos(orbit) * (draw.reduceMotion ? 0 : 0.18);
       this.camera.position.x += (desiredX - this.camera.position.x) * (1 - Math.exp(-2.8 * dt));
       this.camera.position.y += (desiredY - this.camera.position.y) * (1 - Math.exp(-2.8 * dt));
       this.camera.position.z += (desiredZ - this.camera.position.z) * (1 - Math.exp(-2.8 * dt));
@@ -1443,7 +1446,7 @@ export class World {
     } else {
       this.layoutArena(draw, dt);
     }
-    this.updateCombatEffects(draw.effects, dt);
+    this.updateCombatEffects(draw.effects, dt, Boolean(draw.reduceMotion));
     this.updateBattleTrails(draw, dt);
     this.renderer.render(this.scene, this.camera);
     // Use the measured RAF interval as well as synchronous update/render cost. A renderer
@@ -1463,7 +1466,7 @@ export class World {
   }
 
   private updateBattleTrails(draw: DrawState, dt: number): void {
-    if (draw.mode !== "arena") {
+    if (draw.mode !== "arena" || draw.reduceMotion) {
       // Lobby frames should not walk/reset the whole particle pool over and over.
       if (this.battleTrailsActive) {
         this.lastTrailPosition.clear();
@@ -1529,14 +1532,17 @@ export class World {
     }
   }
 
-  private updateCombatEffects(events: FrameFx[], dt: number): void {
+  private updateCombatEffects(events: FrameFx[], dt: number, reduceMotion = false): void {
     for (const event of events) {
       if (this.seenFxKeys.has(event.key)) continue;
       this.seenFxKeys.add(event.key);
       this.seenFxQueue.push(event.key);
-      if (event.type === 3) this.impactShake = Math.max(this.impactShake, 0.22);
-      else if (event.type === 1 && event.magnitude >= 8) this.impactShake = Math.max(this.impactShake, 0.095);
-      else if (event.type === 2) this.impactShake = Math.max(this.impactShake, 0.04);
+      if (!reduceMotion) {
+        if (event.type === 3) this.impactShake = Math.max(this.impactShake, 0.22);
+        else if (event.type === 1) this.impactShake = Math.max(this.impactShake, resolveImpactMotion(event.magnitude, false).shake);
+        else if (event.type === 2) this.impactShake = Math.max(this.impactShake, 0.04);
+      }
+      const hitMotion = event.type === 1 ? resolveImpactMotion(event.magnitude, reduceMotion) : null;
       if (this.seenFxQueue.length > 96) {
         const expiredKey = this.seenFxQueue.shift();
         if (expiredKey) this.seenFxKeys.delete(expiredKey);
@@ -1556,10 +1562,10 @@ export class World {
       const ringRadius = event.type === 8 ? 0.82 : event.type === 9 ? 0.74 : event.type === 13 ? 0.88 : event.type === 15 ? 1.25 : 0.62;
       const ring = new THREE.Mesh(new THREE.TorusGeometry(ringRadius, event.type === 8 ? 0.05 : 0.035, 8, 40), ringMaterial);
       ring.rotation.x = Math.PI / 2;
-      ring.rotation.z = Math.random() * 0.6;
+      ring.rotation.z = reduceMotion ? 0 : Math.random() * 0.6;
       group.add(ring);
       let ring2: THREE.Mesh<THREE.TorusGeometry, THREE.MeshBasicMaterial> | undefined;
-      if ([8, 9, 12, 13, 14, 15].includes(event.type)) {
+      if (!reduceMotion && [8, 9, 12, 13, 14, 15].includes(event.type)) {
         ring2 = new THREE.Mesh(new THREE.TorusGeometry(ringRadius * 0.72, 0.022, 6, 32), ringMaterial.clone());
         ring2.rotation.x = Math.PI / 2;
         ring2.rotation.z = ring.rotation.z + 0.8;
@@ -1572,7 +1578,7 @@ export class World {
       if ([6, 7, 10, 11].includes(event.type)) ring.visible = false;
       group.add(core);
       let shell: THREE.Mesh<THREE.SphereGeometry, THREE.MeshBasicMaterial> | undefined;
-      if (event.type === 9 || event.type === 14) {
+      if (!reduceMotion && (event.type === 9 || event.type === 14)) {
         shell = new THREE.Mesh(
           new THREE.SphereGeometry(0.86, 20, 14),
           new THREE.MeshBasicMaterial({ color, wireframe: true, transparent: true, opacity: 0.75, blending: THREE.AdditiveBlending, depthWrite: false }),
@@ -1582,7 +1588,7 @@ export class World {
         group.add(shell);
       }
       const particles: THREE.Mesh[] = [];
-      const particleCount = event.type === 13 ? 12 : event.type === 15 ? 4 : 7;
+      const particleCount = reduceMotion ? 0 : hitMotion?.particles ?? (event.type === 13 ? 12 : event.type === 15 ? 4 : 7);
       for (let i = 0; i < particleCount; i++) {
         const material = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false });
         const particle = new THREE.Mesh(new THREE.OctahedronGeometry(0.075 + Math.random() * 0.04, 0), material);
@@ -1602,7 +1608,7 @@ export class World {
         const points: THREE.Vector3[] = [];
         for (let i = 0; i <= segments; i++) {
           const t = i / segments;
-          const wiggle = (event.type === 10 || event.type === 6 || event.type === 15) && i > 0 && i < segments ? Math.sin(i * 2.4 + this.clock * 16) * (event.type === 6 ? 0.12 : event.type === 15 ? 0.3 : 0.17) : 0;
+          const wiggle = !reduceMotion && (event.type === 10 || event.type === 6 || event.type === 15) && i > 0 && i < segments ? Math.sin(i * 2.4 + this.clock * 16) * (event.type === 6 ? 0.12 : event.type === 15 ? 0.3 : 0.17) : 0;
           points.push(new THREE.Vector3(dx * t - (dz / length) * wiggle, 0.38 + Math.sin(i * 1.7 + this.clock * 8) * 0.035, dz * t + (dx / length) * wiggle));
         }
         const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
@@ -1620,12 +1626,13 @@ export class World {
         group.add(tube);
       }
       this.arena.add(group);
-      const duration = event.type === 3 ? 0.72 : event.type === 4 ? 0.66
+      const baseDuration = event.type === 3 ? 0.72 : event.type === 4 ? 0.66
         : event.type === 7 ? 0.34 : event.type === 10 ? 0.43
         : event.type === 8 ? 0.96 : event.type === 9 ? 0.78
         : event.type === 11 ? 0.34 : event.type === 12 ? 0.62
         : event.type === 13 ? 0.68 : event.type === 14 ? 0.72 : event.type === 15 ? 0.58
         : event.type === 6 ? 0.46 : 0.48;
+      const duration = baseDuration * (hitMotion?.duration ?? (reduceMotion ? 0.38 : 1));
       this.activeEffects.push({ key: event.key, type: event.type, magnitude: event.magnitude, group, ring, ring2, shell, core, particles, line, tube, age: 0, duration });
       if (this.activeEffects.length > 32) this.removeCombatEffect(0);
     }
@@ -1634,28 +1641,26 @@ export class World {
       fx.age += dt;
       const p = Math.min(1, fx.age / fx.duration);
       const ease = 1 - (1 - p) * (1 - p);
-      const maxSize = fx.type === 8 ? Math.min(4.2, 1.8 + fx.magnitude * 0.35) : fx.type === 9 ? 1.75 : fx.type === 12 ? 2.35 : fx.type === 11 ? 1.35 : fx.type === 6 ? 1.9 : 1.65;
+      const maxSize = fx.type === 1 ? Math.min(2.25, 0.62 + Math.max(0, fx.magnitude) * 0.1) : fx.type === 8 ? Math.min(4.2, 1.8 + fx.magnitude * 0.35) : fx.type === 9 ? 1.75 : fx.type === 12 ? 2.35 : fx.type === 11 ? 1.35 : fx.type === 6 ? 1.9 : 1.65;
       const startSize = fx.type === 9 ? 0.86 : fx.type === 13 ? 1.0 : 0.22;
       fx.ring.scale.setScalar(fx.type === 15 ? 1.7 - ease * 1.25 : startSize + ease * (maxSize - startSize));
-      fx.ring.rotation.z += dt * (fx.type === 12 ? 2.4 : 1.2 + p * 2);
+      if (!reduceMotion) fx.ring.rotation.z += dt * (fx.type === 12 ? 2.4 : 1.2 + p * 2);
       fx.ring.material.opacity = (1 - p) * 0.82;
       if (fx.ring2) {
         fx.ring2.scale.setScalar(fx.type === 15 ? 1.3 - ease * 0.9 : startSize + ease * (maxSize * 0.78 - startSize));
-        fx.ring2.rotation.z -= dt * 1.7;
+        if (!reduceMotion) fx.ring2.rotation.z -= dt * 1.7;
         fx.ring2.material.opacity = (1 - p) * 0.55;
       }
       if (fx.line) fx.line.material.opacity = Math.max(0, 1 - p);
       if (fx.tube) { fx.tube.material.opacity = Math.max(0, 0.68 * (1 - p)); fx.tube.scale.setScalar(0.88 + Math.sin(p * Math.PI) * 0.18); }
       if (fx.shell) {
         fx.shell.scale.setScalar(fx.type === 14 ? 0.55 + p * 0.9 : 0.65 + p * 1.55);
-        fx.shell.rotation.y += dt * 1.25;
-        fx.shell.rotation.x += dt * 0.4;
+        if (!reduceMotion) { fx.shell.rotation.y += dt * 1.25; fx.shell.rotation.x += dt * 0.4; }
         fx.shell.material.opacity = Math.max(0, 0.7 * (1 - p));
       }
       const coreScale = p < 0.22 ? 0.35 + p * 3.4 : Math.max(0.02, 1.1 - p);
       fx.core.scale.setScalar(coreScale);
-      fx.core.rotation.x += dt * 2.8;
-      fx.core.rotation.y += dt * 3.4;
+      if (!reduceMotion) { fx.core.rotation.x += dt * 2.8; fx.core.rotation.y += dt * 3.4; }
       fx.core.material.opacity = Math.max(0, 1 - p * 1.3);
       for (const particle of fx.particles) {
         const a = particle.userData.angle as number;
@@ -1664,8 +1669,7 @@ export class World {
         particle.position.x = Math.cos(a) * radius;
         particle.position.z = Math.sin(a) * radius;
         particle.position.y = 0.1 + Math.sin(p * Math.PI) * 0.22 + p * 0.15;
-        particle.rotation.x += dt * 5;
-        particle.rotation.y += dt * 6;
+        if (!reduceMotion) { particle.rotation.x += dt * 5; particle.rotation.y += dt * 6; }
         (particle.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 0.9 * (1 - p));
       }
       if (p >= 1) this.removeCombatEffect(i);
@@ -1757,7 +1761,7 @@ export class World {
       g.position.set(x, e.kind === 4 ? 0.1 : Math.max(0.3, e.r), -y);
       const entityScale = Math.max(0.25, e.r);
       const entityPhase = this.clock * (e.kind === 3 ? 7.5 : e.kind === 6 ? 2.4 : 1.4);
-      const pulse = e.kind === 3 ? 1 + Math.sin(entityPhase) * 0.075 : e.kind === 4 ? 1 + Math.sin(entityPhase * 0.55) * 0.045 : 1;
+      const pulse = draw.reduceMotion ? 1 : e.kind === 3 ? 1 + Math.sin(entityPhase) * 0.075 : e.kind === 4 ? 1 + Math.sin(entityPhase * 0.55) * 0.045 : 1;
       if (e.kind === 4 && e.sub === 1) {
         // The lane is a unit rectangle, scaled to the simulation's actual capsule length and zone thickness.
         g.scale.set(Math.max(0.5, e.shapeLength), 1, Math.max(0.4, e.r * 1.4));
@@ -1768,11 +1772,12 @@ export class World {
       }
       const ballId = String(def?.id ?? g.userData.defId ?? "");
       if (e.kind === 4 && e.sub === 1) g.rotation.y = e.angle;
-      else g.rotation.y += dt * (e.kind === 3 ? (e.owner === 0 ? 4.2 : -4.2) : e.kind === 6 ? 2.5 : (e.owner === 0 ? 1.4 : -1.4));
-      if (ballId.includes("lucky_die")) { g.rotation.x += dt * 1.1; g.rotation.z += dt * 0.7; }
-      else if (ballId.includes("prism") || ballId.includes("glass_hail")) { g.rotation.x = Math.sin(this.clock * 1.5) * 0.14; g.rotation.z = Math.cos(this.clock * 1.2) * 0.1; }
-      else if (ballId.includes("aegis")) { g.rotation.z = Math.sin(this.clock * 1.2) * 0.18; }
+      else if (!draw.reduceMotion) g.rotation.y += dt * (e.kind === 3 ? (e.owner === 0 ? 4.2 : -4.2) : e.kind === 6 ? 2.5 : (e.owner === 0 ? 1.4 : -1.4));
+      if (!draw.reduceMotion && ballId.includes("lucky_die")) { g.rotation.x += dt * 1.1; g.rotation.z += dt * 0.7; }
+      else if (!draw.reduceMotion && (ballId.includes("prism") || ballId.includes("glass_hail"))) { g.rotation.x = Math.sin(this.clock * 1.5) * 0.14; g.rotation.z = Math.cos(this.clock * 1.2) * 0.1; }
+      else if (!draw.reduceMotion && ballId.includes("aegis")) { g.rotation.z = Math.sin(this.clock * 1.2) * 0.18; }
       for (const part of g.children) {
+        if (draw.reduceMotion) continue;
         if (part.userData.ballPart === "signature-orbit") { part.rotation.y += dt * 1.1; part.rotation.x += dt * 0.55; }
         if (part.userData.ballPart === "trail-orbit") { part.rotation.y += dt * 0.75; part.rotation.z -= dt * 0.35; }
         if (part.userData.ballPart === "magma-core") {
