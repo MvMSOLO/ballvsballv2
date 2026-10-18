@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import type { BallDef } from "../sim/types";
 import type { FrameEnt, FrameFx } from "../game/session";
 import { previewAim } from "../sim/engine";
@@ -52,6 +53,7 @@ export interface DrawState {
   orbit?: number;
   /** Disable ornamental motion while preserving the deterministic fight and readable hit cues. */
   reduceMotion?: boolean;
+  running?: boolean;
 }
 
 interface LiveFx {
@@ -105,6 +107,10 @@ interface Rig {
     hat: THREE.MeshStandardMaterial;
   };
   blink: number;
+  modelRoot: THREE.Group | null;
+  mixer: THREE.AnimationMixer | null;
+  animationActions: Map<string, THREE.AnimationAction>;
+  activeAnimation: string;
 }
 
 const _v = new THREE.Vector3();
@@ -194,6 +200,10 @@ function makeRig(c: AvatarColors): Rig {
     foreL, foreR, eyeL, eyeR, mouth, cape, hat,
     mats: { skin, shirt, pants, hat: hatMat },
     blink: Math.random() * 2,
+    modelRoot: null,
+    mixer: null,
+    animationActions: new Map<string, THREE.AnimationAction>(),
+    activeAnimation: "",
   };
 }
 
@@ -230,7 +240,7 @@ function makeNameTag(label: string, accent: string): THREE.Sprite {
   return sprite;
 }
 
-function tickRig(rig: Rig, dt: number, moving: boolean, emote: string): void {
+function tickRig(rig: Rig, dt: number, moving: boolean, emote: string, running = false): void {
   rig.phase += dt * (moving ? 8.2 : 1.5);
   const gait = moving ? Math.sin(rig.phase) : 0;
   const blend = 1 - Math.exp(-dt * 10);
@@ -267,6 +277,39 @@ function tickRig(rig: Rig, dt: number, moving: boolean, emote: string): void {
     rig.armL.rotation.z += (0 - rig.armL.rotation.z) * blend;
     rig.armR.rotation.z += (0 - rig.armR.rotation.z) * blend;
     rig.mouth.scale.set(1, 0.42, 1);
+  }
+
+  // Prefer the uploaded BOPPO's authored clips when its GLB is present.
+  // The generated character remains a safe fallback if the file cannot load.
+  if (rig.mixer && rig.animationActions.size) {
+    const wanted = emote === "wave" || emote === "hi"
+      ? "Emote_Hi"
+      : emote === "win"
+        ? "Jump"
+        : emote === "lose"
+          ? "Sit_Stand"
+          : moving
+            ? (running ? "Run" : "Walk")
+            : "";
+
+    if (wanted !== rig.activeAnimation) {
+      const previous = rig.animationActions.get(rig.activeAnimation);
+      const next = wanted ? rig.animationActions.get(wanted) : undefined;
+      if (previous) previous.fadeOut(0.16);
+      if (next) {
+        const oneShot = wanted === "Jump" || wanted === "Sit_Stand";
+        next.reset();
+        next.enabled = true;
+        next.clampWhenFinished = oneShot;
+        next.setLoop(oneShot ? THREE.LoopOnce : THREE.LoopRepeat, oneShot ? 1 : Infinity);
+        next.setEffectiveTimeScale(1);
+        next.setEffectiveWeight(1);
+        next.fadeIn(0.16);
+        next.play();
+      }
+      rig.activeAnimation = next ? wanted : "";
+    }
+    rig.mixer.update(dt);
   }
 }
 
@@ -836,6 +879,7 @@ export class World {
   auto = true;
   host: HTMLElement;
   private clock = 0;
+  private destroyed = false;
   finisherBall = new THREE.Vector3();
 
   constructor(host: HTMLElement) {
@@ -869,6 +913,7 @@ export class World {
     this.player = makeRig({ skin: "#f3c7a1", shirt: "#ff5a36", pants: "#2f6bff", hat: "#1c2430" });
     this.player.nameTag = makeNameTag("YOU", "#3ee0ff");
     this.player.group.add(this.player.nameTag);
+    this.loadBoppoAvatar(this.player);
     this.buildLobby();
     this.buildArena();
     this.lobbyWater = this.lobby.getObjectByName("water") as THREE.Mesh | null;
@@ -914,6 +959,65 @@ export class World {
     this.aimLine.visible = false;
     this.arena.add(this.aimLine);
     this.resize();
+  }
+
+  private loadBoppoAvatar(rig: Rig): void {
+    const url = "/assets/avatars/MVM_BOPPO_v5.glb";
+    void new GLTFLoader().loadAsync(url).then((gltf) => {
+      const model = gltf.scene;
+      model.name = "MVM_BOPPO_v5_avatar";
+      model.updateMatrixWorld(true);
+      const bounds = new THREE.Box3().setFromObject(model);
+      const height = bounds.getSize(new THREE.Vector3()).y;
+      if (!Number.isFinite(height) || height < 0.05) {
+        throw new Error("BOPPO GLB has no measurable character height.");
+      }
+
+      // Match the original lobby character height/ground contact; do not recolor or alter
+      // the GLB materials so the embedded appearance is preserved exactly.
+      model.scale.setScalar(1.92 / height);
+      model.updateMatrixWorld(true);
+      const scaledBounds = new THREE.Box3().setFromObject(model);
+      model.position.y += 0.12 - scaledBounds.min.y;
+      model.traverse((node) => {
+        if (node instanceof THREE.Mesh) {
+          node.castShadow = true;
+          node.receiveShadow = true;
+        }
+      });
+
+      if (this.destroyed) {
+        model.traverse((node) => {
+          if (!(node instanceof THREE.Mesh)) return;
+          node.geometry.dispose();
+          const materials = Array.isArray(node.material) ? node.material : [node.material];
+          for (const material of materials) {
+            for (const value of Object.values(material)) {
+              if (value instanceof THREE.Texture) value.dispose();
+            }
+            material.dispose();
+          }
+        });
+        return;
+      }
+
+      // Hide the generated placeholder body and preserve the existing player nameplate.
+      for (const child of rig.group.children) {
+        if (child !== rig.nameTag) child.visible = false;
+      }
+      rig.group.add(model);
+      rig.modelRoot = model;
+      rig.mixer = new THREE.AnimationMixer(model);
+      rig.animationActions = new Map(
+        gltf.animations.map((clip) => [clip.name, rig.mixer!.clipAction(clip)]),
+      );
+      console.info("[Ball Arena] BOPPO GLB loaded.", {
+        url,
+        animations: [...rig.animationActions.keys()],
+      });
+    }).catch((error: unknown) => {
+      console.warn("[Ball Arena] Could not load BOPPO GLB; using the built-in avatar.", error);
+    });
   }
 
   resize(): void {
@@ -1393,7 +1497,7 @@ export class World {
       this.player.group.position.set(draw.px, 0, draw.pz);
       this.player.group.rotation.y = draw.face;
       this.paintAvatar(this.player, draw.colors);
-      if (!draw.reduceMotion || draw.moving) tickRig(this.player, dt, draw.moving, draw.emote);
+      if (!draw.reduceMotion || draw.moving || draw.emote || draw.running) tickRig(this.player, dt, draw.moving, draw.emote, draw.running === true);
       this.updateNameTagFacing(this.player, true);
       for (let i = 0; i < this.crowd.length; i++) {
         const b = draw.bots[i];
@@ -1409,7 +1513,7 @@ export class World {
           rig.nameTag = makeNameTag(b.name, b.shirt);
           rig.group.add(rig.nameTag);
         }
-        if (!draw.reduceMotion || b.moving) tickRig(rig, dt, b.moving, draw.reduceMotion ? "" : b.emote ? "wave" : "");
+        if (!draw.reduceMotion || b.moving || b.emote) tickRig(rig, dt, b.moving, draw.reduceMotion ? "" : b.emote ? "wave" : "");
         this.updateNameTagFacing(rig, false);
       }
       if (!draw.reduceMotion && this.lobbyWater) this.lobbyWater.position.y = 0.05 + Math.sin(this.clock * 2) * 0.03;
@@ -1899,6 +2003,7 @@ export class World {
   }
 
   destroy(): void {
+    this.destroyed = true;
     // Dispose scene and cached templates explicitly on route teardown. Mesh clones share
     // resources, so Sets ensure that each GPU-backed object is disposed only once.
     const geometries = new Set<THREE.BufferGeometry>();
