@@ -228,6 +228,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   diamondsRef.current = diamonds;
   const rewardedSessionRef = useRef<Session | null>(null);
   const keysRef = useRef<Set<string>>(new Set());
+  const hiEmoteUntilRef = useRef(0);
   const ballMapRef = useRef<Map<string, BallDef>>(new Map());
 
   const requestLandscape = useCallback(() => {
@@ -534,9 +535,22 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
       const onDown = (e: KeyboardEvent) => {
         if (!canRunFrame()) return;
         unlockAudio();
-        if (["w", "a", "s", "d", "arrowup", "arrowleft", "arrowdown", "arrowright"].includes(e.key.toLowerCase())) {
+        const key = e.key.toLowerCase();
+        const target = e.target;
+        const editingText = target instanceof HTMLElement &&
+          (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+        if (!editingText && key === "h" && !sessionRef.current) {
           e.preventDefault();
-          keysRef.current.add(e.key.toLowerCase());
+          hiEmoteUntilRef.current = performance.now() + 2400;
+          return;
+        }
+        if (key === "shift") {
+          keysRef.current.add(key);
+          return;
+        }
+        if (["w", "a", "s", "d", "arrowup", "arrowleft", "arrowdown", "arrowright"].includes(key)) {
+          e.preventDefault();
+          keysRef.current.add(key);
         }
       };
       const onUp = (e: KeyboardEvent) => {
@@ -709,7 +723,10 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
           pz: playerPosRef.current.z,
           face: facingRef.current,
           moving: moveLength > 0.13,
-          emote: current?.flow === "end" ? (current.matchWinner === 0 ? "win" : "lose") : "",
+          running: moveLength > 0.13 && keysRef.current.has("shift"),
+          emote: current?.flow === "end"
+            ? (current.matchWinner === 0 ? "win" : "lose")
+            : hiEmoteUntilRef.current > performance.now() ? "wave" : "",
           camYaw: 0,
           colors: PLAYER_COLORS,
           bots: LOBBY_BOTS,
@@ -851,6 +868,15 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
       >
         <span className="stick-knob" style={{ transform: "translate(" + stickOffset.x + "px, " + stickOffset.y + "px)" }} />
       </div>}
+
+      {!view && mode === "free-roam" && <button
+        className="avatar-emote-button"
+        type="button"
+        onClick={() => { hiEmoteUntilRef.current = performance.now() + 2400; }}
+        aria-label="Make BOPPO wave hello"
+      >
+        <span aria-hidden="true">👋</span><strong>SAY HI</strong><kbd>H</kbd>
+      </button>}
 
       {!view && mode === "free-roam" && nearbyRival !== null && <button className="challenge-button" onClick={() => startMatch(RIVALS[nearbyRival].name)}>
         <span className="challenge-kicker">RIVAL IN RANGE</span><strong>⚔ CHALLENGE {RIVALS[nearbyRival].name}</strong><small>Tap to start a 1v1 duel</small>
