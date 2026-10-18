@@ -89,6 +89,56 @@ button:focus-visible, input:focus-visible { outline: 3px solid #67e8f9; outline-
   border: 1px solid #ffffffb5; box-shadow: 0 0 22px #38bdf84c, inset 0 -5px 12px #0c4a6e55;
   pointer-events: none;
 }
+
+.avatar-emote-button {
+  position: absolute;
+  z-index: 5;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(22px, env(safe-area-inset-bottom));
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 10px 14px;
+  border: 1px solid #67e8f98a;
+  border-radius: 14px;
+  color: #e5fbff;
+  background: linear-gradient(145deg, #10283bdb, #111827e8);
+  box-shadow: inset 0 0 18px #22d3ee12, 0 8px 28px #02061770;
+  font: 900 10px/1 system-ui, sans-serif;
+  letter-spacing: .14em;
+  touch-action: manipulation;
+}
+.avatar-emote-button span { font-size: 19px; line-height: 1; }
+.avatar-emote-button kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  border: 1px solid #8bbccf66;
+  border-radius: 5px;
+  color: #94ddeb;
+  background: #07111e;
+  font: 800 9px/1 ui-monospace, monospace;
+}
+.avatar-emote-button:hover,
+.avatar-emote-button:focus-visible {
+  border-color: #a5f3fc;
+  outline: 2px solid #67e8f944;
+  outline-offset: 2px;
+  box-shadow: 0 0 25px #22d3ee35, 0 8px 28px #02061770;
+}
+@media (max-width: 700px) {
+  .avatar-emote-button {
+    right: max(14px, env(safe-area-inset-right));
+    bottom: max(20px, env(safe-area-inset-bottom));
+    min-height: 44px;
+    gap: 7px;
+    padding: 9px 11px;
+  }
+}
+
 .challenge-button {
   position: absolute; z-index: 5; left: 50%; bottom: max(22px, env(safe-area-inset-bottom));
   transform: translateX(-50%); width: min(330px, calc(100vw - 170px)); min-height: 64px;
