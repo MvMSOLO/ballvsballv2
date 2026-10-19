@@ -5,6 +5,7 @@ import { CONFIG, type Difficulty } from "../config";
 import { World, type DrawState } from "../render/world";
 import { advanceSession, applyCommand, createSession, publicView, renderFrame, voteMatchSpeed, type Session } from "../game/session";
 import { allPacks, enabledBalls } from "../packs/registry";
+import { buildOwnedBallPool } from "../game/owned-ball-pool";
 import { playerMoveInput } from "../game/controls";
 import { loadSave, writeSave } from "../economy/save";
 import { appendMatchRecord, createMatchRecord } from "../economy/match-history";
@@ -255,17 +256,18 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   const startMatch = useCallback((rival: string) => {
     unlockAudio();
     sfx("lock");
+    const stored = loadSave();
     const all = enabledBalls();
-    const byId = new Map(all.map((b) => [b.id, b]));
+    // Catalog definitions include already-owned balls even when their pack is not in the opponent pool.
+    const catalog = allPacks().flatMap((pack) => pack.balls);
+    const byId = new Map(catalog.map((ball) => [ball.id, ball]));
     ballMapRef.current = byId;
-    const starter = CONFIG.starterBalls.map((id) => byId.get(id)).filter((b): b is BallDef => Boolean(b));
-    const pool = starter.length >= 3 ? starter : all;
+    const pool = buildOwnedBallPool(stored.owned, catalog, CONFIG.starterBalls, all);
     if (pool.length < 2) {
       setNotice("No valid balls were loaded. Check the core pack.");
       return;
     }
     requestLandscape();
-    const stored = loadSave();
     if (stored && typeof stored.coins === "number") setCoins(stored.coins);
     if (stored && typeof stored.adminInfiniteCoins === "boolean") setInfiniteCoins(stored.adminInfiniteCoins);
     if (stored && typeof stored.adminInfiniteDiamonds === "boolean") setInfiniteDiamonds(stored.adminInfiniteDiamonds);
