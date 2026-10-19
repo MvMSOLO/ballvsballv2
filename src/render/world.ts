@@ -579,8 +579,8 @@ function patternTexture(def: BallDef): THREE.CanvasTexture {
 
   // Deterministic micro-scratches and faint clearcoat scuffs make each shell feel handled.
   for (let i = 0; i < 82; i++) {
-    const x = next() * 512;
-    const y = next() * 256;
+    const x = next() * width;
+    const y = next() * height;
     const length = 1.5 + next() * 14;
     g.lineWidth = 0.45 + next() * 0.75;
     g.strokeStyle = i % 3 === 0 ? "rgba(255,255,255,.11)" : "rgba(0,0,0,.095)";
