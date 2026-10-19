@@ -506,7 +506,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         stickPointerRef.current = null;
         setStickOffset({ x: 0, y: 0 });
       };
-      const canRunFrame = () => shouldRunArenaLoop(lifecycle);
+      const canRunFrame = () => shouldRunArenaLoop(lifecycle) && document.documentElement.dataset.arenaEntry !== "locked";
       let tick: (now: number) => void = () => undefined;
       const scheduleFrame = () => {
         if (disposed || frameScheduled || !canRunFrame()) return;
@@ -517,6 +517,10 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         if (!frameScheduled) return;
         window.cancelAnimationFrame(raf);
         frameScheduled = false;
+      };
+      const syncEntryState = () => {
+        if (document.documentElement.dataset.arenaEntry === "locked") stopFrame();
+        else scheduleFrame();
       };
       const applyLifecycleEvent = (event: ArenaLifecycleEvent) => {
         const transition = transitionArenaLifecycle(lifecycle, event);
@@ -532,6 +536,8 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
       };
       const resize = () => world.resize();
       window.addEventListener("resize", resize);
+      window.addEventListener("ball-arena-entry-state", syncEntryState);
+      syncEntryState();
       const onDown = (e: KeyboardEvent) => {
         if (!canRunFrame()) return;
         unlockAudio();
@@ -762,6 +768,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         canvas?.removeEventListener("webglcontextlost", onWebglContextLost);
         canvas?.removeEventListener("webglcontextrestored", onWebglContextRestored);
         window.removeEventListener("resize", resize);
+        window.removeEventListener("ball-arena-entry-state", syncEntryState);
         window.removeEventListener("keydown", onDown);
         window.removeEventListener("keyup", onUp);
         world.destroy();
