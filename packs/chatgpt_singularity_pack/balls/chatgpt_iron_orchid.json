@@ -6,9 +6,9 @@
     "ru": "Железная Орхидея"
   },
   "description": {
-    "en": "A stubborn plated bruiser that retaliates with a brief thorn shell.",
-    "uz": "Qattiq zirhli jangchi: zarba olganda qisqa muddatli tikanli qobiq bilan javob beradi.",
-    "ru": "Бронированный боец отвечает на удары короткой оболочкой шипов."
+    "en": "An iron orchid with five overlapping dark-metal petals, gold vein inlays and a hardened pistil-core.",
+    "uz": "Beshta ustma-ust tushgan qora metall gulbarg, oltin tomir naqshlari va qattiq pistil-yadrosi bor temir orxideya.",
+    "ru": "Железная орхидея с пятью перекрывающимися тёмными металлическими лепестками, золотыми прожилками и закалённым сердечником."
   },
   "rarity": "common",
   "tags": [
@@ -23,17 +23,17 @@
     "contactDamage": 8
   },
   "visual": {
-    "baseColor": "#6F9E82",
-    "accentColor": "#E6D8A8",
+    "baseColor": "#233A34",
+    "accentColor": "#F1D49A",
     "face": "angry",
-    "pattern": "hex",
-    "emissive": 0.25,
+    "pattern": "petal_veins",
+    "emissive": 0.44,
     "trail": {
-      "color": "#B9E6C7",
-      "length": 0.45
+      "color": "#C0E6CF",
+      "length": 0.66
     },
     "particles": "leaves",
-    "shape": "spiky"
+    "shape": "orchid"
   },
   "abilities": [
     {

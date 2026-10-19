@@ -6,9 +6,9 @@
     "ru": "Небесный Погребальщик"
   },
   "description": {
-    "en": "Calls two short-lived sentinels into the duel and converts a takedown into renewed health and a heavier strike. It snowballs through kills, but its own body is not built to tank.",
-    "uz": "Jangga ikki qisqa muddatli qo'riqchi chaqiradi, raqibni yengganda esa sog'lig'i tiklanib zarbasi kuchayadi. G'alabalarni zanjirlaydi, lekin tanasi og'ir zarbalarni ko'tarish uchun emas.",
-    "ru": "Призывает двух временных стражей и превращает устранение соперника в лечение и усиленный удар. Снежный ком из побед опасен, но собственное тело хрупкое."
+    "en": "A violet funerary reliquary in gilded ribs, with a floating halo latch and tiny sentinel sockets.",
+    "uz": "Oltin qovurg‘ali binafsha yodgorlik qutisi; suzuvchi halo qulfi va qo‘riqchi uyachalari bor.",
+    "ru": "Фиолетовый погребальный реликварий в золотых рёбрах, с парящей застёжкой-ореолом и гнёздами стражей."
   },
   "rarity": "legendary",
   "tags": [
@@ -24,17 +24,17 @@
     "contactDamage": 8.5
   },
   "visual": {
-    "baseColor": "#FFD47D",
-    "accentColor": "#5A3B79",
+    "baseColor": "#2C1E45",
+    "accentColor": "#FFE0A3",
     "face": "robot",
-    "pattern": "stripes",
-    "emissive": 0.72,
+    "pattern": "celestial",
+    "emissive": 0.82,
     "trail": {
-      "color": "#FFE7AC",
-      "length": 0.78
+      "color": "#FFE5A8",
+      "length": 0.88
     },
-    "particles": "snow",
-    "shape": "ringed"
+    "particles": "stars",
+    "shape": "reliquary"
   },
   "abilities": [
     {

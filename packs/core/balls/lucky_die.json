@@ -1,19 +1,85 @@
 {
   "id": "lucky_die",
-  "name": { "en": "Lucky Die", "uz": "Omadli Zar", "ru": "Счастливый Кубик" },
-  "description": { "en": "Rolls a different hazard every couple of seconds.", "uz": "Har ikki soniyada boshqa xavf tashlaydi.", "ru": "Каждые пару секунд выбрасывает новую опасность." },
+  "name": {
+    "en": "Lucky Die",
+    "uz": "Omadli Zar",
+    "ru": "Счастливый Кубик"
+  },
+  "description": {
+    "en": "A pearl-white casino die with raised obsidian pips, chamfered corners and a gold fortune seam.",
+    "uz": "Ko‘tarilgan qora nuqtalar, qiya burchaklar va oltin omad chizig‘iga ega marvarid-oq zar.",
+    "ru": "Жемчужно-белый игровой кубик с выпуклыми чёрными точками, фасками и золотым швом удачи."
+  },
   "rarity": "epic",
-  "tags": ["random"],
-  "stats": { "hp": 100, "radius": 1, "mass": 1, "speed": 13.2, "contactDamage": 7 },
-  "visual": { "baseColor": "#ffffff", "accentColor": "#1c2430", "face": "grin", "pattern": "checker", "emissive": 0.1, "trail": { "color": "#f5b942", "length": 0.4 }, "particles": "stars", "shape": "faceted" },
-  "abilities": [
-    { "trigger": "onTick", "interval": 2.7, "actions": [ { "type": "randomChoice", "visual": { "sound": "dice" }, "actions": [
-      { "type": "damage", "amount": 8 },
-      { "type": "heal", "amount": 8 },
-      { "type": "explode", "radius": 2, "damage": 7, "knockback": 8 },
-      { "type": "applyStatus", "status": "haste", "duration": 2, "magnitude": 0.35 },
-      { "type": "spawnZone", "shape": "circle", "duration": 3, "radius": 1.8, "damagePerSecond": 6, "slow": 0.15 }
-    ] } ] }
+  "tags": [
+    "random"
   ],
-  "ai_hints": { "bestAim": "any", "role": "burst" }
+  "stats": {
+    "hp": 100,
+    "radius": 1,
+    "mass": 1,
+    "speed": 13.2,
+    "contactDamage": 7
+  },
+  "visual": {
+    "baseColor": "#ECECF5",
+    "accentColor": "#E5B547",
+    "face": "grin",
+    "pattern": "checker",
+    "emissive": 0.24,
+    "trail": {
+      "color": "#F7CE68",
+      "length": 0.5
+    },
+    "particles": "stars",
+    "shape": "die"
+  },
+  "abilities": [
+    {
+      "trigger": "onTick",
+      "interval": 2.7,
+      "actions": [
+        {
+          "type": "randomChoice",
+          "visual": {
+            "sound": "dice"
+          },
+          "actions": [
+            {
+              "type": "damage",
+              "amount": 8
+            },
+            {
+              "type": "heal",
+              "amount": 8
+            },
+            {
+              "type": "explode",
+              "radius": 2,
+              "damage": 7,
+              "knockback": 8
+            },
+            {
+              "type": "applyStatus",
+              "status": "haste",
+              "duration": 2,
+              "magnitude": 0.35
+            },
+            {
+              "type": "spawnZone",
+              "shape": "circle",
+              "duration": 3,
+              "radius": 1.8,
+              "damagePerSecond": 6,
+              "slow": 0.15
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "any",
+    "role": "burst"
+  }
 }

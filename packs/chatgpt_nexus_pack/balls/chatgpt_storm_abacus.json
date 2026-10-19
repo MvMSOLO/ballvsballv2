@@ -6,9 +6,9 @@
     "ru": "Штормовые Счёты"
   },
   "description": {
-    "en": "Counts every opening and threads lightning through the target, then weakens its next exchange. It excels at pressure, but has only average durability.",
-    "uz": "Har bir imkoniyatni hisoblab, nishonga chaqmoq zanjiri yuboradi va keyingi almashinuvini zaiflashtiradi. Bosimda kuchli, ammo chidamliligi o'rtacha.",
-    "ru": "Улавливает момент, бьёт по цели цепной молнией и ослабляет её следующий размен. Силен в давлении, но обладает средней выносливостью."
+    "en": "A levitating indigo counting-disc with three crossbars, six charged beads and a violet lightning counter.",
+    "uz": "Uchta ko‘ndalang sterjen, oltita zaryadlangan munchoq va binafsha chaqmoq hisoblagichi bor havoda muallaq indigo sanoq diski.",
+    "ru": "Парящий индиговый счётный диск с тремя перекладинами, шестью заряженными бусинами и фиолетовым счётчиком молний."
   },
   "rarity": "epic",
   "tags": [
@@ -24,17 +24,17 @@
     "contactDamage": 9.3
   },
   "visual": {
-    "baseColor": "#A9A0FF",
-    "accentColor": "#302060",
+    "baseColor": "#231A57",
+    "accentColor": "#BDB2FF",
     "face": "ghost",
-    "pattern": "stars",
-    "emissive": 0.82,
+    "pattern": "beads",
+    "emissive": 0.88,
     "trail": {
-      "color": "#D1C9FF",
-      "length": 0.92
+      "color": "#C3D2FF",
+      "length": 1.06
     },
     "particles": "sparks",
-    "shape": "faceted"
+    "shape": "abacus"
   },
   "abilities": [
     {

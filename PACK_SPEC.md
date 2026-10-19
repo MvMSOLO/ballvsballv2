@@ -101,9 +101,9 @@ The validator clamps out-of-range numeric values and emits a warning. Required/n
 
 - `baseColor`, `accentColor`, `trail.color`: six-digit hex, e.g. `#27c8ff`.
 - `face`: `grin`, `angry`, `sleepy`, `cool`, `cute`, `robot`, `ghost`, `wink`, `focus`.
-- `pattern`: `none`, `stripes`, `dots`, `checker`, `spiral`, `hex`, `stars`.
+- `pattern`: `none`, `stripes`, `dots`, `checker`, `spiral`, `hex`, `stars`, plus authored motifs `armor`, `fuse`, `winding`, `veins`, `shards`, `rays`, `lightning`, `blade_marks`, `fissure`, `prism`, `scales`, `growth_rings`, `hive_hex`, `web`, `celestial`, `soundwaves`, `masonry`, `ledger`, `gusts`, `shell_ribs`, `quartz_facets`, `beads`, `eclipse`, `orbit_map`, `event_horizon`, `topographic`, `plum_skin`, `petal_veins`, `mirror_facets`, `moth_scales`, `sonar_rings`, `architecture`.
 - `particles`: `sparks`, `smoke`, `bubbles`, `stars`, `leaves`, `embers`, `snow`, `none`.
-- `shape`: `sphere`, `spiky`, `faceted`, `ringed`, `horned`.
+- `shape`: legacy `sphere`, `spiky`, `faceted`, `ringed`, `horned`, plus individual silhouettes `shield`, `die`, `crystal`, `gear`, `leech`, `shardcluster`, `halo`, `comet`, `mite`, `knife`, `magma`, `lance`, `serpent`, `sprout`, `hive`, `webbed`, `reliquary`, `mandolin`, `monolith`, `book`, `windblade`, `shell`, `crystalcluster`, `abacus`, `void`, `kettle`, `crown`, `atlas`, `plum`, `orchid`, `mirror`, `moth`, `sonar`, `cathedral`.
 - `emissive`: 0–1. `trail.length`: 0–1.5.
 - Missing or invalid visual fields fall back to a safe generated look with warnings where implemented.
 
@@ -227,3 +227,8 @@ npm run simulate -- --a=core --b=core --matches=200
 ```
 
 Invalid balls should be skipped and reported with file/field context. Do not call a pack release-ready until validation, simulation bounds checks, deterministic tests and a mobile browser smoke test have actually run.
+
+
+## 7. Built-in visual identity pass
+
+All 34 built-in balls receive a unique visual.shape and visual.pattern pair. The 3D body remains a predictable collision body for fair simulation, while each rendered shell has its own silhouette and material profile. See docs/BALL_VISUAL_IDENTITY.md for the one-by-one art direction and rationale.

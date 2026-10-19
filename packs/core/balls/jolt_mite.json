@@ -1,13 +1,60 @@
 {
   "id": "jolt_mite",
-  "name": { "en": "Jolt Mite", "uz": "Chaqmoq Kana", "ru": "Искра-Клещ" },
-  "description": { "en": "A bite that briefly locks the other ball.", "uz": "Raqibni bir zum qotirishcha chaqadi.", "ru": "Укус, который на миг запирает чужой шар." },
+  "name": {
+    "en": "Jolt Mite",
+    "uz": "Chaqmoq Kana",
+    "ru": "Искра-Клещ"
+  },
+  "description": {
+    "en": "A six-legged voltage mite with twin antenna prongs, segmented shell and bright yellow electrical seams.",
+    "uz": "Ikki antennasi, olti oyog‘i va sariq elektr choklari bor segmentli kuchlanish kanasi.",
+    "ru": "Клещ напряжения с шестью лапами, двумя усиками, сегментным панцирем и яркими электрическими швами."
+  },
   "rarity": "rare",
-  "tags": ["stun"],
-  "stats": { "hp": 90, "radius": 0.84, "mass": 0.8, "speed": 16, "contactDamage": 6 },
-  "visual": { "baseColor": "#ffe56a", "accentColor": "#2a2410", "face": "focus", "pattern": "stars", "emissive": 0.55, "trail": { "color": "#fff3b0", "length": 0.65 }, "particles": "sparks", "shape": "spiky" },
-  "abilities": [
-    { "trigger": "onBallHit", "cooldown": 1.6, "actions": [ { "type": "applyStatus", "status": "stun", "duration": 0.38, "magnitude": 1, "visual": { "color": "#ffe56a", "particle": "sparks", "sound": "zap" } } ] }
+  "tags": [
+    "stun"
   ],
-  "ai_hints": { "bestAim": "enemy", "role": "control" }
+  "stats": {
+    "hp": 90,
+    "radius": 0.84,
+    "mass": 0.8,
+    "speed": 16,
+    "contactDamage": 6
+  },
+  "visual": {
+    "baseColor": "#4A3B0C",
+    "accentColor": "#FFF06A",
+    "face": "focus",
+    "pattern": "lightning",
+    "emissive": 0.78,
+    "trail": {
+      "color": "#FFF3A5",
+      "length": 0.76
+    },
+    "particles": "sparks",
+    "shape": "mite"
+  },
+  "abilities": [
+    {
+      "trigger": "onBallHit",
+      "cooldown": 1.6,
+      "actions": [
+        {
+          "type": "applyStatus",
+          "status": "stun",
+          "duration": 0.38,
+          "magnitude": 1,
+          "visual": {
+            "color": "#ffe56a",
+            "particle": "sparks",
+            "sound": "zap"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "enemy",
+    "role": "control"
+  }
 }

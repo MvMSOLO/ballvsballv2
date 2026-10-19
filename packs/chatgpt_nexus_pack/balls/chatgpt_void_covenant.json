@@ -6,9 +6,9 @@
     "ru": "Договор Пустоты"
   },
   "description": {
-    "en": "A mythic execution engine: opens behind a ward, grows stronger with elapsed time, detonates on contact, drains damage, refuses one death and unleashes an explosive volley. It is brutally unfair in a prolonged duel, but its oversized frame turns it into an easy target.",
-    "uz": "Afsonaviy yakson qiluvchi kuch: himoya bilan boshlaydi, vaqt o'tishi bilan kuchayadi, tegishda portlaydi, zarbadan sog'liq oladi, bir marta o'limni rad etadi va portlovchi zarbalar yomg'irini chiqaradi. Uzoq jangda o'ta adolatsiz, ammo yirik tanasi oson nishon bo'ladi.",
-    "ru": "Мифическая машина казни: начинает под защитой, усиливается со временем, взрывается при контакте, вытягивает здоровье, один раз отвергает смерть и выпускает залп взрывных снарядов. В долгой дуэли чудовищно нечестен, но крупное тело легко поразить."
+    "en": "A near-black event-horizon core wrapped in offset violet eclipse rings, three crown horns and a rose-white singularity.",
+    "uz": "Siljigan binafsha tutilish halqalari, uchta toj shoxi va pushti-oq singulyarlik bilan o‘ralgan qop-qora ufq yadrosi.",
+    "ru": "Почти чёрное ядро горизонта событий в смещённых фиолетовых кольцах затмения, с тремя рогами короны и розово-белой сингулярностью."
   },
   "rarity": "mythic",
   "tags": [
@@ -25,17 +25,17 @@
     "contactDamage": 16
   },
   "visual": {
-    "baseColor": "#171324",
-    "accentColor": "#E2A9FF",
+    "baseColor": "#080611",
+    "accentColor": "#E7A2FF",
     "face": "focus",
-    "pattern": "spiral",
+    "pattern": "eclipse",
     "emissive": 1,
     "trail": {
-      "color": "#DDA8FF",
+      "color": "#DF9AFF",
       "length": 1.5
     },
     "particles": "stars",
-    "shape": "horned"
+    "shape": "void"
   },
   "abilities": [
     {

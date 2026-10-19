@@ -6,9 +6,9 @@
     "ru": "Штормовой Засадник"
   },
   "description": {
-    "en": "A successful collision lets it phase behind its rival and shove them off their line. Wall contacts leave a brief pressure pocket, but its low mass makes trades risky.",
-    "uz": "Raqibga tekkan zarbadan so'ng uning ortiga o'tib, yo'nalishini buzadi. Devorga tegsa qisqa bosim maydoni qoldiradi, ammo yengil tanasi almashinuv zarbalarini xavfli qiladi.",
-    "ru": "После столкновения перемещается за соперника и сбивает его с траектории. У стены оставляет короткую зону давления, но малый вес делает размены опасными."
+    "en": "A three-fin jade windblade with swept-back fins, asymmetric air channels and a pale-green pressure wake.",
+    "uz": "Orqaga qayrilgan uchta qanot, assimetrik havo kanallari va och yashil bosim izi bor nefrit shamol tig‘i.",
+    "ru": "Нефритовый ветроклин с тремя отогнутыми плавниками, асимметричными воздушными каналами и бледно-зелёным следом давления."
   },
   "rarity": "rare",
   "tags": [
@@ -24,17 +24,17 @@
     "contactDamage": 7.8
   },
   "visual": {
-    "baseColor": "#9BFAD9",
-    "accentColor": "#0B4A55",
+    "baseColor": "#0E5259",
+    "accentColor": "#9AFFE7",
     "face": "focus",
-    "pattern": "stripes",
-    "emissive": 0.62,
+    "pattern": "gusts",
+    "emissive": 0.74,
     "trail": {
-      "color": "#B4FFE5",
-      "length": 1
+      "color": "#B1FFEA",
+      "length": 1.1
     },
     "particles": "stars",
-    "shape": "ringed"
+    "shape": "windblade"
   },
   "abilities": [
     {

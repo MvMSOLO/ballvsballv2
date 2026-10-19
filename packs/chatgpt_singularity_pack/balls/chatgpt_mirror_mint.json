@@ -6,9 +6,9 @@
     "ru": "Мятное Зеркало"
   },
   "description": {
-    "en": "Dashes away from danger and leaves a short-lived icy decoy zone.",
-    "uz": "Xavfdan tez chekinib, qisqa muddatli muzdek chalg‘ituvchi maydon qoldiradi.",
-    "ru": "Рывком уходит от угрозы, оставляя краткую ледяную зону-приманку."
+    "en": "A mint-green mirror prism framed by polished silver bevels, clean reflective facets and a pale cyan glint line.",
+    "uz": "Sayqallangan kumush qirralar, aks ettiruvchi fasetlar va och moviy yaltirash chizig‘i bor yalpiz-yashil ko‘zgu prizmasi.",
+    "ru": "Мятно-зелёная зеркальная призма с полированными серебряными фасками, отражающими гранями и бледно-голубым бликом."
   },
   "rarity": "common",
   "tags": [
@@ -23,17 +23,17 @@
     "contactDamage": 5
   },
   "visual": {
-    "baseColor": "#71E2C2",
-    "accentColor": "#E0FFF6",
+    "baseColor": "#0E6B61",
+    "accentColor": "#C4FFF4",
     "face": "wink",
-    "pattern": "dots",
-    "emissive": 0.45,
+    "pattern": "mirror_facets",
+    "emissive": 0.7,
     "trail": {
-      "color": "#A8FFF0",
-      "length": 0.85
+      "color": "#AEFFF3",
+      "length": 1.05
     },
     "particles": "snow",
-    "shape": "faceted"
+    "shape": "mirror"
   },
   "abilities": [
     {

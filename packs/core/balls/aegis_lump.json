@@ -1,17 +1,74 @@
 {
   "id": "aegis_lump",
-  "name": { "en": "Aegis Lump", "uz": "Aegis Bo'lak", "ru": "Ком Эгиды" },
-  "description": { "en": "A chubby shield that bites back.", "uz": "Tishlab qaytaradigan semiz qalqon.", "ru": "Пухлый щит, который кусает в ответ." },
+  "name": {
+    "en": "Aegis Bulwark",
+    "uz": "Aegis Qo‘rg‘oni",
+    "ru": "Бастион Эгиды"
+  },
+  "description": {
+    "en": "A layered glacial shield with beveled armor plates, cyan rivets and a calm defensive core.",
+    "uz": "Qiya qirralari, moviy perchinlari va sokin himoya yadrosi bor muzrang zirhli qalqon.",
+    "ru": "Многослойный ледяной щит со скошенными пластинами, голубыми заклёпками и защитным ядром."
+  },
   "rarity": "common",
-  "tags": ["tank", "shield"],
-  "stats": { "hp": 168, "radius": 1.38, "mass": 2.1, "speed": 10.4, "contactDamage": 6 },
-  "visual": { "baseColor": "#8ec5ff", "accentColor": "#16324a", "face": "sleepy", "pattern": "none", "emissive": 0.12, "trail": { "color": "#d6ebff", "length": 0.25 }, "particles": "none", "shape": "sphere" },
-  "abilities": [
-    { "trigger": "onSpawn", "actions": [
-      { "type": "applyStatus", "status": "shield", "duration": 12, "magnitude": 22, "visual": { "color": "#d6ebff", "sound": "clink" } },
-      { "type": "thorns", "fraction": 0.22, "duration": 14 }
-    ] },
-    { "trigger": "onDamaged", "cooldown": 1.4, "actions": [ { "type": "heal", "amount": 3 } ] }
+  "tags": [
+    "tank",
+    "shield"
   ],
-  "ai_hints": { "bestAim": "center", "role": "sustain" }
+  "stats": {
+    "hp": 168,
+    "radius": 1.38,
+    "mass": 2.1,
+    "speed": 10.4,
+    "contactDamage": 6
+  },
+  "visual": {
+    "baseColor": "#15526B",
+    "accentColor": "#D9F7FF",
+    "face": "focus",
+    "pattern": "armor",
+    "emissive": 0.28,
+    "trail": {
+      "color": "#8DEBFF",
+      "length": 0.42
+    },
+    "particles": "snow",
+    "shape": "shield"
+  },
+  "abilities": [
+    {
+      "trigger": "onSpawn",
+      "actions": [
+        {
+          "type": "applyStatus",
+          "status": "shield",
+          "duration": 12,
+          "magnitude": 22,
+          "visual": {
+            "color": "#d6ebff",
+            "sound": "clink"
+          }
+        },
+        {
+          "type": "thorns",
+          "fraction": 0.22,
+          "duration": 14
+        }
+      ]
+    },
+    {
+      "trigger": "onDamaged",
+      "cooldown": 1.4,
+      "actions": [
+        {
+          "type": "heal",
+          "amount": 3
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "center",
+    "role": "sustain"
+  }
 }

@@ -6,9 +6,9 @@
     "ru": "Кварцевый Целитель"
   },
   "description": {
-    "en": "When health dips, it repairs itself and raises a small protective buffer. It can outlast a careless opponent, but its attacks are modest.",
-    "uz": "Sog'ligi kamayganda o'zini tiklab, kichik himoya qalqoni oladi. Ehtiyotsiz raqibdan uzoqroq yashaydi, lekin zarbalari kuchli emas.",
-    "ru": "При низком здоровье лечится и получает небольшой защитный запас. Переживает ошибки соперника, но наносит скромный урон."
+    "en": "A rose-quartz healing cluster of one broad central gem and five smaller translucent repair crystals.",
+    "uz": "Keng markaziy gavhar va beshta kichik shaffof tiklovchi kristaldan tuzilgan pushti kvars klasteri.",
+    "ru": "Кластер розового кварца: один широкий центральный самоцвет и пять маленьких прозрачных кристаллов восстановления."
   },
   "rarity": "common",
   "tags": [
@@ -24,17 +24,17 @@
     "contactDamage": 5.6
   },
   "visual": {
-    "baseColor": "#F1DDC9",
-    "accentColor": "#99658D",
+    "baseColor": "#C5B1D9",
+    "accentColor": "#FFD8EE",
     "face": "sleepy",
-    "pattern": "none",
-    "emissive": 0.18,
+    "pattern": "quartz_facets",
+    "emissive": 0.48,
     "trail": {
-      "color": "#FFD5BD",
-      "length": 0.25
+      "color": "#FFD8EE",
+      "length": 0.55
     },
     "particles": "bubbles",
-    "shape": "sphere"
+    "shape": "crystalcluster"
   },
   "abilities": [
     {

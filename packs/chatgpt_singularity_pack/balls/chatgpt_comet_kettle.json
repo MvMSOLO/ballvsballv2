@@ -6,9 +6,9 @@
     "ru": "Чайник-комета"
   },
   "description": {
-    "en": "Builds pressure, then fires a bright fan of fast sparks.",
-    "uz": "Kuch to‘playdi, so‘ng tez uchuvchi yorqin uchqunlar yoyini otadi.",
-    "ru": "Накапливает импульс и выпускает веер быстрых искр."
+    "en": "A copper comet-kettle with a bulbous boiler shell, curved handle, tapered spout and tiny orbit-map engravings.",
+    "uz": "Dumaloq qozon tanasi, egri dastak, tor tumshuq va mayda orbit xaritasi naqshlari bor mis kometa-choynak.",
+    "ru": "Медный чайник-комета с округлым корпусом, изогнутой ручкой, узким носиком и гравировкой орбитальных карт."
   },
   "rarity": "common",
   "tags": [
@@ -23,17 +23,17 @@
     "contactDamage": 6
   },
   "visual": {
-    "baseColor": "#FF8B4A",
-    "accentColor": "#FFE7A3",
+    "baseColor": "#5B261A",
+    "accentColor": "#FFC16E",
     "face": "grin",
-    "pattern": "stripes",
-    "emissive": 0.5,
+    "pattern": "orbit_map",
+    "emissive": 0.64,
     "trail": {
-      "color": "#FFB86C",
-      "length": 1.05
+      "color": "#FFC17C",
+      "length": 1.15
     },
     "particles": "embers",
-    "shape": "sphere"
+    "shape": "kettle"
   },
   "abilities": [
     {

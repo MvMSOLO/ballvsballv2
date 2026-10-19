@@ -1,13 +1,57 @@
 {
   "id": "hook_comet",
-  "name": { "en": "Hook Comet", "uz": "Ilmoq Kometa", "ru": "Комета-Крюк" },
-  "description": { "en": "Yanks the rival inward on a steady beat.", "uz": "Raqibni barqaror ritmda o'ziga tortadi.", "ru": "Ровным тактом подтягивает соперника к себе." },
+  "name": {
+    "en": "Hook Comet",
+    "uz": "Ilmoq Kometa",
+    "ru": "Комета-Крюк"
+  },
+  "description": {
+    "en": "A blue-violet comet with a hooked leading fin, a long ion tail and a spiral gravity engraving.",
+    "uz": "Oldida ilgak qanotchasi, uzun ion dumi va gravitatsion spiral naqshi bor ko‘k-binafsha kometa.",
+    "ru": "Сине-фиолетовая комета с крюкообразным носовым плавником, длинным ионным хвостом и гравитационной спиралью."
+  },
   "rarity": "epic",
-  "tags": ["pull"],
-  "stats": { "hp": 96, "radius": 1, "mass": 1.05, "speed": 14.4, "contactDamage": 7 },
-  "visual": { "baseColor": "#5b8cff", "accentColor": "#10182e", "face": "cool", "pattern": "spiral", "emissive": 0.3, "trail": { "color": "#b9ccff", "length": 0.75 }, "particles": "stars", "shape": "horned" },
-  "abilities": [
-    { "trigger": "onTick", "interval": 3.1, "actions": [ { "type": "pull", "force": 13, "visual": { "color": "#5b8cff", "sound": "whoosh" } } ] }
+  "tags": [
+    "pull"
   ],
-  "ai_hints": { "bestAim": "enemy", "role": "control" }
+  "stats": {
+    "hp": 96,
+    "radius": 1,
+    "mass": 1.05,
+    "speed": 14.4,
+    "contactDamage": 7
+  },
+  "visual": {
+    "baseColor": "#202B67",
+    "accentColor": "#81A8FF",
+    "face": "cool",
+    "pattern": "spiral",
+    "emissive": 0.54,
+    "trail": {
+      "color": "#A5C8FF",
+      "length": 1.02
+    },
+    "particles": "stars",
+    "shape": "comet"
+  },
+  "abilities": [
+    {
+      "trigger": "onTick",
+      "interval": 3.1,
+      "actions": [
+        {
+          "type": "pull",
+          "force": 13,
+          "visual": {
+            "color": "#5b8cff",
+            "sound": "whoosh"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "enemy",
+    "role": "control"
+  }
 }

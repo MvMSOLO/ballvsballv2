@@ -1,13 +1,59 @@
 {
   "id": "swarm_king",
-  "name": { "en": "Swarm King", "uz": "To'da Qiroli", "ru": "Король Роя" },
-  "description": { "en": "Splits into a biting swarm once bloodied.", "uz": "Jarohatlanib, tishlaydigan to'daga bo'linadi.", "ru": "Окровавившись, делится на кусачий рой." },
+  "name": {
+    "en": "Swarm King",
+    "uz": "To'da Qiroli",
+    "ru": "Король Роя"
+  },
+  "description": {
+    "en": "A violet brood-core armored with hexagonal hive plates, thorn crowns and tiny orbiting spawn nodes.",
+    "uz": "Olti burchakli uya plitalari, tikanli toj va atrofida aylanuvchi mayda avlod yadrolari bilan qoplangan binafsha markaz.",
+    "ru": "Фиолетовое маточное ядро с шестиугольными сотами, шипастой короной и крошечными орбитальными узлами роя."
+  },
   "rarity": "mythic",
-  "tags": ["split"],
-  "stats": { "hp": 124, "radius": 1.22, "mass": 1.3, "speed": 12, "contactDamage": 7 },
-  "visual": { "baseColor": "#c084fc", "accentColor": "#2a1038", "face": "ghost", "pattern": "hex", "emissive": 0.4, "trail": { "color": "#e9d5ff", "length": 0.7 }, "particles": "bubbles", "shape": "spiky" },
-  "abilities": [
-    { "trigger": "onHpBelow", "percent": 62, "actions": [ { "type": "split", "count": 3, "hpFraction": 0.92, "visual": { "color": "#c084fc", "particle": "bubbles", "sound": "pop" } } ] }
+  "tags": [
+    "split"
   ],
-  "ai_hints": { "bestAim": "enemy", "role": "scaling" }
+  "stats": {
+    "hp": 124,
+    "radius": 1.22,
+    "mass": 1.3,
+    "speed": 12,
+    "contactDamage": 7
+  },
+  "visual": {
+    "baseColor": "#321A4B",
+    "accentColor": "#DDA6FF",
+    "face": "ghost",
+    "pattern": "hive_hex",
+    "emissive": 0.66,
+    "trail": {
+      "color": "#E2B8FF",
+      "length": 0.9
+    },
+    "particles": "bubbles",
+    "shape": "hive"
+  },
+  "abilities": [
+    {
+      "trigger": "onHpBelow",
+      "percent": 62,
+      "actions": [
+        {
+          "type": "split",
+          "count": 3,
+          "hpFraction": 0.92,
+          "visual": {
+            "color": "#c084fc",
+            "particle": "bubbles",
+            "sound": "pop"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "enemy",
+    "role": "scaling"
+  }
 }

@@ -6,9 +6,9 @@
     "ru": "Реликт Сонара"
   },
   "description": {
-    "en": "A rare pulse reveals its target and sends a bouncing echo shot.",
-    "uz": "Noyob impuls nishonni topib, devorlardan qaytuvchi aks-zarbani yuboradi.",
-    "ru": "Редкий импульс находит цель и выпускает рикошетящий эхо-снаряд."
+    "en": "A blue sonar relic built like a thick signal disc, with concentric pulse rings, radial slots and a cyan echo core.",
+    "uz": "Qalin signal diski ko‘rinishidagi ko‘k sonar yodgorligi; konsentrik impuls halqalari, radial tirqishlar va moviy aks-sado yadrosi bor.",
+    "ru": "Синий сонарный реликт в форме толстого сигнального диска с концентрическими импульсными кольцами, радиальными прорезями и бирюзовым эхоядром."
   },
   "rarity": "rare",
   "tags": [
@@ -23,17 +23,17 @@
     "contactDamage": 7
   },
   "visual": {
-    "baseColor": "#3C83C8",
-    "accentColor": "#A6F0FF",
+    "baseColor": "#114984",
+    "accentColor": "#91F5FF",
     "face": "robot",
-    "pattern": "dots",
-    "emissive": 0.6,
+    "pattern": "sonar_rings",
+    "emissive": 0.76,
     "trail": {
-      "color": "#71DFFF",
-      "length": 0.95
+      "color": "#7FEAFF",
+      "length": 1.08
     },
     "particles": "bubbles",
-    "shape": "faceted"
+    "shape": "sonar"
   },
   "abilities": [
     {

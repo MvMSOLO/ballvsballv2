@@ -6,9 +6,9 @@
     "ru": "Панцирь Мистраля"
   },
   "description": {
-    "en": "A light frame that turns a clean hit into a brief wind-assisted escape. Fast and slippery, but fragile and weak at contact.",
-    "uz": "Zarbani qisqa shamol yordamidagi qochishga aylantiradi. Tez va chaqqon, ammo mo'rt va yaqin jangda kuchsiz.",
-    "ru": "После удара получает короткий порыв ветра для ухода. Быстрый и скользкий, но хрупкий и слабый в ближнем бою."
+    "en": "A nacre-blue aerodynamic shell with raised spiral ribs, a split protective lip and wind-polished edges.",
+    "uz": "Ko‘tarilgan spiral qovurg‘alar, ikkiga ajralgan himoya lablari va shamolda silliqlangan qirralari bor sadaf-ko‘k qobiq.",
+    "ru": "Перламутрово-синий аэродинамический панцирь с рельефными спиральными рёбрами, раздвоенным защитным краем и отполированными ветром кромками."
   },
   "rarity": "common",
   "tags": [
@@ -24,17 +24,17 @@
     "contactDamage": 6.5
   },
   "visual": {
-    "baseColor": "#BDEFFC",
-    "accentColor": "#145B74",
+    "baseColor": "#155067",
+    "accentColor": "#9AF1FF",
     "face": "cool",
-    "pattern": "dots",
-    "emissive": 0.28,
+    "pattern": "shell_ribs",
+    "emissive": 0.44,
     "trail": {
-      "color": "#70D9F0",
-      "length": 0.85
+      "color": "#7CE7F6",
+      "length": 1
     },
-    "particles": "bubbles",
-    "shape": "faceted"
+    "particles": "snow",
+    "shape": "shell"
   },
   "abilities": [
     {
