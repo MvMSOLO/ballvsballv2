@@ -2310,7 +2310,13 @@ export class World {
     collectResources(this.scene);
     for (const template of this.ballMatCache.values()) collectResources(template);
     textures.add(this.environmentTexture);
-    for (const texture of textures) texture.dispose();
+    // Micro-surface maps are shared across World instances. Keep their canvas
+    // textures alive for a later route mount; renderer.dispose() releases this
+    // renderer's GPU allocations, and the next renderer can upload them again.
+    const sharedMicroTextures = new Set(microSurfaceTextures.values());
+    for (const texture of textures) {
+      if (!sharedMicroTextures.has(texture)) texture.dispose();
+    }
     for (const material of materials) material.dispose();
     for (const geometry of geometries) geometry.dispose();
     this.ballMatCache.clear();
