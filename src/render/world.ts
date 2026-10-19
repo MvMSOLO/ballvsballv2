@@ -1813,8 +1813,8 @@ export class World {
     rig.mats.skin.color.set(c.skin);
     rig.mats.shirt.color.set(c.shirt);
     rig.mats.pants.color.set(c.pants);
-    rig.mats.hat.color.set(c.hat || "#141820");
-    rig.hat.visible = c.hatStyle !== "none";
+    // The generated hat geometry/material were intentionally removed; do not
+    // reference the deleted rig.mats.hat or rig.hat properties here.
     rig.cape.visible = c.back !== "none";
   }
 
