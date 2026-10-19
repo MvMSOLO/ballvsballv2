@@ -157,7 +157,7 @@ function HubLogo({ kind }: { kind: HubLogoKind }) {
 export type ArenaRouteMode = "free-roam" | "duel" | "admin";
 
 export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } = {}) {
-  const { user: currentUser } = useCurrentUserState();
+  const { user: currentUser, isPending: authPending } = useCurrentUserState();
   const [reduceMotion, setReduceMotion] = useState(() => typeof window !== "undefined" && shouldReduceMotion(
     document.documentElement.dataset.reduceMotion === "true",
     window.matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -186,6 +186,15 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   cloudUserIdRef.current = currentUser?.id ?? null;
   const saveHydrationRef = useRef<Promise<Save> | null>(null);
   const saveHydrationUserRef = useRef<string | null>(null);
+  const authReadyRef = useRef<{ promise: Promise<void>; resolve: () => void } | null>(null);
+  if (!authReadyRef.current) {
+    let resolve!: () => void;
+    const promise = new Promise<void>((complete) => { resolve = complete; });
+    authReadyRef.current = { promise, resolve };
+  }
+  useEffect(() => {
+    if (!authEnabled || !authPending) authReadyRef.current?.resolve();
+  }, [authPending]);
   const adminMode = mode === "admin";
   const ownerToolsAvailable = canAccessOwnerTools(currentUser);
   const availablePacks = useMemo(() => allPacks(), []);
@@ -279,6 +288,12 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     unlockAudio();
     sfx("lock");
     let cloudHydrationFailed = false;
+    // Auth-enabled deployments start with a pending session. Do not draft from
+    // local starter defaults until the session has resolved (including direct-duel mode).
+    if (authEnabled && authPending) {
+      setNotice("Restoring account inventory…");
+      await authReadyRef.current?.promise;
+    }
     if (cloudSyncRef.current) {
       setNotice("Syncing your owned inventory…");
       try {
@@ -323,13 +338,13 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     setNotice(cloudHydrationFailed
       ? "Cloud inventory unavailable · using this device's saved progress."
       : "Challenge accepted · " + rival);
-  }, [ensureSaveHydrated, requestLandscape]);
+  }, [authPending, ensureSaveHydrated, requestLandscape]);
 
   useEffect(() => {
-    if (mode !== "duel" || directBootRef.current) return;
+    if (mode !== "duel" || directBootRef.current || (authEnabled && authPending)) return;
     directBootRef.current = true;
-    startMatch("NovaByte");
-  }, [mode, startMatch]);
+    void startMatch("NovaByte");
+  }, [mode, authPending, startMatch]);
 
   const send = useCallback((cmd: Parameters<typeof applyCommand>[1]) => {
     if (cmd.t !== "aim") sfx("click");
