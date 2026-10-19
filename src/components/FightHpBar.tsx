@@ -17,9 +17,19 @@ export function FightHpBar({ current, max, accent = "#4aa3ff", label, side, redu
   const pct = max > 0 ? Math.max(0, Math.min(100, (current / max) * 100)) : 0;
   const critical = pct <= 25 && pct > 0;
   const dead = pct <= 0;
+  const ariaMax = Math.max(1, Math.ceil(max));
+  const ariaNow = Math.max(0, Math.min(ariaMax, Math.ceil(current)));
 
   return (
-    <div className={`fight-hp ${side} ${critical ? "is-critical" : ""} ${dead ? "is-dead" : ""}`}>
+    <div
+      className={`fight-hp ${side} ${critical ? "is-critical" : ""} ${dead ? "is-dead" : ""}`}
+      role="progressbar"
+      aria-label={`${side === "you" ? "Your ball" : "Rival ball"} ${label}`}
+      aria-valuemin={0}
+      aria-valuemax={ariaMax}
+      aria-valuenow={ariaNow}
+      aria-valuetext={`${ariaNow} of ${ariaMax} ${label}`}
+    >
       <div className="fight-hp-meta">
         <span className="fight-hp-label">{label}</span>
         <span className="fight-hp-nums ba-data">
