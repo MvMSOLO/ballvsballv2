@@ -54,7 +54,7 @@ export function ArenaEntryExperience() {
   const exitTimer = useRef<number | null>(null);
 
   const advance = useCallback((next: number) => {
-    setProgress((current) => Math.max(current, Math.min(99, Math.round(next))));
+    setProgress((current) => Math.max(current, Math.min(100, Math.round(next))));
   }, []);
 
   const onPreviewReady = useCallback((available: boolean) => {
