@@ -134,6 +134,8 @@ function makeRig(c: AvatarColors): Rig {
   head.position.y = 1.7;
   head.scale.set(0.96, 1.06, 0.94);
   const hat = new THREE.Mesh(new THREE.SphereGeometry(0.25, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.55), hatMat);
+  // The generated cap is intentionally disabled: character appearance belongs to the authored GLB.
+  hat.visible = false;
   hat.position.y = 1.84;
   const eyeWhite = new THREE.MeshStandardMaterial({ color: "#f7f4ee", roughness: 0.25 });
   const iris = new THREE.MeshStandardMaterial({ color: "#142033", roughness: 0.2, emissive: "#3ee0ff", emissiveIntensity: 0.25 });
@@ -241,6 +243,42 @@ function makeNameTag(label: string, accent: string): THREE.Sprite {
 }
 
 function tickRig(rig: Rig, dt: number, moving: boolean, emote: string, running = false): void {
+  // The authored BOPPO GLB owns its entire animation. Never combine its clips
+  // with the procedural placeholder's limb rotations, body bob, blinking or emotes.
+  if (rig.modelRoot && rig.mixer && rig.animationActions.size > 0) {
+    const wanted = emote === "wave" || emote === "hi"
+      ? "Emote_Hi"
+      : emote === "win"
+        ? "Jump"
+        : emote === "lose"
+          ? "Sit_Stand"
+          : moving
+            ? (running ? "Run" : "Walk")
+            : "";
+
+    if (wanted !== rig.activeAnimation) {
+      const previous = rig.animationActions.get(rig.activeAnimation);
+      const next = wanted ? rig.animationActions.get(wanted) : undefined;
+      if (previous) previous.fadeOut(0.16);
+      if (next) {
+        const oneShot = wanted === "Jump" || wanted === "Sit_Stand" || wanted === "Emote_Hi";
+        next.reset();
+        next.enabled = true;
+        next.clampWhenFinished = oneShot;
+        next.setLoop(oneShot ? THREE.LoopOnce : THREE.LoopRepeat, oneShot ? 1 : Infinity);
+        next.setEffectiveTimeScale(1);
+        next.setEffectiveWeight(1);
+        next.fadeIn(0.16);
+        next.play();
+      }
+      rig.activeAnimation = next ? wanted : "";
+    }
+
+    rig.mixer.update(dt);
+    return;
+  }
+
+  // Procedural motion is reserved for the original fallback/rival rigs only.
   rig.phase += dt * (moving ? 8.2 : 1.5);
   const gait = moving ? Math.sin(rig.phase) : 0;
   const blend = 1 - Math.exp(-dt * 10);
@@ -278,41 +316,7 @@ function tickRig(rig: Rig, dt: number, moving: boolean, emote: string, running =
     rig.armR.rotation.z += (0 - rig.armR.rotation.z) * blend;
     rig.mouth.scale.set(1, 0.42, 1);
   }
-
-  // Prefer the uploaded BOPPO's authored clips when its GLB is present.
-  // The generated character remains a safe fallback if the file cannot load.
-  if (rig.mixer && rig.animationActions.size) {
-    const wanted = emote === "wave" || emote === "hi"
-      ? "Emote_Hi"
-      : emote === "win"
-        ? "Jump"
-        : emote === "lose"
-          ? "Sit_Stand"
-          : moving
-            ? (running ? "Run" : "Walk")
-            : "";
-
-    if (wanted !== rig.activeAnimation) {
-      const previous = rig.animationActions.get(rig.activeAnimation);
-      const next = wanted ? rig.animationActions.get(wanted) : undefined;
-      if (previous) previous.fadeOut(0.16);
-      if (next) {
-        const oneShot = wanted === "Jump" || wanted === "Sit_Stand";
-        next.reset();
-        next.enabled = true;
-        next.clampWhenFinished = oneShot;
-        next.setLoop(oneShot ? THREE.LoopOnce : THREE.LoopRepeat, oneShot ? 1 : Infinity);
-        next.setEffectiveTimeScale(1);
-        next.setEffectiveWeight(1);
-        next.fadeIn(0.16);
-        next.play();
-      }
-      rig.activeAnimation = next ? wanted : "";
-    }
-    rig.mixer.update(dt);
-  }
 }
-
 function patternTexture(def: BallDef): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = 256;
@@ -1008,8 +1012,11 @@ export class World {
       rig.group.add(model);
       rig.modelRoot = model;
       rig.mixer = new THREE.AnimationMixer(model);
+      const authoredClipNames = new Set(["Walk", "Run", "Jump", "Sit_Stand", "Emote_Hi"]);
       rig.animationActions = new Map(
-        gltf.animations.map((clip) => [clip.name, rig.mixer!.clipAction(clip)]),
+        gltf.animations
+          .filter((clip) => authoredClipNames.has(clip.name))
+          .map((clip) => [clip.name, rig.mixer!.clipAction(clip)]),
       );
       console.info("[Ball Arena] BOPPO GLB loaded.", {
         url,
