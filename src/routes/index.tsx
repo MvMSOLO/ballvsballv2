@@ -260,7 +260,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
       });
       saveHydrationRef.current = tracked;
     }
-    return saveHydrationRef.current;
+    return saveHydrationRef.current ?? Promise.resolve(null);
   }, []);
 
   const requestLandscape = useCallback(() => {
