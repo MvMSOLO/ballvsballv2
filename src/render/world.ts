@@ -117,6 +117,72 @@ function lambert(color: string, emissive = "#000000", ei = 0): THREE.MeshStandar
   return new THREE.MeshStandardMaterial({ color, emissive, emissiveIntensity: ei, roughness: 0.58, metalness: 0.16 });
 }
 
+/**
+ * A small studio-style equirectangular environment provides real reflection
+ * information to PBR balls and machined metal without loading any external HDR.
+ * The canvas texture is shared across the entire scene and disposed on teardown.
+ */
+function arenaEnvironmentTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    const fallback = new THREE.CanvasTexture(canvas);
+    fallback.mapping = THREE.EquirectangularReflectionMapping;
+    fallback.colorSpace = THREE.SRGBColorSpace;
+    return fallback;
+  }
+
+  const base = ctx.createLinearGradient(0, 0, 0, 256);
+  base.addColorStop(0, "#101b29");
+  base.addColorStop(0.28, "#354454");
+  base.addColorStop(0.52, "#9aa6b2");
+  base.addColorStop(0.68, "#293746");
+  base.addColorStop(1, "#080e17");
+  ctx.fillStyle = base;
+  ctx.fillRect(0, 0, 512, 256);
+
+  // Broad softboxes, thin ceiling strips and colored bounce panels create
+  // recognizable curved highlights on polished/enamel surfaces.
+  const softbox = (x: number, y: number, w: number, h: number, color: string, alpha: number) => {
+    const glow = ctx.createLinearGradient(x, y, x + w, y + h);
+    glow.addColorStop(0, "rgba(255,255,255,0)");
+    glow.addColorStop(0.42, color.replace("ALPHA", String(alpha)));
+    glow.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(x - 20, y - 18, w + 40, h + 36);
+    ctx.fillStyle = color.replace("ALPHA", String(Math.min(1, alpha * 1.5)));
+    ctx.fillRect(x, y, w, h);
+  };
+
+  softbox(22, 28, 92, 24, "rgba(228,245,255,ALPHA)", 0.38);
+  softbox(169, 14, 126, 16, "rgba(255,255,255,ALPHA)", 0.32);
+  softbox(356, 38, 74, 20, "rgba(220,245,255,ALPHA)", 0.3);
+  softbox(65, 102, 52, 7, "rgba(73,226,255,ALPHA)", 0.32);
+  softbox(388, 116, 70, 9, "rgba(255,111,77,ALPHA)", 0.25);
+  softbox(208, 168, 100, 10, "rgba(113,158,198,ALPHA)", 0.22);
+
+  ctx.fillStyle = "rgba(14,23,35,.88)";
+  ctx.fillRect(0, 72, 512, 14);
+  ctx.fillRect(0, 201, 512, 20);
+  ctx.fillStyle = "rgba(230,242,255,.20)";
+  for (let i = 0; i < 32; i++) {
+    const x = i * 16;
+    ctx.fillRect(x, 74, 8, 2);
+    ctx.fillRect(x + 4, 218, 5, 1);
+  }
+  ctx.fillStyle = "rgba(6,13,22,.38)";
+  ctx.fillRect(0, 238, 512, 18);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 2;
+  texture.needsUpdate = true;
+  return texture;
+}
+
 function makeRig(c: AvatarColors): Rig {
   const group = new THREE.Group();
   const skin = new THREE.MeshStandardMaterial({ color: c.skin, roughness: 0.48, metalness: 0.02 });
@@ -362,8 +428,17 @@ function proceduralMicroTexture(
   return texture;
 }
 
+const microSurfaceTextures = new Map<string, THREE.CanvasTexture>();
+
 function microSurfaceTexture(def: BallDef, kind: "bump" | "roughness"): THREE.CanvasTexture {
-  return proceduralMicroTexture(def.id + ":" + def.visual.pattern, kind);
+  // Micrograin is shared by visual family to avoid allocating two full canvas
+  // textures for every ball in large imported inventories.
+  const key = kind + ":" + def.visual.pattern;
+  const cached = microSurfaceTextures.get(key);
+  if (cached) return cached;
+  const texture = proceduralMicroTexture("ball-shell:" + def.visual.pattern, kind, 128, 64);
+  microSurfaceTextures.set(key, texture);
+  return texture;
 }
 
 function arenaPanelTexture(): THREE.CanvasTexture {
@@ -417,8 +492,11 @@ function arenaPanelTexture(): THREE.CanvasTexture {
 
 function patternTexture(def: BallDef): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
-  canvas.width = 512;
-  canvas.height = 256;
+  // 256×128 keeps the persistent per-ball cache lightweight even for huge inventories.
+  const width = 256;
+  const height = 128;
+  canvas.width = width;
+  canvas.height = height;
   const g = canvas.getContext("2d");
   if (!g) return new THREE.CanvasTexture(canvas);
 
@@ -431,17 +509,16 @@ function patternTexture(def: BallDef): THREE.CanvasTexture {
 
   g.fillStyle = def.visual.baseColor;
   g.fillRect(0, 0, canvas.width, canvas.height);
-  const highlight = g.createLinearGradient(24, 0, 470, 256);
+  const highlight = g.createLinearGradient(12, 0, width - 18, height);
   highlight.addColorStop(0, "rgba(255,255,255,.30)");
   highlight.addColorStop(0.32, "rgba(255,255,255,.055)");
   highlight.addColorStop(0.72, "rgba(5,8,15,.12)");
   highlight.addColorStop(1, "rgba(0,0,0,.36)");
   g.fillStyle = highlight;
-  g.fillRect(0, 0, 512, 256);
+  g.fillRect(0, 0, width, height);
 
   const p = def.visual.pattern;
   g.save();
-  g.scale(2, 2);
   g.globalAlpha = 0.42;
   g.fillStyle = def.visual.accentColor;
   g.strokeStyle = def.visual.accentColor;
@@ -507,8 +584,8 @@ function patternTexture(def: BallDef): THREE.CanvasTexture {
 
   // Deterministic micro-scratches and faint clearcoat scuffs make each shell feel handled.
   for (let i = 0; i < 82; i++) {
-    const x = next() * 512;
-    const y = next() * 256;
+    const x = next() * width;
+    const y = next() * height;
     const length = 1.5 + next() * 14;
     g.lineWidth = 0.45 + next() * 0.75;
     g.strokeStyle = i % 3 === 0 ? "rgba(255,255,255,.11)" : "rgba(0,0,0,.095)";
@@ -517,12 +594,12 @@ function patternTexture(def: BallDef): THREE.CanvasTexture {
     g.lineTo(x + length, y + (next() - 0.5) * 2.6);
     g.stroke();
   }
-  const vignette = g.createRadialGradient(256, 112, 16, 256, 128, 300);
+  const vignette = g.createRadialGradient(128, 56, 8, 128, 64, 150);
   vignette.addColorStop(0, "rgba(255,255,255,.09)");
   vignette.addColorStop(0.58, "rgba(20,25,35,.025)");
   vignette.addColorStop(1, "rgba(0,0,0,.24)");
   g.fillStyle = vignette;
-  g.fillRect(0, 0, 512, 256);
+  g.fillRect(0, 0, width, height);
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
@@ -560,6 +637,7 @@ function makeBall(def: BallDef): THREE.Group {
     metalness: def.rarity === "common" ? 0.28 : 0.42,
     clearcoat: shape === "crystal" ? 0.82 : 0.52,
     clearcoatRoughness: 0.2,
+    envMapIntensity: shape === "crystal" ? 1.25 : 0.9,
   });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.castShadow = true;
@@ -1043,6 +1121,7 @@ export class World {
   private impactShake = 0;
   private specTex: THREE.CanvasTexture;
   private specCanvas: HTMLCanvasElement;
+  private environmentTexture: THREE.CanvasTexture;
   private aimLine: THREE.Line<THREE.BufferGeometry, THREE.LineDashedMaterial>;
   private key: THREE.DirectionalLight;
   private rim: THREE.DirectionalLight;
@@ -1076,6 +1155,8 @@ export class World {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setClearColor("#080b13");
     this.scene.background = new THREE.Color("#080b13");
+    this.environmentTexture = arenaEnvironmentTexture();
+    this.scene.environment = this.environmentTexture;
     this.scene.fog = new THREE.Fog("#0b1120", 22, 58);
     this.scene.add(new THREE.HemisphereLight("#d9efff", "#111522", 0.82));
     this.key = new THREE.DirectionalLight("#ffd2a8", 2.05);
@@ -1487,6 +1568,7 @@ export class World {
       bumpScale: 0.018,
       roughness: 0.48,
       metalness: 0.48,
+      envMapIntensity: 0.72,
     });
     const b = new THREE.MeshStandardMaterial({
       color: "#121722",
@@ -1495,6 +1577,7 @@ export class World {
       bumpScale: 0.018,
       roughness: 0.52,
       metalness: 0.4,
+      envMapIntensity: 0.62,
     });
     const instA = new THREE.InstancedMesh(tile, a, 72);
     const instB = new THREE.InstancedMesh(tile, b, 72);
@@ -2231,7 +2314,14 @@ export class World {
     };
     collectResources(this.scene);
     for (const template of this.ballMatCache.values()) collectResources(template);
-    for (const texture of textures) texture.dispose();
+    textures.add(this.environmentTexture);
+    // Micro-surface maps are shared across World instances. Keep their canvas
+    // textures alive for a later route mount; renderer.dispose() releases this
+    // renderer's GPU allocations, and the next renderer can upload them again.
+    const sharedMicroTextures = new Set<THREE.Texture>(microSurfaceTextures.values());
+    for (const texture of textures) {
+      if (!sharedMicroTextures.has(texture)) texture.dispose();
+    }
     for (const material of materials) material.dispose();
     for (const geometry of geometries) geometry.dispose();
     this.ballMatCache.clear();

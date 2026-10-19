@@ -7,7 +7,7 @@ import { advanceSession, applyCommand, createSession, publicView, renderFrame, v
 import { allPacks, enabledBalls } from "../packs/registry";
 import { buildOwnedBallPool } from "../game/owned-ball-pool";
 import { playerMoveInput } from "../game/controls";
-import { loadSave, writeSave } from "../economy/save";
+import { loadSave, writeSave, type Save } from "../economy/save";
 import { appendMatchRecord, createMatchRecord } from "../economy/match-history";
 import { hydrateArenaSave, syncArenaSave } from "@/economy/persistence";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
@@ -157,7 +157,7 @@ function HubLogo({ kind }: { kind: HubLogoKind }) {
 export type ArenaRouteMode = "free-roam" | "duel" | "admin";
 
 export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } = {}) {
-  const { user: currentUser } = useCurrentUserState();
+  const { user: currentUser, isPending: authPending } = useCurrentUserState();
   const [reduceMotion, setReduceMotion] = useState(() => typeof window !== "undefined" && shouldReduceMotion(
     document.documentElement.dataset.reduceMotion === "true",
     window.matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -182,6 +182,19 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   }, []);
   const cloudSyncRef = useRef(false);
   cloudSyncRef.current = authEnabled && Boolean(currentUser && !currentUser.isDevFallback);
+  const cloudUserIdRef = useRef<string | null>(currentUser?.id ?? null);
+  cloudUserIdRef.current = currentUser?.id ?? null;
+  const saveHydrationRef = useRef<Promise<Save> | null>(null);
+  const saveHydrationUserRef = useRef<string | null>(null);
+  const authReadyRef = useRef<{ promise: Promise<void>; resolve: () => void } | null>(null);
+  if (!authReadyRef.current) {
+    let resolve!: () => void;
+    const promise = new Promise<void>((complete) => { resolve = complete; });
+    authReadyRef.current = { promise, resolve };
+  }
+  useEffect(() => {
+    if (!authEnabled || !authPending) authReadyRef.current?.resolve();
+  }, [authPending]);
   const adminMode = mode === "admin";
   const ownerToolsAvailable = canAccessOwnerTools(currentUser);
   const availablePacks = useMemo(() => allPacks(), []);
@@ -232,6 +245,24 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   const hiEmoteUntilRef = useRef(0);
   const ballMapRef = useRef<Map<string, BallDef>>(new Map());
 
+  // Start cloud hydration lazily as well as from the preference effect. This matters
+  // for the direct-duel route, whose startup effect can run before later effects.
+  const ensureSaveHydrated = useCallback((): Promise<Save | null> => {
+    const userId = cloudUserIdRef.current;
+    if (!cloudSyncRef.current || !userId) return Promise.resolve(null);
+
+    if (saveHydrationUserRef.current !== userId || !saveHydrationRef.current) {
+      saveHydrationUserRef.current = userId;
+      const pending = hydrateArenaSave(loadSave());
+      const tracked = pending.catch((error: unknown) => {
+        if (saveHydrationUserRef.current === userId) saveHydrationRef.current = null;
+        throw error;
+      });
+      saveHydrationRef.current = tracked;
+    }
+    return saveHydrationRef.current ?? Promise.resolve(null);
+  }, []);
+
   const requestLandscape = useCallback(() => {
     const enterFullscreenAndLock = async () => {
       try {
@@ -253,9 +284,26 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     void enterFullscreenAndLock();
   }, []);
 
-  const startMatch = useCallback((rival: string) => {
+  const startMatch = useCallback(async (rival: string) => {
     unlockAudio();
     sfx("lock");
+    let cloudHydrationFailed = false;
+    // Auth-enabled deployments start with a pending session. Do not draft from
+    // local starter defaults until the session has resolved (including direct-duel mode).
+    if (authEnabled && authPending) {
+      setNotice("Restoring account inventory…");
+      await authReadyRef.current?.promise;
+    }
+    if (cloudSyncRef.current) {
+      setNotice("Syncing your owned inventory…");
+      try {
+        await ensureSaveHydrated();
+      } catch {
+        cloudHydrationFailed = true;
+      }
+    }
+    // Always read after hydration resolves: a fresh local save can contain only
+    // starter balls while the authoritative account inventory is still downloading.
     const stored = loadSave();
     const all = enabledBalls();
     // Catalog definitions include already-owned balls even when their pack is not in the opponent pool.
@@ -287,14 +335,16 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
       control: ["human", "bot"],
     });
     setView(publicView(sessionRef.current));
-    setNotice("Challenge accepted · " + rival);
-  }, [requestLandscape]);
+    setNotice(cloudHydrationFailed
+      ? "Cloud inventory unavailable · using this device's saved progress."
+      : "Challenge accepted · " + rival);
+  }, [authPending, ensureSaveHydrated, requestLandscape]);
 
   useEffect(() => {
-    if (mode !== "duel" || directBootRef.current) return;
+    if (mode !== "duel" || directBootRef.current || (authEnabled && authPending)) return;
     directBootRef.current = true;
-    startMatch("NovaByte");
-  }, [mode, startMatch]);
+    void startMatch("NovaByte");
+  }, [mode, authPending, startMatch]);
 
   const send = useCallback((cmd: Parameters<typeof applyCommand>[1]) => {
     if (cmd.t !== "aim") sfx("click");
@@ -462,8 +512,8 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     setQuality(initialQuality);
     worldRef.current?.setQuality(initialQuality, autoQualityRef.current);
     if (cloudSyncRef.current) {
-      void hydrateArenaSave(saved).then((merged) => {
-        if (!active) return;
+      void ensureSaveHydrated().then((merged) => {
+        if (!active || !merged) return;
         setCoins(merged.coins);
         setDiamonds(merged.diamonds);
         diamondsRef.current = merged.diamonds;
@@ -481,7 +531,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
       });
     }
     return () => { active = false; };
-  }, [currentUser?.id]);
+  }, [currentUser?.id, ensureSaveHydrated]);
 
   useEffect(() => {
     if (!notice) return;
