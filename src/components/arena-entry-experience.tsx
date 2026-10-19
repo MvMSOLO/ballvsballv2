@@ -133,14 +133,24 @@ export function ArenaEntryExperience() {
     })();
 
     const engineTask = (async () => {
+      let engineTimeout = 0;
       try {
-        await Promise.all([
-          import("three"),
-          import("three/examples/jsm/loaders/GLTFLoader.js"),
+        await Promise.race([
+          Promise.all([
+            import("three"),
+            import("three/examples/jsm/loaders/GLTFLoader.js"),
+          ]),
+          new Promise<never>((_, reject) => {
+            engineTimeout = window.setTimeout(
+              () => reject(new Error("3D runtime preload timed out")),
+              12000,
+            );
+          }),
         ]);
       } catch {
         if (active) setFallbackMode(true);
       } finally {
+        window.clearTimeout(engineTimeout);
         if (active) reportProgress("engine", 1);
       }
     })();
