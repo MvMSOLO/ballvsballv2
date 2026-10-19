@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { BallDef } from "@/sim/types";
 import { buildOwnedBallPool } from "@/game/owned-ball-pool";
-import { advanceSession, applyCommand, createSession } from "../src/game/session";
+import { advanceSession, applyCommand, createSession, publicView } from "../src/game/session";
 
 function ball(id: string): BallDef {
   return { id } as BallDef;
@@ -57,6 +57,7 @@ describe("buildOwnedBallPool", () => {
     // automation can confirm a pick while this test inspects and rerolls offers.
     advanceSession(s, s.cfg.introSeconds + 0.01);
     expect(s.flow).toBe("pick");
+    expect(publicView(s).poolCount).toBe(4);
     expect(s.offers[0]).toHaveLength(3);
     expect(s.offers[0].every((id) => playerPool.some((ball) => ball.id === id))).toBe(true);
     expect(s.offers[0].some((id) => id.startsWith("starter-"))).toBe(false);
