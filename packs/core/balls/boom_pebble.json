@@ -1,13 +1,60 @@
 {
   "id": "boom_pebble",
-  "name": { "en": "Boom Pebble", "uz": "Portlovchi Tosh", "ru": "Бум-Голыш" },
-  "description": { "en": "Contact pops a knockback blast.", "uz": "Tegishda itaruvchi portlash ochiladi.", "ru": "Касание взрывается отталкивающим хлопком." },
+  "name": {
+    "en": "Fusecore Pebble",
+    "uz": "Piltayadro Tosh",
+    "ru": "Камень с фитилём"
+  },
+  "description": {
+    "en": "A soot-black bomb-meteor with orange fault lines, a live fuse crown and chipped impact fins.",
+    "uz": "Kulrang-qora bomba-meteorit: to‘q sariq yoriqlar, yonayotgan pilta va urilish qanotchalariga ega.",
+    "ru": "Обугленный метеор-бомба с оранжевыми трещинами, горящим фитилём и ударными рёбрами."
+  },
   "rarity": "common",
-  "tags": ["bomb"],
-  "stats": { "hp": 104, "radius": 1.08, "mass": 1.1, "speed": 13.2, "contactDamage": 8 },
-  "visual": { "baseColor": "#ff5a36", "accentColor": "#2b120c", "face": "grin", "pattern": "checker", "emissive": 0.25, "trail": { "color": "#ffb199", "length": 0.4 }, "particles": "smoke", "shape": "sphere" },
-  "abilities": [
-    { "trigger": "onBallHit", "cooldown": 1.8, "actions": [ { "type": "explode", "radius": 2.15, "damage": 8, "knockback": 11, "visual": { "color": "#ff5a36", "particle": "smoke", "sound": "boom" } } ] }
+  "tags": [
+    "bomb"
   ],
-  "ai_hints": { "bestAim": "enemy", "role": "burst" }
+  "stats": {
+    "hp": 104,
+    "radius": 1.08,
+    "mass": 1.1,
+    "speed": 13.2,
+    "contactDamage": 8
+  },
+  "visual": {
+    "baseColor": "#34151A",
+    "accentColor": "#FF5A36",
+    "face": "angry",
+    "pattern": "fuse",
+    "emissive": 0.66,
+    "trail": {
+      "color": "#FFAA68",
+      "length": 0.64
+    },
+    "particles": "embers",
+    "shape": "meteor"
+  },
+  "abilities": [
+    {
+      "trigger": "onBallHit",
+      "cooldown": 1.8,
+      "actions": [
+        {
+          "type": "explode",
+          "radius": 2.15,
+          "damage": 8,
+          "knockback": 11,
+          "visual": {
+            "color": "#ff5a36",
+            "particle": "smoke",
+            "sound": "boom"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "enemy",
+    "role": "burst"
+  }
 }

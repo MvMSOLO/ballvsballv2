@@ -6,9 +6,9 @@
     "ru": "Моль Разлома"
   },
   "description": {
-    "en": "Leaves a shimmering slow field after ricocheting from a wall.",
-    "uz": "Devordan qaytgach, yaltirab turuvchi sekinlashtiruvchi maydon qoldiradi.",
-    "ru": "Оставляет мерцающее поле замедления после отскока от стены."
+    "en": "A rift moth with broad translucent violet wings, pale moon-scale markings, twin antennae and a narrow glowing thorax.",
+    "uz": "Keng shaffof binafsha qanotlar, oy tangachasi naqshlari, ikkita mo‘ylov va nurli tor ko‘krak qismiga ega yoriq kuyasi.",
+    "ru": "Моль разлома с широкими полупрозрачными фиолетовыми крыльями, лунными чешуйками, парными усиками и светящейся грудью."
   },
   "rarity": "common",
   "tags": [
@@ -23,17 +23,17 @@
     "contactDamage": 7
   },
   "visual": {
-    "baseColor": "#8B72FF",
-    "accentColor": "#D8F7FF",
+    "baseColor": "#34217B",
+    "accentColor": "#DDE8FF",
     "face": "sleepy",
-    "pattern": "stars",
-    "emissive": 0.55,
+    "pattern": "moth_scales",
+    "emissive": 0.72,
     "trail": {
-      "color": "#B9A8FF",
-      "length": 0.9
+      "color": "#B7A7FF",
+      "length": 1.02
     },
     "particles": "stars",
-    "shape": "ringed"
+    "shape": "moth"
   },
   "abilities": [
     {

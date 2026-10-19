@@ -6,9 +6,9 @@
     "ru": "Угольный Реестр"
   },
   "description": {
-    "en": "Plants a short burning ring after the opening beat. It controls a small patch of floor but struggles in long chases.",
-    "uz": "Jang boshida qisqa muddatli yonuvchi halqa yaratadi. Kichik hududni nazorat qiladi, ammo uzoq quvishda qiynaladi.",
-    "ru": "В начале боя создаёт недолгое огненное кольцо. Хорошо держит небольшой участок, но уступает в затяжной погоне."
+    "en": "A scorched field ledger with a glowing ember spine, brass page corners and thin tally lines across its cover.",
+    "uz": "Cho‘g‘day yonuvchi umurtqa, brass sahifa burchaklari va muqovasida ingichka hisob chiziqlari bor kuygan daftar.",
+    "ru": "Обугленный полевой журнал со светящимся корешком, латунными уголками страниц и тонкими линиями учёта на обложке."
   },
   "rarity": "common",
   "tags": [
@@ -24,17 +24,17 @@
     "contactDamage": 7.1
   },
   "visual": {
-    "baseColor": "#F76C4B",
-    "accentColor": "#45192E",
+    "baseColor": "#4B2025",
+    "accentColor": "#FF9A61",
     "face": "angry",
-    "pattern": "spiral",
-    "emissive": 0.44,
+    "pattern": "ledger",
+    "emissive": 0.64,
     "trail": {
-      "color": "#FF956E",
-      "length": 0.6
+      "color": "#FF956A",
+      "length": 0.72
     },
     "particles": "embers",
-    "shape": "ringed"
+    "shape": "book"
   },
   "abilities": [
     {

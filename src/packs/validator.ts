@@ -17,9 +17,9 @@ export interface ValidateResult {
 
 const RARITIES: Rarity[] = ["common", "rare", "epic", "legendary", "mythic"];
 const FACES = ["grin", "angry", "sleepy", "cool", "cute", "robot", "ghost", "wink", "focus"];
-const PATTERNS = ["none", "stripes", "dots", "checker", "spiral", "hex", "stars"];
+const PATTERNS = ["none", "stripes", "dots", "checker", "spiral", "hex", "stars", "runes", "armor", "fuse", "winding", "veins", "shards", "rays", "lightning", "blade_marks", "fissure", "prism", "scales", "growth_rings", "hive_hex", "web", "celestial", "soundwaves", "masonry", "ledger", "gusts", "shell_ribs", "quartz_facets", "beads", "eclipse", "orbit_map", "event_horizon", "topographic", "plum_skin", "petal_veins", "mirror_facets", "moth_scales", "sonar_rings", "architecture"];
 const PARTICLES = ["sparks", "smoke", "bubbles", "stars", "leaves", "embers", "snow", "none"];
-const SHAPES = ["sphere", "spiky", "faceted", "ringed", "horned"];
+const SHAPES = ["sphere", "spiky", "faceted", "ringed", "horned", "shield", "die", "meteor", "crystal", "gear", "leech", "shardcluster", "halo", "comet", "mite", "knife", "magma", "lance", "serpent", "sprout", "hive", "webbed", "reliquary", "mandolin", "monolith", "book", "windblade", "shell", "crystalcluster", "abacus", "void", "kettle", "crown", "atlas", "plum", "orchid", "mirror", "moth", "sonar", "cathedral"];
 const AIMS: AimHint[] = ["wall", "enemy", "corner", "center", "any"];
 const ROLES: RoleHint[] = ["trap", "burst", "sustain", "control", "scaling", "ranged"];
 const TRIGGERS = ["onSpawn", "onTick", "onWallHit", "onBallHit", "onDamaged", "onDealDamage", "onHpBelow", "onTimer", "onKill", "onRoundStart"];

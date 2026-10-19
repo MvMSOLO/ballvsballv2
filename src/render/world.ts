@@ -572,6 +572,84 @@ function patternTexture(def: BallDef): THREE.CanvasTexture {
     g.font = "bold 26px sans-serif";
     g.textAlign = "center";
     for (let i = 0; i < 12; i++) g.fillText(["◇", "△", "⌁", "✦"][i % 4], 16 + (i % 6) * 44, 24 + Math.floor(i / 6) * 62);
+  } else if (p === "armor") {
+    for (let y = -4; y < height + 18; y += 34) for (let x = -8; x < width + 18; x += 42) {
+      g.strokeStyle = "rgba(255,255,255,.24)"; g.lineWidth = 1.2; g.strokeRect(x + 3, y + 3, 34, 26);
+      g.strokeStyle = "rgba(0,0,0,.28)"; g.strokeRect(x, y, 34, 26);
+      g.fillStyle = "rgba(255,255,255,.52)"; g.beginPath(); g.arc(x + 7, y + 7, 1.6, 0, Math.PI * 2); g.fill();
+    }
+  } else if (p === "fuse") {
+    for (let i = 0; i < 7; i++) { const x = 14 + i * 39; g.strokeStyle = i % 2 ? "rgba(255,184,111,.6)" : "rgba(0,0,0,.42)"; g.lineWidth = 4; g.beginPath(); g.moveTo(x, 0); g.lineTo(x - 9, height); g.stroke(); g.fillStyle = "rgba(255,211,136,.8)"; g.beginPath(); g.arc(x - 4, (i % 2) * 54 + 28, 3, 0, Math.PI * 2); g.fill(); }
+  } else if (p === "winding") {
+    for (let n = 0; n < 5; n++) { g.beginPath(); for (let i = 0; i < 190; i++) { const a = i * .075 + n * Math.PI / 2.5, r = i * .13, x = 128 + Math.cos(a) * r, y = 64 + Math.sin(a) * r * .55; if (!i) g.moveTo(x,y); else g.lineTo(x,y); } g.strokeStyle = n % 2 ? "rgba(255,255,255,.22)" : "rgba(0,0,0,.25)"; g.lineWidth = 2; g.stroke(); }
+  } else if (p === "veins") {
+    for (let i = 0; i < 10; i++) { const x = (i * 71 + 17) % width, y = (i * 37 + 11) % height; g.beginPath(); g.moveTo(x,y); g.bezierCurveTo(x+18,y-12,x-9,y+19,x+12,y+28); g.moveTo(x+4,y+11); g.lineTo(x-7,y+5); g.moveTo(x+7,y+19); g.lineTo(x+19,y+12); g.strokeStyle = "rgba(255,106,142,.5)"; g.lineWidth = 1.3; g.stroke(); }
+  } else if (p === "shards") {
+    for (let i = 0; i < 25; i++) { const x = next()*width, y = next()*height, r = 4+next()*14; g.beginPath(); g.moveTo(x,y-r); g.lineTo(x+r*.55,y+r*.2); g.lineTo(x-r*.4,y+r*.7); g.closePath(); g.fillStyle = i%2 ? "rgba(255,255,255,.22)" : "rgba(8,55,78,.24)"; g.fill(); g.strokeStyle = "rgba(255,255,255,.28)"; g.stroke(); }
+  } else if (p === "rays") {
+    for (let i = 0; i < 26; i++) { const a=i*Math.PI*2/26; g.beginPath(); g.moveTo(128,64); g.lineTo(128+Math.cos(a)*155,64+Math.sin(a)*155); g.strokeStyle=i%2?"rgba(255,255,255,.12)":"rgba(173,126,25,.42)"; g.lineWidth=i%3===0?2.2:1; g.stroke(); }
+  } else if (p === "lightning") {
+    for (let i=0;i<7;i++){const x=9+i*39,shift=(i%3)*8;g.beginPath();g.moveTo(x,0);g.lineTo(x+10,20+shift);g.lineTo(x-4,38+shift);g.lineTo(x+8,60+shift);g.lineTo(x-3,86+shift);g.lineTo(x+1,height);g.strokeStyle=i%2?"rgba(255,255,255,.34)":"rgba(255,230,95,.65)";g.lineWidth=i%3===0?2.8:1.3;g.stroke();}
+  } else if (p === "blade_marks") {
+    for(let i=0;i<16;i++){const x=(i*43+12)%width,y=(i*31+8)%height;g.beginPath();g.moveTo(x-8,y+12);g.lineTo(x+12,y-12);g.strokeStyle=i%2?"rgba(255,255,255,.33)":"rgba(0,0,0,.38)";g.lineWidth=1+(i%3)*.45;g.stroke();}
+  } else if (p === "fissure") {
+    for(let i=0;i<13;i++){let x=(i*53+15)%width,y=(i*29+6)%height;g.beginPath();g.moveTo(x,y);for(let j=0;j<5;j++){x+=(next()-.5)*20;y+=6+next()*13;g.lineTo(x,y);}g.strokeStyle=i%2?"rgba(255,98,32,.75)":"rgba(255,202,92,.6)";g.lineWidth=1.2+next()*1.7;g.stroke();}
+  } else if (p === "prism") {
+    for(let y=-8;y<height+20;y+=28)for(let x=-8;x<width+20;x+=34){g.beginPath();g.moveTo(x+17,y);g.lineTo(x+34,y+14);g.lineTo(x+17,y+28);g.lineTo(x,y+14);g.closePath();g.fillStyle=(Math.floor(x/34)+Math.floor(y/28))%2?"rgba(255,255,255,.14)":"rgba(89,248,255,.19)";g.fill();g.strokeStyle="rgba(255,255,255,.42)";g.stroke();g.beginPath();g.moveTo(x+17,y);g.lineTo(x+17,y+28);g.stroke();}
+  } else if (p === "scales") {
+    for(let y=-9;y<height+12;y+=16)for(let x=-12;x<width+14;x+=20){g.beginPath();g.arc(x+((y/16)%2)*10,y,11,.08,Math.PI-.08);g.strokeStyle="rgba(220,255,240,.35)";g.lineWidth=1.4;g.stroke();g.beginPath();g.arc(x+((y/16)%2)*10,y,7,.1,Math.PI-.1);g.strokeStyle="rgba(0,0,0,.2)";g.lineWidth=.8;g.stroke();}
+  } else if (p === "growth_rings") {
+    for(let i=0;i<12;i++){g.beginPath();g.ellipse(128+Math.sin(i)*8,64+Math.cos(i*.7)*5,13+i*13,5+i*5,i*.12,0,Math.PI*2);g.strokeStyle=i%2?"rgba(211,255,160,.24)":"rgba(29,100,48,.42)";g.lineWidth=1.4;g.stroke();}
+  } else if (p === "hive_hex") {
+    for(let y=-9;y<height+15;y+=22)for(let x=-8;x<width+15;x+=25){const cx=x+(Math.round(y/22)%2)*12;g.beginPath();for(let k=0;k<6;k++){const a=k*Math.PI/3,px=cx+Math.cos(a)*11,py=y+Math.sin(a)*11;if(!k)g.moveTo(px,py);else g.lineTo(px,py);}g.closePath();g.strokeStyle="rgba(238,215,255,.42)";g.lineWidth=1.4;g.stroke();g.fillStyle="rgba(16,7,30,.16)";g.fill();}
+  } else if (p === "web") {
+    for(let i=0;i<16;i++){const a=i*Math.PI/8;g.beginPath();g.moveTo(128,64);g.lineTo(128+Math.cos(a)*190,64+Math.sin(a)*100);g.strokeStyle="rgba(210,239,255,.5)";g.lineWidth=1;g.stroke();}
+    for(let rr=16;rr<160;rr+=19){g.beginPath();g.ellipse(128,64,rr,rr*.52,0,0,Math.PI*2);g.strokeStyle="rgba(31,64,91,.46)";g.lineWidth=1.1;g.stroke();}
+  } else if (p === "celestial") {
+    g.font="bold 20px sans-serif";g.textAlign="center";for(let i=0;i<14;i++)g.fillText(["✦","◇","☼","⌁","✧"][i%5],(i*71+18)%width,(i*37+20)%height);
+    for(let i=0;i<7;i++){const x=(i*67+13)%width,y=(i*41+10)%height;g.beginPath();g.arc(x,y,2,0,Math.PI*2);g.fill();if(i){g.beginPath();g.moveTo(x,y);g.lineTo((x+37)%width,(y+17)%height);g.strokeStyle="rgba(255,231,172,.48)";g.stroke();}}
+  } else if (p === "soundwaves") {
+    for(let i=0;i<12;i++){g.beginPath();g.moveTo(-20,64+i*5);for(let x=-20;x<=width+20;x+=4)g.lineTo(x,64+i*3+Math.sin(x*.075+i*.42)*(6+(i%4)*3));g.strokeStyle=i%2?"rgba(175,201,255,.34)":"rgba(40,74,198,.36)";g.lineWidth=1.2;g.stroke();}
+  } else if (p === "masonry") {
+    for(let y=0;y<height+22;y+=24){const offset=Math.floor(y/24)%2?20:0;for(let x=-22+offset;x<width+24;x+=42){g.strokeStyle="rgba(238,244,250,.22)";g.strokeRect(x+2,y+2,38,20);g.strokeStyle="rgba(0,0,0,.3)";g.strokeRect(x,y,38,20);}}
+  } else if (p === "ledger") {
+    for(let y=13;y<height;y+=14){g.beginPath();g.moveTo(0,y);g.lineTo(width,y);g.strokeStyle="rgba(255,186,128,.34)";g.lineWidth=1;g.stroke();}
+    g.beginPath();g.moveTo(28,0);g.lineTo(28,height);g.strokeStyle="rgba(255,104,104,.65)";g.lineWidth=2;g.stroke();
+    for(let i=0;i<10;i++){const x=44+(i%5)*42,y=22+Math.floor(i/5)*55;g.beginPath();g.moveTo(x,y);g.lineTo(x+11,y+12);g.moveTo(x+11,y);g.lineTo(x,y+12);g.strokeStyle="rgba(255,223,170,.48)";g.stroke();}
+  } else if (p === "gusts") {
+    for(let i=0;i<9;i++){g.beginPath();g.moveTo(-10,8+i*15);g.bezierCurveTo(45,i*11+30,80,i*17-20,138,i*13+12);g.bezierCurveTo(182,i*17+36,220,i*9+2,270,i*15-10);g.strokeStyle=i%2?"rgba(173,255,235,.28)":"rgba(255,255,255,.45)";g.lineWidth=1.5;g.stroke();}
+  } else if (p === "shell_ribs") {
+    for(let i=0;i<14;i++){g.beginPath();g.ellipse(128,130,16+i*11,9+i*7,-.08,Math.PI*1.03,Math.PI*1.98);g.strokeStyle=i%2?"rgba(225,253,255,.29)":"rgba(0,0,0,.25)";g.lineWidth=1.5;g.stroke();}
+  } else if (p === "quartz_facets") {
+    for(let i=0;i<22;i++){const x=(i*67+17)%width,y=(i*43+9)%height,w=12+(i%4)*4,h=10+(i%3)*5;g.beginPath();g.moveTo(x,y);g.lineTo(x+w,y+h);g.lineTo(x-w*.3,y+h*1.3);g.closePath();g.fillStyle=i%2?"rgba(255,255,255,.19)":"rgba(249,208,235,.26)";g.fill();g.strokeStyle="rgba(255,255,255,.34)";g.stroke();}
+  } else if (p === "beads") {
+    for(let row=0;row<5;row++){const y=14+row*25;g.beginPath();g.moveTo(0,y);g.lineTo(width,y);g.strokeStyle="rgba(238,233,255,.28)";g.lineWidth=2;g.stroke();for(let i=0;i<8;i++){const x=8+i*34+(row%2)*6;g.beginPath();g.arc(x,y,4.5,0,Math.PI*2);g.fillStyle=i%2?"rgba(255,255,255,.55)":"rgba(171,151,255,.7)";g.fill();g.strokeStyle="rgba(22,12,63,.55)";g.stroke();}}
+  } else if (p === "eclipse") {
+    g.beginPath();g.ellipse(128,64,80,48,-.25,0,Math.PI*2);g.strokeStyle="rgba(235,168,255,.75)";g.lineWidth=2.4;g.stroke();
+    g.beginPath();g.ellipse(128,64,62,36,.3,0,Math.PI*2);g.strokeStyle="rgba(111,62,175,.75)";g.lineWidth=5;g.stroke();
+    g.beginPath();g.arc(128,64,31,0,Math.PI*2);g.fillStyle="rgba(0,0,0,.5)";g.fill();
+    for(let i=0;i<9;i++){const a=i*Math.PI*2/9;g.beginPath();g.arc(128+Math.cos(a)*75,64+Math.sin(a)*40,2.4,0,Math.PI*2);g.fillStyle="rgba(255,255,255,.7)";g.fill();}
+  } else if (p === "orbit_map") {
+    for(let i=0;i<6;i++){g.beginPath();g.ellipse(128,64,25+i*18,10+i*10,i*.31,0,Math.PI*2);g.strokeStyle=i%2?"rgba(255,220,150,.23)":"rgba(255,255,255,.35)";g.lineWidth=1;g.stroke();const x=128+Math.cos(i*1.9)*(25+i*18),y=64+Math.sin(i*1.9)*(10+i*10);g.beginPath();g.arc(x,y,2.2,0,Math.PI*2);g.fillStyle="rgba(255,218,143,.8)";g.fill();}
+  } else if (p === "event_horizon") {
+    for(let i=0;i<12;i++){g.beginPath();g.ellipse(128+Math.sin(i*.6)*14,64+Math.cos(i*.4)*5,10+i*10,5+i*4,i*.22,0,Math.PI*2);g.strokeStyle=i%3===0?"rgba(255,210,255,.5)":"rgba(174,93,255,.36)";g.lineWidth=1.3;g.stroke();}
+    g.beginPath();g.arc(128,64,17,0,Math.PI*2);g.fillStyle="rgba(0,0,0,.55)";g.fill();
+  } else if (p === "topographic") {
+    for(let i=0;i<15;i++){g.beginPath();g.moveTo(-10,12+i*8);for(let x=-10;x<=width+10;x+=4)g.lineTo(x,12+i*8+Math.sin(x*.042+i*.3)*5+Math.cos(x*.08+i*.15)*2);g.strokeStyle=i%2?"rgba(255,225,174,.25)":"rgba(10,20,25,.27)";g.lineWidth=1;g.stroke();}
+  } else if (p === "plum_skin") {
+    for(let i=0;i<150;i++){const x=next()*width,y=next()*height,rr=.35+next()*1.2;g.beginPath();g.arc(x,y,rr,0,Math.PI*2);g.fillStyle=i%3?"rgba(255,220,255,.18)":"rgba(10,5,20,.2)";g.fill();}
+    g.beginPath();g.ellipse(74,32,38,13,-.5,0,Math.PI*2);g.strokeStyle="rgba(255,231,255,.16)";g.lineWidth=3;g.stroke();
+  } else if (p === "petal_veins") {
+    for(let petal=0;petal<7;petal++){const a=petal*Math.PI*2/7;for(let k=0;k<5;k++){g.beginPath();g.moveTo(128,64);g.quadraticCurveTo(128+Math.cos(a)*50-k*3,64+Math.sin(a)*25,128+Math.cos(a)*(40+k*8),64+Math.sin(a)*(22+k*4));g.strokeStyle=k%2?"rgba(255,229,173,.32)":"rgba(255,255,255,.3)";g.lineWidth=1;g.stroke();}}
+  } else if (p === "mirror_facets") {
+    for(let i=0;i<14;i++){const x=(i*47+9)%width,y=(i*31+12)%height;g.beginPath();g.moveTo(x,y);g.lineTo(x+25,y-12);g.lineTo(x+37,y+8);g.lineTo(x+8,y+18);g.closePath();g.strokeStyle="rgba(255,255,255,.58)";g.lineWidth=1;g.stroke();g.fillStyle=i%2?"rgba(255,255,255,.12)":"rgba(175,255,245,.16)";g.fill();}
+  } else if (p === "moth_scales") {
+    for(let y=-4;y<height+8;y+=10)for(let x=-8;x<width+10;x+=14){g.beginPath();g.moveTo(x,y);g.quadraticCurveTo(x+7,y+10,x+14,y);g.strokeStyle=((x+y)%2)?"rgba(255,255,255,.25)":"rgba(183,162,255,.43)";g.lineWidth=1.1;g.stroke();}
+  } else if (p === "sonar_rings") {
+    for(let i=0;i<9;i++){g.beginPath();g.ellipse(128,64,11+i*15,6+i*7,0,0,Math.PI*2);g.strokeStyle=i%2?"rgba(200,250,255,.25)":"rgba(120,241,255,.55)";g.lineWidth=i%3===0?2:1;g.stroke();}
+    for(let i=0;i<18;i++){const a=i*Math.PI/9;g.beginPath();g.moveTo(128+Math.cos(a)*25,64+Math.sin(a)*13);g.lineTo(128+Math.cos(a)*132,64+Math.sin(a)*65);g.strokeStyle="rgba(183,251,255,.24)";g.stroke();}
+  } else if (p === "architecture") {
+    for(let i=0;i<5;i++){const x=12+i*54;g.strokeStyle="rgba(170,241,255,.4)";g.lineWidth=1.7;g.strokeRect(x,16,33,92);g.strokeRect(x+5,22,23,80);g.beginPath();g.arc(x+16.5,47,10,Math.PI,Math.PI*2);g.stroke();g.beginPath();g.moveTo(x+16.5,58);g.lineTo(x+16.5,96);g.stroke();}
   } else {
     for (let i = 0; i < 9; i++) {
       g.globalAlpha = 0.23;
@@ -608,273 +686,324 @@ function patternTexture(def: BallDef): THREE.CanvasTexture {
 }
 function makeBall(def: BallDef): THREE.Group {
   const group = new THREE.Group();
-  const id = def.id.toLowerCase();
-  const shape =
-    id.includes("lucky_die") ? "die" :
-    id.includes("aegis") ? "shield" :
-    id.includes("glass_hail") || id.includes("prism") ? "crystal" :
-    id.includes("halo") || id.includes("coil") ? "ringed" :
-    id.includes("hook") || id.includes("last_knife") ? "horned" :
-    id.includes("swarm") ? "spiky" : def.visual.shape;
-
+  const shape = def.visual.shape;
+  const accent = def.visual.accentColor || "#67e8f9";
+  const base = def.visual.baseColor || "#e2e8f0";
   let geo: THREE.BufferGeometry;
-  if (shape === "die") geo = new THREE.BoxGeometry(1.55, 1.55, 1.55, 2, 2, 2);
-  else if (shape === "crystal") geo = new THREE.OctahedronGeometry(1, 0);
-  else if (shape === "faceted") geo = new THREE.DodecahedronGeometry(1, 0);
-  else if (shape === "shield") geo = new THREE.IcosahedronGeometry(0.96, 0);
-  else if (shape === "spiky") geo = new THREE.IcosahedronGeometry(1, 1);
-  else geo = new THREE.SphereGeometry(1, 32, 24);
 
+  // The visual shell is content-authored per ball; collision remains the stable arena body.
+  switch (shape) {
+    case "die": geo = new THREE.BoxGeometry(1.38, 1.38, 1.38); break;
+    case "meteor": geo = new THREE.DodecahedronGeometry(0.88, 0); break;
+    case "shield": geo = new THREE.IcosahedronGeometry(0.96, 0); break;
+    case "crystal": geo = new THREE.OctahedronGeometry(1, 0); break;
+    case "faceted": geo = new THREE.DodecahedronGeometry(1, 0); break;
+    case "spiky": geo = new THREE.IcosahedronGeometry(1, 1); break;
+    case "gear": geo = new THREE.CylinderGeometry(0.76, 0.76, 0.4, 16); geo.rotateX(Math.PI / 2); break;
+    case "leech": geo = new THREE.CapsuleGeometry(0.62, 0.38, 5, 12); geo.scale(1.06, 0.92, 0.8); break;
+    case "shardcluster": geo = new THREE.IcosahedronGeometry(0.72, 0); break;
+    case "halo": geo = new THREE.SphereGeometry(0.82, 24, 18); break;
+    case "comet": geo = new THREE.SphereGeometry(0.78, 24, 18); geo.scale(1.02, 0.88, 0.92); break;
+    case "mite": geo = new THREE.CapsuleGeometry(0.55, 0.42, 4, 10); geo.scale(1.03, 0.88, 0.8); break;
+    case "knife": geo = new THREE.OctahedronGeometry(0.95, 0); geo.scale(0.52, 0.62, 1.16); break;
+    case "magma": geo = new THREE.DodecahedronGeometry(0.9, 0); break;
+    case "lance": geo = new THREE.OctahedronGeometry(0.9, 0); geo.scale(0.64, 1.12, 0.7); break;
+    case "serpent": geo = new THREE.SphereGeometry(0.85, 24, 18); geo.scale(1.03, 0.7, 0.76); break;
+    case "sprout": geo = new THREE.SphereGeometry(0.83, 24, 18); geo.scale(0.98, 0.88, 0.82); break;
+    case "hive": geo = new THREE.DodecahedronGeometry(0.86, 0); break;
+    case "webbed": geo = new THREE.IcosahedronGeometry(0.86, 1); break;
+    case "reliquary": geo = new THREE.BoxGeometry(1.08, 1.28, 0.72); break;
+    case "mandolin": geo = new THREE.SphereGeometry(0.8, 24, 18); geo.scale(1.06, 0.88, 0.62); break;
+    case "monolith": geo = new THREE.BoxGeometry(1.08, 1.43, 0.74); break;
+    case "book": geo = new THREE.BoxGeometry(1.24, 1.02, 0.62); break;
+    case "windblade": geo = new THREE.TetrahedronGeometry(0.96, 0); geo.scale(1.1, 0.85, 0.58); break;
+    case "shell": geo = new THREE.SphereGeometry(0.9, 24, 18); geo.scale(1.04, 0.86, 0.74); break;
+    case "crystalcluster": geo = new THREE.OctahedronGeometry(0.68, 0); break;
+    case "abacus": geo = new THREE.CylinderGeometry(0.82, 0.82, 0.38, 12); geo.rotateX(Math.PI / 2); break;
+    case "void": geo = new THREE.SphereGeometry(0.83, 28, 20); break;
+    case "kettle": geo = new THREE.SphereGeometry(0.78, 24, 18); geo.scale(1.04, 0.86, 0.88); break;
+    case "crown": geo = new THREE.DodecahedronGeometry(0.78, 0); break;
+    case "atlas": geo = new THREE.CylinderGeometry(0.84, 0.84, 0.25, 48); geo.rotateX(Math.PI / 2); break;
+    case "plum": geo = new THREE.SphereGeometry(0.88, 24, 18); geo.scale(0.8, 1.15, 0.78); break;
+    case "orchid": geo = new THREE.SphereGeometry(0.44, 20, 16); break;
+    case "mirror": geo = new THREE.OctahedronGeometry(0.91, 0); break;
+    case "moth": geo = new THREE.SphereGeometry(0.43, 20, 16); geo.scale(0.74, 1.18, 0.62); break;
+    case "sonar": geo = new THREE.CylinderGeometry(0.82, 0.82, 0.3, 48); geo.rotateX(Math.PI / 2); break;
+    case "cathedral": geo = new THREE.BoxGeometry(0.94, 1.2, 0.72); break;
+    default: geo = new THREE.SphereGeometry(1, 32, 24);
+  }
+
+  const glassy = shape === "mirror" || shape === "crystal" || shape === "shardcluster" || shape === "crystalcluster";
+  const organic = shape === "plum" || shape === "moth" || shape === "sprout" || shape === "leech" || shape === "orchid";
+  const roughness = glassy ? 0.18 : organic ? 0.45 : 0.34;
+  const metalness = organic ? 0.22 : def.rarity === "common" ? 0.3 : 0.52;
   const mat = new THREE.MeshPhysicalMaterial({
     map: patternTexture(def),
     bumpMap: microSurfaceTexture(def, "bump"),
-    bumpScale: shape === "crystal" ? 0.012 : 0.028,
+    bumpScale: glassy ? 0.012 : 0.028,
     roughnessMap: microSurfaceTexture(def, "roughness"),
     color: "#ffffff",
-    emissive: def.visual.accentColor,
-    emissiveIntensity: def.visual.emissive * 0.28,
-    roughness: shape === "crystal" ? 0.22 : 0.36,
-    metalness: def.rarity === "common" ? 0.28 : 0.42,
-    clearcoat: shape === "crystal" ? 0.82 : 0.52,
-    clearcoatRoughness: 0.2,
-    envMapIntensity: shape === "crystal" ? 1.25 : 0.9,
+    emissive: accent,
+    emissiveIntensity: def.visual.emissive * 0.25,
+    roughness,
+    metalness,
+    clearcoat: glassy ? 0.9 : 0.62,
+    clearcoatRoughness: glassy ? 0.08 : 0.2,
+    envMapIntensity: shape === "void" || shape === "crown" ? 1.4 : glassy ? 1.35 : 0.94,
   });
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.castShadow = true;
-  group.add(mesh);
+  const shell = new THREE.Mesh(geo, mat);
+  shell.castShadow = true;
+  shell.receiveShadow = true;
+  group.add(shell);
 
-  if (shape === "shield") {
-    const shieldFace = new THREE.Mesh(new THREE.CircleGeometry(0.68, 6), new THREE.MeshBasicMaterial({
-      color: def.visual.accentColor, transparent: true, opacity: 0.48, side: THREE.DoubleSide,
-    }));
-    shieldFace.position.z = 0.77;
-    shieldFace.rotation.z = Math.PI / 6;
-    group.add(shieldFace);
-    const shieldEdge = new THREE.LineSegments(new THREE.EdgesGeometry(shieldFace.geometry), new THREE.LineBasicMaterial({
-      color: def.visual.baseColor, transparent: true, opacity: 0.95,
-    }));
-    shieldEdge.position.copy(shieldFace.position);
-    shieldEdge.rotation.copy(shieldFace.rotation);
-    shieldEdge.scale.setScalar(1.08);
-    group.add(shieldEdge);
-  }
+  const accentMat = new THREE.MeshStandardMaterial({
+    color: accent, metalness: 0.68, roughness: 0.24,
+    emissive: accent, emissiveIntensity: 0.12 + def.visual.emissive * 0.24,
+  });
+  const edgeMat = new THREE.MeshStandardMaterial({ color: base, metalness: 0.7, roughness: 0.3 });
+  const glowMat = new THREE.MeshBasicMaterial({
+    color: accent, transparent: true, opacity: 0.48,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  });
+  const darkMat = new THREE.MeshStandardMaterial({ color: "#111827", metalness: 0.46, roughness: 0.3 });
+  const add = (
+    geometry: THREE.BufferGeometry,
+    material: THREE.Material,
+    position: [number, number, number] = [0, 0, 0],
+    rotation: [number, number, number] = [0, 0, 0],
+    scale: [number, number, number] = [1, 1, 1],
+  ): THREE.Mesh => {
+    const part = new THREE.Mesh(geometry, material);
+    part.position.set(position[0], position[1], position[2]);
+    part.rotation.set(rotation[0], rotation[1], rotation[2]);
+    part.scale.set(scale[0], scale[1], scale[2]);
+    part.castShadow = true;
+    group.add(part);
+    return part;
+  };
+  const addRing = (radius: number, tube: number, position: [number, number, number], rotation: [number, number, number], material: THREE.Material = accentMat) =>
+    add(new THREE.TorusGeometry(radius, tube, 8, 40), material, position, rotation);
+  const addSpike = (radius: number, height: number, position: [number, number, number], rotation: [number, number, number] = [0, 0, 0], material: THREE.Material = accentMat) =>
+    add(new THREE.ConeGeometry(radius, height, 7), material, position, rotation);
+  const addTube = (points: Array<[number, number, number]>, radius: number, material: THREE.Material, segments = 24) => {
+    const curve = new THREE.CatmullRomCurve3(points.map((p) => new THREE.Vector3(p[0], p[1], p[2])));
+    return add(new THREE.TubeGeometry(curve, segments, radius, 6, false), material);
+  };
 
-  if (shape === "ringed") {
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.22, 0.065, 10, 48), lambert(def.visual.accentColor, def.visual.accentColor, 0.65));
-    ring.userData.ballPart = "signature-orbit";
-    ring.rotation.x = Math.PI / 2.4;
-    group.add(ring);
-    const ring2 = ring.clone();
-    ring2.scale.setScalar(0.78);
-    ring2.rotation.set(0.9, 0.4, 0.2);
-    group.add(ring2);
-  }
+  switch (shape) {
+    case "meteor":
+      for (let i = 0; i < 8; i++) {
+        const a = i * Math.PI * 2 / 8;
+        addSpike(0.105, 0.31, [Math.cos(a) * 0.79, Math.sin(a * 2) * 0.2, Math.sin(a) * 0.79],
+          [Math.sin(a) * 0.7, 0, -Math.cos(a) * 0.7], accentMat);
+      }
+      addRing(0.22, 0.032, [0.18, 0.68, 0.02], [0.25, 0.1, 0.2], glowMat);
+      addSpike(0.12, 0.35, [0.18, 0.84, 0.02], [0, 0, -0.35], accentMat);
+      break;
 
-  if (shape === "horned" || shape === "spiky" || id.includes("jolt") || id.includes("sprout")) {
-    const count = shape === "spiky" ? 7 : id.includes("jolt") ? 6 : 3;
-    for (let i = 0; i < count; i++) {
-      const tall = shape === "horned" || id.includes("sprout");
-      const radius = shape === "spiky" ? 0.13 : 0.16;
-      const cone = new THREE.Mesh(
-        new THREE.ConeGeometry(radius, tall ? 0.58 : 0.42, 8),
-        lambert(def.visual.accentColor, def.visual.accentColor, 0.12),
-      );
-      const a = (i / count) * Math.PI * 2;
-      cone.position.set(
-        Math.cos(a) * (shape === "spiky" ? 0.75 : 0.48),
-        shape === "spiky" ? Math.sin(a) * 0.5 : 0.82,
-        Math.sin(a) * (shape === "spiky" ? 0.75 : 0.48),
-      );
-      cone.rotation.z = shape === "spiky" ? Math.cos(a) * 0.9 : -0.7;
-      cone.rotation.x = Math.sin(a) * 0.8;
-      group.add(cone);
+    case "shield": {
+      const face = add(new THREE.CircleGeometry(0.6, 6), glowMat, [0, 0, 0.79], [0, 0, Math.PI / 6]);
+      face.userData.ballPart = "shield-face";
+      const outline = add(new THREE.EdgesGeometry(face.geometry), new THREE.LineBasicMaterial({ color: accent, transparent: true, opacity: 0.88 }), [0, 0, 0.8], [0, 0, Math.PI / 6], [1.12, 1.12, 1]);
+      outline.userData.ballPart = "shield-outline";
+      break;
     }
-  }
-
-  if (id.includes("magma") || id.includes("boom")) {
-    const core = new THREE.Mesh(
-      new THREE.SphereGeometry(0.52, 24, 20),
-      new THREE.MeshBasicMaterial({ color: def.visual.accentColor, transparent: true, opacity: 0.55 }),
-    );
-    core.userData.ballPart = "magma-core";
-    group.add(core);
-  }
-
-  if (id.includes("ribbon") || id.includes("web") || id.includes("serpent")) {
-    const orbit = new THREE.Mesh(new THREE.TorusGeometry(1.08, 0.035, 8, 48), lambert(def.visual.accentColor, def.visual.accentColor, 0.5));
-    orbit.userData.ballPart = "signature-orbit";
-    orbit.rotation.set(0.4, 0.9, 0.7);
-    group.add(orbit);
-    if (id.includes("web")) {
-      const orbit2 = orbit.clone(); orbit2.rotation.set(1.2, 0.25, 0.6); group.add(orbit2);
-      const orbit3 = orbit.clone(); orbit3.rotation.set(0.1, 0.9, 1.3); orbit3.scale.setScalar(0.74); group.add(orbit3);
+    case "gear":
+      for (let i = 0; i < 10; i++) {
+        const a = i * Math.PI * 2 / 10;
+        add(new THREE.BoxGeometry(0.22, 0.19, 0.36), accentMat, [Math.cos(a) * 0.77, Math.sin(a) * 0.77, 0], [0, 0, a]);
+      }
+      add(new THREE.CylinderGeometry(0.3, 0.3, 0.46, 12), edgeMat, [0, 0, 0], [Math.PI / 2, 0, 0]);
+      addRing(0.33, 0.035, [0, 0, 0.26], [0, 0, 0]);
+      break;
+    case "leech":
+      addRing(0.32, 0.07, [0, -0.22, 0.65], [0, 0, 0], edgeMat);
+      for (let i = 0; i < 3; i++) {
+        const a = i * Math.PI * 2 / 3;
+        addTube([
+          [Math.cos(a) * 0.32, -0.05, Math.sin(a) * 0.32 + 0.56],
+          [Math.cos(a + 0.2) * 0.7, -0.2, Math.sin(a + 0.2) * 0.7],
+          [Math.cos(a + 0.44) * 1.02, 0.04, Math.sin(a + 0.44) * 1.02],
+          [Math.cos(a + 0.72) * 0.92, 0.18, Math.sin(a + 0.72) * 0.92],
+        ], 0.05, accentMat, 18);
+      }
+      break;
+    case "shardcluster":
+    case "crystalcluster":
+      for (let i = 0; i < 5; i++) {
+        const a = i * Math.PI * 2 / 5;
+        const size = shape === "shardcluster" ? 0.32 : 0.39;
+        add(new THREE.OctahedronGeometry(size, 0), accentMat,
+          [Math.cos(a) * 0.76, Math.sin(a * 2) * 0.32, Math.sin(a) * 0.76],
+          [a * 0.35, -a, a * 0.2], [0.44, 1.18, 0.48]);
+      }
+      break;
+    case "halo":
+      addRing(1.08, 0.065, [0, 0, 0], [0.85, 0.3, 0.25], accentMat);
+      addRing(0.92, 0.036, [0, 0, 0], [0.18, 1.02, 0.55], glowMat);
+      for (let i = 0; i < 6; i++) {
+        const a = i * Math.PI / 3;
+        add(new THREE.OctahedronGeometry(0.32, 0), accentMat,
+          [Math.cos(a) * 1.27, Math.sin(a * 1.7) * 0.15, Math.sin(a) * 1.27],
+          [0.2, -a, 0.15], [0.38, 1.28, 0.2]);
+      }
+      break;
+    case "comet":
+      add(new THREE.SphereGeometry(0.44, 16, 12), glowMat, [0, 0, -0.96], [0, 0, 0], [0.62, 0.62, 2.1]);
+      addSpike(0.24, 0.72, [0, 0.06, -1.16], [Math.PI / 2, 0, 0], accentMat);
+      addRing(0.56, 0.035, [0, 0, 0], [0.5, 0.2, -0.4], glowMat);
+      break;
+    case "mite":
+      for (let i = 0; i < 6; i++) {
+        const side = i < 3 ? -1 : 1, row = i % 3;
+        add(new THREE.CylinderGeometry(0.035, 0.055, 0.48, 6), accentMat,
+          [side * (0.55 + row * 0.07), 0.02 - row * 0.14, 0.05], [0.2, 0, side * (0.65 + row * 0.18)]);
+      }
+      addSpike(0.09, 0.32, [-0.18, 0.5, 0.24], [-0.35, 0, -0.4]);
+      addSpike(0.09, 0.32, [0.18, 0.5, 0.24], [-0.35, 0, 0.4]);
+      break;
+    case "knife":
+      add(new THREE.OctahedronGeometry(0.38, 0), new THREE.MeshPhysicalMaterial({ color: "#F2F7FF", metalness: 0.96, roughness: 0.13, clearcoat: 1 }),
+        [0.28, 0.04, 0.72], [0.2, -0.2, 0.1], [0.22, 0.34, 1.55]);
+      add(new THREE.CylinderGeometry(0.055, 0.07, 0.42, 8), darkMat, [0.28, -0.13, 0.36], [0.3, 0, 0]);
+      add(new THREE.TorusGeometry(0.12, 0.025, 5, 18), accentMat, [0.28, -0.13, 0.44]);
+      break;
+    case "magma":
+      add(new THREE.SphereGeometry(0.48, 22, 18), new THREE.MeshBasicMaterial({
+        color: accent, transparent: true, opacity: 0.58, blending: THREE.AdditiveBlending, depthWrite: false,
+      }), [0, 0, 0.18]);
+      for (let i = 0; i < 7; i++) {
+        const a = i * Math.PI * 2 / 7;
+        addTube([
+          [Math.cos(a) * 0.42, Math.sin(a) * 0.28, 0.68],
+          [Math.cos(a + 0.06) * 0.63, Math.sin(a + 0.06) * 0.52, 0.61],
+          [Math.cos(a - 0.08) * 0.82, Math.sin(a - 0.08) * 0.78, 0.25],
+        ], 0.018, glowMat, 12);
+      }
+      break;
+    case "lance":
+      addSpike(0.34, 0.58, [0, 0.78, 0], [0, 0, 0], accentMat);
+      addRing(0.53, 0.035, [0, 0.35, 0], [0, 0, 0], glowMat);
+      addRing(0.55, 0.035, [0, -0.16, 0], [0, 0, 0], glowMat);
+      break;
+    case "serpent":
+      addTube([[-0.82,-0.15,-0.22],[-0.86,0.44,0.12],[-0.36,0.77,0.54],[0.35,0.68,0.72],[0.83,0.22,0.42],[0.68,-0.35,0.05]], 0.055, accentMat, 44);
+      for (let i = 0; i < 7; i++) addRing(0.45 + i * 0.052, 0.014, [0,0,-0.1], [0.3 + i * .18, i * .22, .15], glowMat);
+      break;
+    case "sprout":
+      add(new THREE.CylinderGeometry(0.07, 0.11, 0.54, 8), edgeMat, [0, 0.73, 0]);
+      for (let i = 0; i < 5; i++) {
+        const a = i * Math.PI * 2 / 5;
+        addSpike(0.18, 0.62, [Math.cos(a)*0.34,0.94+(i%2)*0.12,Math.sin(a)*0.34],
+          [Math.sin(a)*0.8,0,-Math.cos(a)*0.85], accentMat);
+      }
+      break;
+    case "hive":
+      for(let i=0;i<7;i++){const a=i*Math.PI*2/7;addSpike(.13,.32,[Math.cos(a)*.73,.53+(i%2)*.12,Math.sin(a)*.73],[Math.sin(a)*.8,0,-Math.cos(a)*.8],accentMat);}
+      for(let i=0;i<4;i++){const a=i*Math.PI/2+.4;add(new THREE.SphereGeometry(.085,8,7),glowMat,[Math.cos(a)*1.03,Math.sin(a)*.35,Math.sin(a)*1.03]);}
+      break;
+    case "webbed": {
+      const lines: THREE.Vector3[]=[];
+      for(let i=0;i<12;i++){const a=i*Math.PI/6;lines.push(new THREE.Vector3(0,0,.83));lines.push(new THREE.Vector3(Math.cos(a)*.84,Math.sin(a)*.84,.3));}
+      for(const rr of [.24,.46,.67])for(let i=0;i<24;i++){const a=i/24*Math.PI*2,b=(i+1)/24*Math.PI*2;lines.push(new THREE.Vector3(Math.cos(a)*rr,Math.sin(a)*rr,.47));lines.push(new THREE.Vector3(Math.cos(b)*rr,Math.sin(b)*rr,.47));}
+      const web=new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(lines),new THREE.LineBasicMaterial({color:accent,transparent:true,opacity:.82}));web.userData.ballPart="web-skin";group.add(web);break;
     }
+    case "reliquary":
+      add(new THREE.BoxGeometry(.08,1.24,.12),accentMat,[-.47,0,.39]);add(new THREE.BoxGeometry(.08,1.24,.12),accentMat,[.47,0,.39]);
+      add(new THREE.BoxGeometry(1.02,.07,.12),accentMat,[0,.52,.39]);addSpike(.18,.42,[0,.78,0]);addRing(.63,.025,[0,0,-.02],[.3,.2,.1],glowMat);break;
+    case "mandolin":
+      add(new THREE.BoxGeometry(.18,.82,.13),edgeMat,[0,.56,.31]);add(new THREE.BoxGeometry(.36,.13,.14),accentMat,[0,.98,.31]);
+      for(let i=0;i<4;i++){const x=-.075+i*.05;add(new THREE.CylinderGeometry(.008,.008,1.38,5),new THREE.MeshBasicMaterial({color:"#DDF4FF"}),[x,.18,.38]);}
+      add(new THREE.BoxGeometry(.5,.035,.06),accentMat,[0,-.35,.43]);break;
+    case "monolith":
+      for(let i=0;i<4;i++)add(new THREE.BoxGeometry(1.02,.018,.02),accentMat,[0,-.42+i*.27,.38]);
+      addRing(.54,.025,[0,0,-.01],[Math.PI/2,0,0],glowMat);break;
+    case "book":
+      add(new THREE.BoxGeometry(.13,.98,.66),accentMat,[-.56,0,0]);
+      add(new THREE.BoxGeometry(1.05,.88,.035),new THREE.MeshStandardMaterial({color:"#EED7B7",roughness:.76}),[.04,0,.335]);
+      for(let i=0;i<5;i++)add(new THREE.BoxGeometry(.82,.012,.018),glowMat,[.08,-.32+i*.15,.36]);break;
+    case "windblade":
+      for(let i=0;i<3;i++){const a=i*Math.PI*2/3;add(new THREE.TetrahedronGeometry(.62,0),accentMat,[Math.cos(a)*.7,Math.sin(a)*.7,0],[.15+a*.15,0,-a],[.6,.45,.25]);}
+      addRing(.49,.024,[0,0,0],[.3,.4,0],glowMat);break;
+    case "shell":
+      for(let i=0;i<7;i++){const a=Math.PI*(.08+i*.12);add(new THREE.TorusGeometry(.55+i*.025,.022,5,30,Math.PI*.86),accentMat,[0,-.2+i*.06,0],[a,.1,-.3]);}
+      break;
+    case "abacus":
+      for(let row=0;row<3;row++){const y=.36-row*.36;add(new THREE.CylinderGeometry(.025,.025,1.3,7),accentMat,[0,y,0],[0,0,Math.PI/2]);for(let bead=0;bead<2;bead++){const x=-.28+row*.21+bead*.46;add(new THREE.SphereGeometry(.105,10,8),bead?glowMat:accentMat,[x,y,.11]);}}
+      break;
+    case "void":
+      addRing(1.02,.052,[0,0,0],[.72,.18,.15],accentMat);addRing(.82,.027,[0,0,0],[.18,1.02,.56],glowMat);
+      add(new THREE.SphereGeometry(.37,22,16),glowMat,[0,0,.05]);
+      for(let i=0;i<3;i++)addSpike(.15,.42,[Math.cos(i*2.094)*.6,.8,Math.sin(i*2.094)*.6],[0,0,-.5],accentMat);
+      break;
+    case "kettle":
+      add(new THREE.TorusGeometry(.35,.075,8,26,Math.PI*1.6),accentMat,[-.66,.1,-.03],[0,0,Math.PI/2]);
+      addSpike(.21,.56,[.76,.14,0],[0,0,-Math.PI/2],accentMat);add(new THREE.CylinderGeometry(.36,.42,.12,12),accentMat,[0,.65,0]);addRing(.22,.04,[0,.72,0],[0,0,0],glowMat);break;
+    case "crown":
+      addRing(.86,.035,[0,.18,0],[.34,.1,0],accentMat);
+      for(let i=0;i<7;i++){const a=Math.PI*2*i/7;addSpike(.12,.42+(i%2)*.16,[Math.cos(a)*.58,.69+(i%2)*.06,Math.sin(a)*.58],[Math.sin(a)*.3,0,-Math.cos(a)*.3],accentMat);}
+      break;
+    case "atlas":
+      addRing(.72,.026,[0,0,.19],[0,0,0],accentMat);addRing(.52,.018,[0,0,.2],[0,0,0],glowMat);
+      for(let i=0;i<5;i++)add(new THREE.BoxGeometry(1.2,.012,.012),glowMat,[0,-.42+i*.21,.15]);break;
+    case "plum":
+      add(new THREE.CylinderGeometry(.035,.055,.3,7),edgeMat,[.08,1.02,0],[.1,0,-.25]);
+      add(new THREE.ConeGeometry(.15,.3,5),accentMat,[.22,1.08,0],[.15,0,-1],[1,.55,.5]);addRing(.73,.025,[0,0,0],[.56,.22,.1],glowMat);break;
+    case "orchid":
+      for(let i=0;i<5;i++){const a=i*Math.PI*2/5;add(new THREE.SphereGeometry(.35,16,10),new THREE.MeshPhysicalMaterial({color:accent,roughness:.28,metalness:.48,clearcoat:.82,emissive:accent,emissiveIntensity:.12}),[Math.cos(a)*.43,Math.sin(a)*.43,0],[0,0,a],[.68,1.16,.3]);}
+      add(new THREE.SphereGeometry(.18,14,10),glowMat,[0,0,.37]);break;
+    case "mirror":
+      addRing(.78,.045,[0,0,.06],[0,0,0],accentMat);
+      for(let i=0;i<4;i++){const a=i*Math.PI/2;add(new THREE.OctahedronGeometry(.28,0),new THREE.MeshPhysicalMaterial({color:"#ECFFFC",metalness:.86,roughness:.12,clearcoat:1,emissive:accent,emissiveIntensity:.14}),[Math.cos(a)*.5,Math.sin(a)*.5,.52],[0,0,a],[.68,.68,.17]);}
+      break;
+    case "moth": {
+      const wingMat=new THREE.MeshPhysicalMaterial({color:accent,transparent:true,opacity:.44,side:THREE.DoubleSide,metalness:.24,roughness:.24,emissive:accent,emissiveIntensity:.16,depthWrite:false});
+      add(new THREE.SphereGeometry(.56,16,12),wingMat,[-.55,.03,-.05],[0,0,-.28],[1.25,.72,.12]);add(new THREE.SphereGeometry(.56,16,12),wingMat,[.55,.03,-.05],[0,0,.28],[1.25,.72,.12]);
+      addTube([[-.12,.42,.04],[-.26,.7,.03],[-.38,.75,.03]],.018,accentMat,10);addTube([[.12,.42,.04],[.26,.7,.03],[.38,.75,.03]],.018,accentMat,10);addRing(.36,.018,[0,0,.12],[.1,0,0],glowMat);break;
+    }
+    case "sonar":
+      for(let i=0;i<4;i++)addRing(.25+i*.19,.028,[0,0,.21],[0,0,0],i%2?glowMat:accentMat);
+      for(let i=0;i<12;i++){const a=i*Math.PI/6;add(new THREE.BoxGeometry(.018,.22,.022),glowMat,[Math.cos(a)*.55,Math.sin(a)*.55,.23],[0,0,a]);}
+      break;
+    case "cathedral":
+      for(let i=0;i<3;i++){const x=-.43+i*.43;addSpike(i===1?.21:.16,i===1?.78:.58,[x,.88+(i===1?.15:0),0],[0,0,0],accentMat);}
+      add(new THREE.BoxGeometry(.12,1.03,.18),accentMat,[-.5,0,.39]);add(new THREE.BoxGeometry(.12,1.03,.18),accentMat,[.5,0,.39]);
+      add(new THREE.BoxGeometry(.96,.08,.16),accentMat,[0,.44,.4]);add(new THREE.TorusGeometry(.24,.04,7,22,Math.PI),glowMat,[0,.05,.4]);
+      for(let i=0;i<3;i++)add(new THREE.BoxGeometry(.06,.19,.02),glowMat,[-.24+i*.24,-.26,.4]);break;
+    case "ringed":
+      addRing(1.14,.06,[0,0,0],[.65,.25,.4],accentMat);addRing(.9,.035,[0,0,0],[.15,.85,.2],glowMat);break;
+    case "horned":
+      for(let i=0;i<3;i++)addSpike(.15,.5,[-.48+i*.48,.78,.04],[0,0,-.4+i*.4],accentMat);break;
+    case "spiky":
+      for(let i=0;i<8;i++){const a=i*Math.PI/4;addSpike(.12,.34,[Math.cos(a)*.75,Math.sin(a)*.54,Math.sin(a)*.75],[Math.sin(a)*.8,0,-Math.cos(a)*.8],accentMat);}break;
+    default:
+      break;
+  }
+
+  const faceShapes = new Set(["shield","leech","shardcluster","halo","comet","mite","magma","serpent","sprout","hive","webbed","plum","orchid","sphere","spiky","faceted","ringed","horned"]);
+  if (faceShapes.has(shape)) {
+    const eyeMat = new THREE.MeshStandardMaterial({ color: "#151923", roughness: 0.25, metalness: 0.05 });
+    add(new THREE.SphereGeometry(0.105, 10, 8), eyeMat, [-0.25, 0.16, 0.76]);
+    add(new THREE.SphereGeometry(0.105, 10, 8), eyeMat, [0.25, 0.16, 0.76]);
+    const eyeGlow = new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: 0.75 });
+    if (def.visual.face === "robot" || def.visual.face === "focus") {
+      add(new THREE.BoxGeometry(0.18, 0.1, 0.04), eyeGlow, [-0.25, 0.16, 0.83]);
+      add(new THREE.BoxGeometry(0.18, 0.1, 0.04), eyeGlow, [0.25, 0.16, 0.83]);
+    }
+    const mouth = def.visual.face === "angry" ? new THREE.BoxGeometry(0.32, 0.055, 0.05)
+      : def.visual.face === "sleepy" ? new THREE.BoxGeometry(0.25, 0.025, 0.04)
+      : new THREE.BoxGeometry(0.29, 0.07, 0.045);
+    add(mouth, darkMat, [0, -0.22, 0.8], [0, 0, def.visual.face === "angry" ? 0.08 : 0]);
   }
 
   if (shape === "die") {
-    // Raised pips on three visible die faces make Lucky Die unmistakable at game scale.
-    const pipMaterial = new THREE.MeshBasicMaterial({ color: "#111827" });
-    const pipGeo = new THREE.SphereGeometry(0.075, 10, 8);
-    const pipFaces: Array<[number, number, number]> = [
-      [-0.24, 0.24, 0.79], [0.24, -0.24, 0.79],
-      [-0.24, -0.24, 0.79], [0.24, 0.24, 0.79], [0, 0, 0.79],
-      [-0.25, 0.79, -0.25], [0.25, 0.79, 0.25], [0, 0.79, 0],
-      [0.79, 0.24, -0.24], [0.79, -0.24, 0.24],
+    const pipMaterial = new THREE.MeshBasicMaterial({ color: "#18202D" });
+    const pipGeo = new THREE.SphereGeometry(0.065, 8, 7);
+    const pips: Array<[number,number,number]> = [
+      [-0.24,0.24,0.705],[0.24,-0.24,0.705],[-0.24,-0.24,0.705],[0.24,0.24,0.705],[0,0,0.705],
+      [-0.25,0.705,-0.25],[0.25,0.705,0.25],[0,0.705,0],[-0.25,-0.705,0.25],[0.25,-0.705,-0.25],
     ];
-    for (const [x, y, z] of pipFaces) {
-      const pip = new THREE.Mesh(pipGeo, pipMaterial);
-      pip.position.set(x, y, z);
-      group.add(pip);
-    }
-  } else if (shape !== "shield") {
-    const eyeMat = lambert("#1c2430");
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), eyeMat);
-    eye.position.set(-0.28, 0.22, 0.86);
-    const eye2 = eye.clone();
-    eye2.position.x = 0.28;
-    group.add(eye, eye2);
-    const mouth = new THREE.Mesh(
-      new THREE.BoxGeometry(def.visual.face === "cute" ? 0.28 : 0.36, def.visual.face === "angry" ? 0.08 : 0.1, 0.08),
-      lambert(def.visual.face === "grin" || def.visual.face === "cute" ? "#1c2430" : "#3a1016"),
-    );
-    mouth.position.set(0, -0.18, 0.92);
-    if (def.visual.face === "sleepy") mouth.scale.y = 0.4;
-    group.add(mouth);
-  }
-
-  // Signature parts: silhouettes are keyed by ball identity, not just shared color/pattern presets.
-  if (id.includes("crimson_leech")) {
-    for (let i = 0; i < 3; i++) {
-      const a = i * Math.PI * 2 / 3;
-      const curve = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(Math.cos(a) * 0.36, -0.05, Math.sin(a) * 0.36 + 0.62),
-        new THREE.Vector3(Math.cos(a + 0.25) * 0.78, -0.22, Math.sin(a + 0.25) * 0.78),
-        new THREE.Vector3(Math.cos(a + 0.52) * 1.08, 0.04, Math.sin(a + 0.52) * 1.08),
-        new THREE.Vector3(Math.cos(a + 0.82) * 0.92, 0.22, Math.sin(a + 0.82) * 0.92),
-      ]);
-      const tendril = new THREE.Mesh(new THREE.TubeGeometry(curve, 18, 0.055, 6, false), lambert(def.visual.accentColor, def.visual.baseColor, 0.25));
-      tendril.userData.ballPart = "signature-tendril";
-      tendril.userData.tendrilIndex = i;
-      group.add(tendril);
-    }
-  }
-
-  if (id.includes("coil_ram")) {
-    for (let i = 0; i < 3; i++) {
-      const coil = new THREE.Mesh(new THREE.TorusGeometry(0.8 + i * 0.12, 0.038, 7, 44), lambert(def.visual.accentColor, def.visual.accentColor, 0.55));
-      coil.rotation.set(0.25 + i * 0.42, 0.4 + i * 0.6, 0.2 + i * 0.35);
-      coil.userData.ballPart = "signature-orbit";
-      group.add(coil);
-    }
-  }
-
-  if (id.includes("halo_blades")) {
-    for (let i = 0; i < 6; i++) {
-      const angle = i * Math.PI / 3;
-      const blade = new THREE.Mesh(new THREE.OctahedronGeometry(0.35, 0), lambert(def.visual.baseColor, def.visual.accentColor, 0.35));
-      blade.scale.set(0.42, 1.35, 0.2);
-      blade.position.set(Math.cos(angle) * 1.32, Math.sin(angle * 1.7) * 0.18, Math.sin(angle) * 1.32);
-      blade.rotation.y = -angle;
-      blade.userData.ballPart = "halo-blade";
-      blade.userData.bladeIndex = i;
-      group.add(blade);
-    }
-  }
-
-  if (id.includes("hook_comet")) {
-    const tail = new THREE.Mesh(new THREE.SphereGeometry(0.48, 16, 12), new THREE.MeshBasicMaterial({
-      color: def.visual.trail.color || "#93c5fd", transparent: true, opacity: 0.32,
-      blending: THREE.AdditiveBlending, depthWrite: false,
-    }));
-    tail.scale.set(0.62, 0.62, 2.25);
-    tail.position.z = -0.92;
-    tail.userData.ballPart = "comet-tail";
-    group.add(tail);
-    const fin = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.7, 5), lambert(def.visual.baseColor, def.visual.accentColor, 0.3));
-    fin.position.set(0, 0.08, -1.25);
-    fin.rotation.x = Math.PI / 2;
-    group.add(fin);
-  }
-
-  if (id.includes("last_knife")) {
-    const blade = new THREE.Mesh(new THREE.OctahedronGeometry(0.5, 0), lambert("#e2e8f0", def.visual.accentColor, 0.35));
-    blade.scale.set(0.23, 0.3, 1.65);
-    blade.position.set(0.32, 0.08, 0.78);
-    blade.rotation.x = 0.16;
-    blade.rotation.y = -0.22;
-    blade.userData.ballPart = "knife-blade";
-    group.add(blade);
-    const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.075, 0.42, 8), lambert("#1f2937"));
-    grip.position.set(0.32, -0.12, 0.38);
-    grip.rotation.x = 0.32;
-    group.add(grip);
-  }
-
-  if (id.includes("glass_hail")) {
-    for (let i = 0; i < 5; i++) {
-      const a = i * Math.PI * 2 / 5;
-      const shard = new THREE.Mesh(new THREE.OctahedronGeometry(0.28, 0), new THREE.MeshLambertMaterial({
-        color: "#e5fbff", emissive: def.visual.accentColor, emissiveIntensity: 0.45,
-        transparent: true, opacity: 0.86,
-      }));
-      shard.scale.set(0.35, 1.2, 0.38);
-      shard.position.set(Math.cos(a) * 0.78, Math.sin(a * 2) * 0.3, Math.sin(a) * 0.78);
-      shard.rotation.set(a * 0.3, -a, a * 0.2);
-      shard.userData.ballPart = "crystal-shard";
-      shard.userData.shardIndex = i;
-      group.add(shard);
-    }
-  }
-
-  if (id.includes("prism_lancer")) {
-    for (let i = 0; i < 3; i++) {
-      const prismRing = new THREE.Mesh(new THREE.TorusGeometry(0.83 + i * 0.1, 0.024, 5, 36), lambert(def.visual.accentColor, def.visual.accentColor, 0.65));
-      prismRing.rotation.set(i * 0.7, 0.3 + i * 0.75, i * 0.25);
-      prismRing.userData.ballPart = "signature-orbit";
-      group.add(prismRing);
-    }
-  }
-
-  if (id.includes("boom_pebble")) {
-    for (let i = 0; i < 8; i++) {
-      const angle = i * Math.PI / 4;
-      const spike = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.38, 5), lambert(def.visual.accentColor, "#fb923c", 0.3));
-      spike.position.set(Math.cos(angle) * 0.86, Math.sin(angle * 2) * 0.22, Math.sin(angle) * 0.86);
-      spike.rotation.z = Math.cos(angle) * 0.9;
-      spike.rotation.x = Math.sin(angle) * 0.9;
-      group.add(spike);
-    }
-  }
-
-  if (id.includes("sprout_turret")) {
-    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.11, 0.65, 8), lambert("#4d7c0f"));
-    stem.position.y = 0.74;
-    group.add(stem);
-    for (let i = 0; i < 5; i++) {
-      const angle = i * Math.PI * 2 / 5;
-      const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.19, 0.68, 5), lambert(i % 2 ? "#65a30d" : "#86efac", "#22c55e", 0.15));
-      leaf.position.set(Math.cos(angle) * 0.35, 0.95 + (i % 2) * 0.16, Math.sin(angle) * 0.35);
-      leaf.rotation.z = Math.cos(angle) * 0.9;
-      leaf.rotation.x = Math.sin(angle) * 0.9;
-      leaf.userData.ballPart = "sprout-leaf";
-      group.add(leaf);
-    }
-  }
-
-  if (id.includes("web_weaver")) {
-    const strands: THREE.Vector3[] = [];
-    for (let i = 0; i < 10; i++) {
-      const a = i * Math.PI * 2 / 10;
-      strands.push(new THREE.Vector3(0, 0, 0.86));
-      strands.push(new THREE.Vector3(Math.cos(a) * 0.86, Math.sin(a) * 0.86, 0.32));
-    }
-    const geometry = new THREE.BufferGeometry().setFromPoints(strands);
-    const web = new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({
-      color: def.visual.trail.color || "#e0f2fe", transparent: true, opacity: 0.88,
-      blending: THREE.AdditiveBlending, depthWrite: false,
-    }));
-    web.userData.ballPart = "web-skin";
-    group.add(web);
+    for(const p of pips) add(pipGeo,pipMaterial,p);
   }
 
   const particleMode = def.visual.particles;
@@ -885,7 +1014,7 @@ function makeBall(def: BallDef): THREE.Group {
       : particleMode === "embers" ? "#ffb45f"
       : particleMode === "bubbles" ? "#b8f5ff"
       : particleMode === "stars" ? "#ffffff"
-      : def.visual.trail.color || def.visual.accentColor;
+      : accent;
     for (let i = 0; i < count; i++) {
       const geometry = particleMode === "leaves"
         ? new THREE.ConeGeometry(0.085, 0.24, 4)
@@ -893,8 +1022,7 @@ function makeBall(def: BallDef): THREE.Group {
           ? new THREE.SphereGeometry(particleMode === "smoke" ? 0.12 : 0.075, 10, 8)
           : new THREE.OctahedronGeometry(particleMode === "embers" ? 0.065 : 0.075, 0);
       const particleMaterial = new THREE.MeshBasicMaterial({
-        color: particleColor,
-        transparent: true,
+        color: particleColor, transparent: true,
         opacity: particleMode === "smoke" ? 0.22 : particleMode === "bubbles" ? 0.48 : 0.82,
         blending: particleMode === "smoke" || particleMode === "bubbles" ? THREE.NormalBlending : THREE.AdditiveBlending,
         depthWrite: false,
@@ -903,9 +1031,9 @@ function makeBall(def: BallDef): THREE.Group {
       particle.userData.ballPart = "aura-particle";
       particle.userData.auraIndex = i;
       particle.userData.auraCount = count;
-      particle.userData.auraRadius = 1.13 + (i % 2) * 0.18;
+      particle.userData.auraRadius = 1.15 + (i % 2) * 0.18;
       particle.userData.auraSpeed = particleMode === "smoke" ? 0.8 : particleMode === "leaves" ? 1.25 : 1.9;
-      particle.position.set(Math.cos(i / count * Math.PI * 2) * 1.15, Math.sin(i * 1.7) * 0.35, Math.sin(i / count * Math.PI * 2) * 1.15);
+      particle.position.set(Math.cos(i / count * Math.PI * 2) * 1.14, Math.sin(i * 1.7) * 0.34, Math.sin(i / count * Math.PI * 2) * 1.14);
       group.add(particle);
     }
   }
@@ -913,11 +1041,8 @@ function makeBall(def: BallDef): THREE.Group {
   const trailLength = Math.max(0, Math.min(1.5, def.visual.trail.length));
   if (trailLength >= 0.65) {
     const trailMaterial = new THREE.MeshBasicMaterial({
-      color: def.visual.trail.color || def.visual.accentColor,
-      transparent: true,
-      opacity: 0.24,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
+      color: def.visual.trail.color || accent, transparent: true, opacity: 0.24,
+      blending: THREE.AdditiveBlending, depthWrite: false,
     });
     const trailRing = new THREE.Mesh(new THREE.TorusGeometry(0.98 + trailLength * 0.15, 0.022 + trailLength * 0.012, 5, 36), trailMaterial);
     trailRing.userData.ballPart = "trail-orbit";
@@ -928,9 +1053,9 @@ function makeBall(def: BallDef): THREE.Group {
 
   group.userData.defId = def.id;
   group.userData.signature = shape;
+  group.userData.visualIdentity = { shape, pattern: def.visual.pattern, baseColor: base, accentColor: accent };
   return group;
 }
-
 function makeEntityVisual(def: BallDef, kind: number, variant = 0): THREE.Group {
   const group = new THREE.Group();
   const accent = def.visual.accentColor || "#67e8f9";

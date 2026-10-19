@@ -6,9 +6,9 @@
     "ru": "Грозовой Собор"
   },
   "description": {
-    "en": "A legendary storm engine that chains lightning after striking its rival.",
-    "uz": "Raqibga tekkach, chaqmoq zanjirini yoyadigan afsonaviy bo‘ron mexanizmi.",
-    "ru": "Легендарный штормовой механизм запускает цепную молнию после удара."
+    "en": "A storm cathedral with a central nave, three stepped lightning spires, buttress fins and glowing stained-glass seams.",
+    "uz": "Markaziy nef, pog‘onali uchta chaqmoq minorasi, tayanch qanotlar va nurli vitraj choklariga ega bo‘ron sobori.",
+    "ru": "Грозовой собор с центральным нефом, тремя ступенчатыми молниевыми шпилями, контрфорсами и светящимися витражными швами."
   },
   "rarity": "legendary",
   "tags": [
@@ -23,17 +23,17 @@
     "contactDamage": 10
   },
   "visual": {
-    "baseColor": "#243A86",
+    "baseColor": "#1D2F7B",
     "accentColor": "#8CF7FF",
     "face": "angry",
-    "pattern": "hex",
-    "emissive": 0.85,
+    "pattern": "architecture",
+    "emissive": 0.92,
     "trail": {
-      "color": "#8CF7FF",
-      "length": 1.25
+      "color": "#7FF9FF",
+      "length": 1.3
     },
     "particles": "sparks",
-    "shape": "faceted"
+    "shape": "cathedral"
   },
   "abilities": [
     {

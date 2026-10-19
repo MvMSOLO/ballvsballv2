@@ -6,9 +6,9 @@
     "ru": "Кобальтовая Мандолина"
   },
   "description": {
-    "en": "Fires a single seeking note on a steady rhythm. It pressures evasive rivals from range, but cannot survive many direct impacts.",
-    "uz": "Belgilangan ritmda bitta nishonga ergashuvchi zarba yuboradi. Uzoqdan qochuvchini siqadi, ammo ko'p to'g'ridan-to'g'ri zarbaga chiday olmaydi.",
-    "ru": "Ритмично выпускает одну самонаводящуюся ноту. Давит уклоняющихся соперников на дистанции, но плохо держит прямые удары."
+    "en": "A blue enamel mandolin-body with a narrow fret-neck, four luminous strings and concentric sound-wave etching.",
+    "uz": "Ko‘k emalli mandolina tanasi, ingichka pardali bo‘yin, to‘rtta nurli tor va tovush-to‘lqin naqshlari.",
+    "ru": "Синяя эмалевая мандолина с узким грифом, четырьмя светящимися струнами и гравировкой звуковых волн."
   },
   "rarity": "common",
   "tags": [
@@ -24,17 +24,17 @@
     "contactDamage": 6.2
   },
   "visual": {
-    "baseColor": "#608BFF",
-    "accentColor": "#22244E",
+    "baseColor": "#192B73",
+    "accentColor": "#7AA8FF",
     "face": "wink",
-    "pattern": "checker",
-    "emissive": 0.4,
+    "pattern": "soundwaves",
+    "emissive": 0.62,
     "trail": {
-      "color": "#98A9FF",
-      "length": 0.58
+      "color": "#95BBFF",
+      "length": 0.76
     },
     "particles": "sparks",
-    "shape": "horned"
+    "shape": "mandolin"
   },
   "abilities": [
     {

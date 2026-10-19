@@ -6,9 +6,9 @@
     "ru": "Картограф Углей"
   },
   "description": {
-    "en": "Draws a burning line across the arena to punish predictable routes.",
-    "uz": "Arenada olovli chiziq chizib, oldindan bilinadigan harakatni jazolaydi.",
-    "ru": "Проводит огненную линию по арене, наказывая предсказуемые маршруты."
+    "en": "A flattened brass-and-ember atlas-disc with raised contour lines, a glowing route tracer and etched arena coordinates.",
+    "uz": "Bo‘rtma relyef chiziqlari, nurli yo‘l izlagich va arena koordinatalari o‘yilgan mis-cho‘g‘ atlas diski.",
+    "ru": "Плоский атлас-диск из латуни и углей с рельефными линиями высот, светящимся маршрутом и координатами арены."
   },
   "rarity": "epic",
   "tags": [
@@ -23,17 +23,17 @@
     "contactDamage": 8
   },
   "visual": {
-    "baseColor": "#B94228",
+    "baseColor": "#64271F",
     "accentColor": "#FFD078",
     "face": "cool",
-    "pattern": "stripes",
-    "emissive": 0.7,
+    "pattern": "topographic",
+    "emissive": 0.78,
     "trail": {
       "color": "#FF7848",
-      "length": 1.1
+      "length": 1.2
     },
     "particles": "embers",
-    "shape": "horned"
+    "shape": "atlas"
   },
   "abilities": [
     {

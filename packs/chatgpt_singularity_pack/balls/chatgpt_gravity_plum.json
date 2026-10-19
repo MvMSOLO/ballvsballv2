@@ -6,9 +6,9 @@
     "ru": "Гравитационная Слива"
   },
   "description": {
-    "en": "Tugs nearby opponents inward before a heavy collision.",
-    "uz": "Kuchli to‘qnashuvdan oldin yaqin raqiblarni o‘ziga tortadi.",
-    "ru": "Притягивает близких соперников перед тяжёлым столкновением."
+    "en": "A deep-violet plum-shaped gravity core with a curled brass stem, satin skin speckles and a tilted pull-ring.",
+    "uz": "Egri mis bandi, atlasdek mayda dog‘lari va qiya tortish halqasi bor to‘q binafsha olxo‘ri shaklidagi yadro.",
+    "ru": "Тёмно-фиолетовое гравитационное ядро в форме сливы с витым латунным стеблем, атласными крапинками и наклонным кольцом притяжения."
   },
   "rarity": "common",
   "tags": [
@@ -23,17 +23,17 @@
     "contactDamage": 10
   },
   "visual": {
-    "baseColor": "#653B8E",
-    "accentColor": "#F2A8FF",
+    "baseColor": "#3D1858",
+    "accentColor": "#E7A0FF",
     "face": "focus",
-    "pattern": "spiral",
-    "emissive": 0.4,
+    "pattern": "plum_skin",
+    "emissive": 0.52,
     "trail": {
-      "color": "#BD7BEE",
-      "length": 0.7
+      "color": "#CB90FF",
+      "length": 0.86
     },
     "particles": "stars",
-    "shape": "ringed"
+    "shape": "plum"
   },
   "abilities": [
     {

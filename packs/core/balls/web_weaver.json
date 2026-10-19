@@ -1,13 +1,63 @@
 {
   "id": "web_weaver",
-  "name": { "en": "Web Weaver", "uz": "To'r To'quvchi", "ru": "Ткач Паутины" },
-  "description": { "en": "Leaves slowing webs on every wall it kisses.", "uz": "Teggan devorga sekinlashtiruvchi to'r qoldiradi.", "ru": "Оставляет замедляющую сеть на каждой стене." },
+  "name": {
+    "en": "Web Weaver",
+    "uz": "To'r To'quvchi",
+    "ru": "Ткач Паутины"
+  },
+  "description": {
+    "en": "A pearl-grey trap core trapped inside an angular cobalt web cage with tensioned radial filaments.",
+    "uz": "Tarang radial tolalari bor burchakli kobalt to‘r-qafas ichidagi marvarid-kulrang tuzoq yadrosi.",
+    "ru": "Жемчужно-серое ядро-ловушка внутри угловатой кобальтовой сетки с натянутыми радиальными нитями."
+  },
   "rarity": "common",
-  "tags": ["trap", "wall"],
-  "stats": { "hp": 112, "radius": 1.05, "mass": 1, "speed": 13, "contactDamage": 7 },
-  "visual": { "baseColor": "#f4f7fb", "accentColor": "#243044", "face": "sleepy", "pattern": "hex", "emissive": 0.12, "trail": { "color": "#d5deea", "length": 0.45 }, "particles": "none", "shape": "sphere" },
-  "abilities": [
-    { "trigger": "onWallHit", "cooldown": 1.15, "actions": [ { "type": "spawnZone", "shape": "web", "duration": 7, "radius": 1.35, "damagePerSecond": 4, "slow": 0.35, "visual": { "color": "#d5deea", "particle": "smoke", "sound": "web" } } ] }
+  "tags": [
+    "trap",
+    "wall"
   ],
-  "ai_hints": { "bestAim": "wall", "role": "trap" }
+  "stats": {
+    "hp": 112,
+    "radius": 1.05,
+    "mass": 1,
+    "speed": 13,
+    "contactDamage": 7
+  },
+  "visual": {
+    "baseColor": "#BFCBDA",
+    "accentColor": "#59758D",
+    "face": "sleepy",
+    "pattern": "web",
+    "emissive": 0.3,
+    "trail": {
+      "color": "#C6F2FF",
+      "length": 0.76
+    },
+    "particles": "snow",
+    "shape": "webbed"
+  },
+  "abilities": [
+    {
+      "trigger": "onWallHit",
+      "cooldown": 1.15,
+      "actions": [
+        {
+          "type": "spawnZone",
+          "shape": "web",
+          "duration": 7,
+          "radius": 1.35,
+          "damagePerSecond": 4,
+          "slow": 0.35,
+          "visual": {
+            "color": "#d5deea",
+            "particle": "smoke",
+            "sound": "web"
+          }
+        }
+      ]
+    }
+  ],
+  "ai_hints": {
+    "bestAim": "wall",
+    "role": "trap"
+  }
 }

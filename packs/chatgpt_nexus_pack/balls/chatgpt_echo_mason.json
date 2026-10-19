@@ -6,9 +6,9 @@
     "ru": "Эхо-Каменщик"
   },
   "description": {
-    "en": "Its contact strike gains a temporary edge as the fight accumulates hits. It rewards persistence but starts slowly and has no emergency escape.",
-    "uz": "Jangda zarbalar yig'ilgani sari tegish zarbasi vaqtincha kuchayadi. Uzoq kurashni yaxshi ko'radi, ammo sekin boshlanadi va tez qochish usuli yo'q.",
-    "ru": "По мере накопления попаданий его контактный удар временно усиливается. Вознаграждает упорство, но медленно разгоняется и не умеет экстренно отступать."
+    "en": "A slate monolith built from offset stone blocks, with pale mortar seams and a resonant silver core.",
+    "uz": "Surilgan tosh bloklardan yig‘ilgan shifer monolit; och rangli qorishma choklari va kumush aks-sado yadrosi bor.",
+    "ru": "Сланцевый монолит из смещённых каменных блоков с бледными швами раствора и серебряным резонансным ядром."
   },
   "rarity": "common",
   "tags": [
@@ -24,17 +24,17 @@
     "contactDamage": 8
   },
   "visual": {
-    "baseColor": "#BBC4D2",
-    "accentColor": "#303B56",
+    "baseColor": "#4A5A70",
+    "accentColor": "#DCE8F4",
     "face": "robot",
-    "pattern": "hex",
-    "emissive": 0.33,
+    "pattern": "masonry",
+    "emissive": 0.38,
     "trail": {
-      "color": "#DDE6F5",
-      "length": 0.72
+      "color": "#BACFE9",
+      "length": 0.66
     },
     "particles": "snow",
-    "shape": "spiky"
+    "shape": "monolith"
   },
   "abilities": [
     {
