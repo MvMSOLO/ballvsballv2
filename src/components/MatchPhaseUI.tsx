@@ -8,6 +8,7 @@ import { FightHpBar } from "@/components/FightHpBar";
 
 type OfferView = {
   offers: string[];
+  poolCount: number;
   picked: number;
   confirmed: boolean;
   rerollCost: number;
@@ -99,7 +100,12 @@ export function MatchPhaseUI({
 
       {flow === "pick" && (
         <div className="pick-area">
-          <p className="subline">Choose one of your owned balls. Your opponent&apos;s pick stays hidden.</p>
+          <div className="draft-inventory-strip" aria-label={`Your inventory has ${view.poolCount} available balls`}>
+            <span className="draft-inventory-gem" aria-hidden="true">◈</span>
+            <span className="draft-inventory-copy"><strong>OWNED INVENTORY</strong><small>Rerolls search your full collection</small></span>
+            <b>{String(view.poolCount).padStart(2, "0")} <i>AVAILABLE</i></b>
+          </div>
+          <p className="subline">Pick from the three offers below. Your opponent&apos;s selection stays hidden.</p>
           <div className="ball-cards">
             {view.offers.length === 0 ? (
               <div className="ba-empty-state pick-empty-state" role="status">
