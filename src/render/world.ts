@@ -2318,7 +2318,7 @@ export class World {
     // Micro-surface maps are shared across World instances. Keep their canvas
     // textures alive for a later route mount; renderer.dispose() releases this
     // renderer's GPU allocations, and the next renderer can upload them again.
-    const sharedMicroTextures = new Set(microSurfaceTextures.values());
+    const sharedMicroTextures = new Set<THREE.Texture>(microSurfaceTextures.values());
     for (const texture of textures) {
       if (!sharedMicroTextures.has(texture)) texture.dispose();
     }
