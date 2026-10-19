@@ -26,6 +26,18 @@ export function buildOwnedBallPool(
   const owned = resolveUnique(ownedIds);
   if (owned.length >= 2) return owned;
 
-  const starters = resolveUnique(starterIds);
-  return starters.length >= 2 ? starters : [...fallbackPool];
+  // Keep every resolvable owned ball, then append only the minimum fallback set
+  // needed to keep the draft playable. Never replace a valid owned ball with a starter.
+  const combined = owned.slice();
+  const included = new Set(combined.map((ball) => ball.id));
+  const appendMissing = (balls: readonly BallDef[]) => {
+    for (const ball of balls) {
+      if (included.has(ball.id)) continue;
+      included.add(ball.id);
+      combined.push(ball);
+    }
+  };
+  appendMissing(resolveUnique(starterIds));
+  if (combined.length < 2) appendMissing(fallbackPool);
+  return combined;
 }
