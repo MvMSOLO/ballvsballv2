@@ -164,7 +164,7 @@ export function ArenaEntryExperience() {
       setProgress(100);
     }, 220);
     return () => window.clearTimeout(readyTimer);
-  }, [assetsSettled, previewSettled, advance]);
+  }, [assetsSettled, previewSettled]);
 
   const ready = assetsSettled && previewSettled && progress >= 100;
 
