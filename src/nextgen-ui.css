@@ -1078,3 +1078,161 @@
   .ba-entry-loader-center h1 { font-size: 39px; }
   .ba-entry-loader-center p { max-width: 28ch; font-size: 10px; }
 }
+
+
+/* BALL ARENA · tactile metal / enamel surface pass */
+.match-hud {
+  position: relative;
+  isolation: isolate;
+  overflow-x: hidden;
+  border-color: rgba(154, 211, 239, .34);
+  background:
+    radial-gradient(ellipse at 4% 0%, rgba(75, 171, 211, .13), transparent 42%),
+    radial-gradient(ellipse at 100% 100%, rgba(255, 103, 72, .08), transparent 46%),
+    linear-gradient(138deg, rgba(10, 19, 32, .975), rgba(6, 12, 22, .965) 54%, rgba(14, 24, 38, .975));
+  box-shadow:
+    0 34px 100px rgba(0, 0, 0, .56),
+    inset 0 1px rgba(255, 255, 255, .11),
+    inset 0 -1px rgba(4, 8, 16, .84);
+}
+.match-hud::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(202, 230, 255, .024) 0, rgba(202, 230, 255, .024) 1px, transparent 1px, transparent 4px),
+    repeating-linear-gradient(90deg, rgba(202, 230, 255, .018) 0, rgba(202, 230, 255, .018) 1px, transparent 1px, transparent 6px),
+    radial-gradient(ellipse at 50% -15%, rgba(174, 235, 255, .11), transparent 68%);
+  opacity: .68;
+}
+.match-head .eyebrow,
+.phase-chip {
+  text-shadow: 0 0 16px rgba(100, 218, 255, .16);
+}
+.draft-inventory-strip {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  margin: 8px 0 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(129, 191, 219, .23);
+  border-radius: 12px;
+  background:
+    linear-gradient(105deg, rgba(14, 38, 55, .9), rgba(13, 24, 37, .8) 58%, rgba(35, 28, 29, .55)),
+    repeating-linear-gradient(135deg, rgba(255,255,255,.026) 0, rgba(255,255,255,.026) 1px, transparent 1px, transparent 5px);
+  box-shadow: inset 0 1px rgba(255,255,255,.06), 0 7px 20px rgba(0,0,0,.14);
+}
+.draft-inventory-gem {
+  display: grid;
+  place-items: center;
+  width: 31px;
+  height: 31px;
+  border: 1px solid rgba(106, 226, 255, .4);
+  border-radius: 9px;
+  background: linear-gradient(145deg, rgba(77, 206, 239, .2), rgba(90, 117, 199, .12));
+  color: #8cecff;
+  font-size: 19px;
+  text-shadow: 0 0 14px rgba(103, 232, 249, .4);
+}
+.draft-inventory-copy { display: grid; gap: 3px; min-width: 0; }
+.draft-inventory-copy strong { color: #dcefff; font-size: 9px; font-weight: 950; letter-spacing: .16em; }
+.draft-inventory-copy small { color: #89a8bf; font-size: 9px; line-height: 1.25; }
+.draft-inventory-strip > b {
+  display: grid;
+  gap: 2px;
+  justify-items: end;
+  color: #f0f8ff;
+  font-family: var(--font-display, "Chakra Petch", sans-serif);
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.draft-inventory-strip > b i {
+  color: #72dff4;
+  font-family: var(--font-mono, "IBM Plex Mono", monospace);
+  font-size: 7px;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+.ball-card {
+  isolation: isolate;
+  overflow: hidden;
+  border-color: rgba(151, 189, 217, .2);
+  background:
+    radial-gradient(ellipse at 35% -12%, rgba(118, 198, 228, .14), transparent 61%),
+    linear-gradient(153deg, rgba(26, 42, 59, .98), rgba(7, 15, 27, .99) 74%);
+  box-shadow:
+    inset 0 1px rgba(255,255,255,.075),
+    inset 0 -1px rgba(0,0,0,.45),
+    0 10px 26px rgba(0,0,0,.16);
+}
+.ball-card::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  opacity: .48;
+  background:
+    repeating-linear-gradient(0deg, rgba(224,240,255,.03) 0, rgba(224,240,255,.03) 1px, transparent 1px, transparent 5px),
+    linear-gradient(122deg, transparent 12%, rgba(226,246,255,.045) 32%, transparent 48%);
+}
+.ball-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.018);
+}
+.ball-card:hover {
+  border-color: rgba(107, 226, 255, .64);
+  box-shadow: inset 0 1px rgba(255,255,255,.1), 0 15px 32px rgba(0,0,0,.27), 0 0 24px rgba(65,192,231,.08);
+}
+.ball-card.selected {
+  border-color: rgba(111, 231, 255, .92);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(29, 154, 183, .23), transparent 68%),
+    linear-gradient(153deg, rgba(15, 61, 78, .98), rgba(8, 18, 34, .99) 76%);
+  box-shadow:
+    inset 0 1px rgba(225, 252, 255, .14),
+    0 0 0 1px rgba(87, 221, 250, .19),
+    0 13px 34px rgba(0,0,0,.25),
+    0 0 24px rgba(69, 205, 239, .11);
+}
+.ball-card-meta { position: relative; z-index: 1; }
+.ball-card-inspect {
+  border: 1px solid rgba(148, 205, 229, .27);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(39, 75, 97, .72), rgba(11, 22, 36, .86));
+  color: #beeefa;
+  box-shadow: inset 0 1px rgba(255,255,255,.08);
+}
+.ability-chip {
+  border-color: rgba(147, 192, 218, .19);
+  background:
+    linear-gradient(135deg, rgba(20, 37, 55, .87), rgba(7, 15, 26, .95)),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0, rgba(255,255,255,.025) 1px, transparent 1px, transparent 4px);
+  box-shadow: inset 0 1px rgba(255,255,255,.045);
+}
+.secondary-button {
+  border-color: rgba(145, 195, 219, .28);
+  background: linear-gradient(145deg, rgba(22, 42, 61, .98), rgba(10, 20, 33, .98));
+  box-shadow: inset 0 1px rgba(255,255,255,.06), 0 8px 22px rgba(0,0,0,.18);
+}
+.primary-button {
+  background: linear-gradient(105deg, #9af3ff 0%, #5ed5f0 45%, #9da9ff 100%);
+  box-shadow: inset 0 1px rgba(255,255,255,.68), inset 0 -1px rgba(12,54,78,.3), 0 10px 28px rgba(55,191,229,.17);
+}
+@media (max-width: 640px) {
+  .draft-inventory-strip { grid-template-columns: auto minmax(0,1fr) auto; gap: 7px; padding: 8px; }
+  .draft-inventory-gem { width: 27px; height: 27px; }
+  .draft-inventory-copy strong { font-size: 8px; }
+  .draft-inventory-copy small { font-size: 8px; }
+  .draft-inventory-strip > b { font-size: 17px; }
+}
