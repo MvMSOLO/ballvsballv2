@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [tokens, primitives, root, packageText, wordmark, loadingMark, seasonBadge, brandGuide, homeRoute, portalShell, worldRenderer, profileRoute] = await Promise.all([
+const [tokens, primitives, root, packageText, wordmark, loadingMark, seasonBadge, brandGuide, homeRoute, portalShell, worldRenderer, profileRoute, matchPhaseUI, fightHpBar] = await Promise.all([
   readFile(new URL("../src/design-system.css", import.meta.url), "utf8"),
   readFile(new URL("../src/ui-primitives.css", import.meta.url), "utf8"),
   readFile(new URL("../src/routes/__root.tsx", import.meta.url), "utf8"),
@@ -14,6 +14,8 @@ const [tokens, primitives, root, packageText, wordmark, loadingMark, seasonBadge
   readFile(new URL("../src/components/portal-shell.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/render/world.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/routes/profile.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/MatchPhaseUI.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/FightHpBar.tsx", import.meta.url), "utf8"),
 ]);
 const pkg = JSON.parse(packageText);
 
@@ -66,15 +68,15 @@ assert.ok(worldRenderer.includes("this.lobbyWater = this.lobby.getObjectByName(\
 assert.ok(tokens.includes(".match-hud .lobby-button { position: relative; top: -3px; }"), "Short landscape duel lobby button must stay inside the viewport");
 assert.ok(worldRenderer.includes("collectResources(this.scene)"), "Scene resources must be explicitly disposed on route teardown");
 assert.ok(homeRoute.includes('if (view?.flow !== "aim" || view.myAim === null) return;'), "Aim slider must resync from the session view during aim");
-assert.ok(homeRoute.includes('disabled={view.confirmed} title={view.confirmed ? "Pick confirmed — reroll locked" : "Reroll your current offers"}'), "Confirmed picks must disable reroll");
-assert.ok(homeRoute.includes('flow === "fight" ? (view.sudden ? "SUDDEN DEATH" : view.matchSpeed === 2 ? "2× SPEED" : "LIVE MATCH")'), "Fight phase chip must not display a false zero-second timer");
-assert.ok(homeRoute.includes('role="progressbar" aria-label={`${view.names[0]} HP`}'), "Combat HUD must expose accessible HP bars");
-assert.ok(homeRoute.includes('view.offers.length === 0 ? <div className="ba-empty-state pick-empty-state" role="status">'), "Empty ball offers must show a recoverable status");
-assert.ok(homeRoute.includes('disabled={view.offers.length === 0 || view.picked < 0 || view.confirmed}'), "Confirm must stay disabled when the offer list is empty");
-assert.ok(homeRoute.includes('aria-label="Match rewards"'), "Match end screen must label the earned reward summary");
+assert.ok(matchPhaseUI.includes("disabled={view.confirmed}") && matchPhaseUI.includes('title={view.confirmed ? "Pick confirmed — reroll locked" : "Reroll your current offers"}'), "Confirmed picks must disable reroll");
+assert.ok(matchPhaseUI.includes("view.sudden") && matchPhaseUI.includes('"SUDDEN DEATH"') && matchPhaseUI.includes('"2× SPEED"') && matchPhaseUI.includes('"LIVE MATCH"'), "Fight phase chip must distinguish sudden death, speed vote, and live combat");
+assert.ok(fightHpBar.includes('role="progressbar"') && fightHpBar.includes("aria-valuenow=") && fightHpBar.includes("aria-valuemax="), "Combat HP bars must expose accessible values");
+assert.ok(matchPhaseUI.includes("view.offers.length === 0") && matchPhaseUI.includes('className="ba-empty-state pick-empty-state" role="status"'), "Empty ball offers must show a recoverable status");
+assert.ok(matchPhaseUI.includes('disabled={view.offers.length === 0 || view.picked < 0 || view.confirmed}'), "Confirm must stay disabled when the offer list is empty");
+assert.ok(matchPhaseUI.includes('aria-label="Match rewards"'), "Match end screen must label the earned reward summary");
 assert.ok(homeRoute.includes("sessionRef.current?.coins ?? 0") && homeRoute.includes("sessionRef.current?.xp ?? 0"), "Displayed rewards must come from the actual session");
 assert.ok(tokens.includes(".pick-empty-state {") && tokens.includes(".reward-summary {"), "Empty-offer and end-reward states need dedicated styles");
-assert.ok(homeRoute.includes('className="fight-health-warning">CRITICAL</strong>'), "Critical HP must have a non-color-only warning");
+assert.ok(fightHpBar.includes('className="fight-hp-warn">CRITICAL</strong>'), "Critical HP must have a non-color-only warning");
 assert.ok(tokens.includes(".fight-health-track {"), "Combat HUD health bar styling is missing");
 assert.ok(homeRoute.includes("world.update(dt, draw, frameDeltaMs)"), "Frame timing must flow from requestAnimationFrame to the renderer");
 assert.ok(homeRoute.includes("saved.history = appendMatchRecord(saved.history, matchRecord)"), "Completed player duels must be persisted to match history");
@@ -145,9 +147,9 @@ assert.ok(tokens.includes(".ball-inspect-backdrop {") && tokens.includes(".shop-
 
 const arenaRoute = await readFile(new URL("../src/routes/index.tsx", import.meta.url), "utf8");
 assert.ok(arenaRoute.includes('import { BallInspectDialog } from "@/components/ball-inspect-dialog";'), "Match drafting must reuse the shared ball inspector");
-assert.ok(arenaRoute.includes('className="ball-card-inspect"') && arenaRoute.includes('onClick={() => setInspectedBall(ball)}'), "Match pick cards must inspect without submitting a pick");
-assert.ok(arenaRoute.includes('className="ball-card-select" disabled={view.confirmed}'), "Locked match picks must not remain selectable");
-assert.ok(arenaRoute.includes('view.confirmed ? "✓ LOCKED IN" : "✓ SELECTED"'), "Selection and confirmed states must be visually distinct");
+assert.ok(matchPhaseUI.includes('className="ball-card-inspect"') && matchPhaseUI.includes("onClick={() => onInspect(ball)}"), "Match pick cards must inspect without submitting a pick");
+assert.ok(matchPhaseUI.includes('className="ball-card-select"') && matchPhaseUI.includes("disabled={view.confirmed}"), "Locked match picks must not remain selectable");
+assert.ok(matchPhaseUI.includes('view.confirmed ? "✓ LOCKED IN" : "✓ SELECTED"'), "Selection and confirmed states must be visually distinct");
 assert.ok(arenaRoute.includes("AVAILABLE FOR THIS MATCH") && arenaRoute.includes("MATCH PICK LOCKED"), "Match inspect status must distinguish an available pick from a locked one");
 assert.ok(tokens.includes(".ball-card-select {") && tokens.includes(".ball-card-inspect {") && tokens.includes(".ball-card.confirmed.selected"), "Match selection and inspect controls require responsive interaction styling");
 assert.ok(tokens.includes("@media (max-height: 500px)") && tokens.includes("min-height: 27px"), "Inspect action must remain touchable in short landscape");
@@ -222,7 +224,7 @@ const inspectDialog = await readFile(new URL("../src/components/ball-inspect-dia
 assert.ok(tokens.includes("--ba-motion-press: 90ms") && tokens.includes("--ba-motion-enter: 260ms") && tokens.includes("--ba-motion-result: 360ms"), "Motion timings must use the shared duration scale");
 assert.ok(tokens.includes("--ba-ease-enter:") && tokens.includes("--ba-ease-exit:") && tokens.includes("--ba-ease-spring:"), "Motion easings must be named and shared");
 assert.ok(tokens.includes("@keyframes ba-ui-enter") && tokens.includes("@keyframes ba-dialog-enter") && tokens.includes("@keyframes ba-result-enter"), "Common UI, dialog and result states need reusable entrance motion");
-assert.ok(tokens.includes(".result-victory .pulse-ring") && tokens.includes(".result-defeat .pulse-ring") && homeRoute.includes("result-victory"), "Match outcome feedback must distinguish victory and defeat without relying on animation alone");
+assert.ok(tokens.includes(".result-victory .pulse-ring") && tokens.includes(".result-defeat .pulse-ring") && matchPhaseUI.includes("result-victory"), "Match outcome feedback must distinguish victory and defeat without relying on animation alone");
 assert.ok(tokens.includes(".reward-summary > span:nth-child(2)") && tokens.includes(".ball-inspect-dialog { animation: ba-dialog-enter"), "Rewards and ball inspection must use the shared micro-interaction language");
 assert.ok(tokens.includes("@media (prefers-reduced-motion: reduce)") && tokens.includes('html[data-reduce-motion="true"]'), "Both system and saved reduced-motion preferences must suppress ornamental UI motion");
 assert.ok(homeRoute.includes("shouldReduceMotion(") && homeRoute.includes("reduceMotionRef.current") && homeRoute.includes("MutationObserver"), "Arena must react to saved/system preference changes without rebuilding the renderer");
