@@ -100,15 +100,25 @@ export function ArenaEntryExperience() {
     })();
 
     const fontTask = (async () => {
+      let fontTimeout = 0;
       try {
-        await Promise.all([
-          document.fonts.load('700 64px "Chakra Petch"'),
-          document.fonts.load('500 16px "Inter"'),
-          document.fonts.load('600 12px "IBM Plex Mono"'),
+        await Promise.race([
+          Promise.all([
+            document.fonts.load('700 64px "Chakra Petch"'),
+            document.fonts.load('500 16px "Inter"'),
+            document.fonts.load('600 12px "IBM Plex Mono"'),
+          ]),
+          new Promise<never>((_, reject) => {
+            fontTimeout = window.setTimeout(
+              () => reject(new Error("Font preload timed out")),
+              9000,
+            );
+          }),
         ]);
       } catch {
         if (active) setFallbackMode(true);
       } finally {
+        window.clearTimeout(fontTimeout);
         if (active) reportProgress("fonts", 1);
       }
     })();
