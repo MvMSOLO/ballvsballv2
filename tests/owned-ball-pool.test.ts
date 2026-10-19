@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { BallDef } from "@/sim/types";
-import { buildOwnedBallPool } from "@/game/owned-ball-pool";
+import type { BallDef } from "../src/sim/types";
+import { buildOwnedBallPool } from "../src/game/owned-ball-pool";
 import { advanceSession, applyCommand, createSession, publicView } from "../src/game/session";
 
 function ball(id: string): BallDef {
