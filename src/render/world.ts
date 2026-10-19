@@ -310,18 +310,142 @@ function tickRig(rig: Rig, dt: number, moving: boolean, emote: string, running =
     rig.mouth.scale.set(1, 0.42, 1);
   }
 }
-function patternTexture(def: BallDef): THREE.CanvasTexture {
+function proceduralMicroTexture(
+  seedText: string,
+  kind: "bump" | "roughness",
+  width = 256,
+  height = 128,
+): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return new THREE.CanvasTexture(canvas);
+
+  let state = 2166136261;
+  for (let i = 0; i < seedText.length; i++) state = Math.imul(state ^ seedText.charCodeAt(i), 16777619) >>> 0;
+  const next = () => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+  const image = ctx.createImageData(width, height);
+  for (let i = 0; i < image.data.length; i += 4) {
+    const noise = next();
+    const value = kind === "bump"
+      ? 116 + Math.floor(noise * 25)
+      : 92 + Math.floor(noise * 128);
+    image.data[i] = value;
+    image.data[i + 1] = value;
+    image.data[i + 2] = value;
+    image.data[i + 3] = 255;
+  }
+  ctx.putImageData(image, 0, 0);
+  ctx.lineWidth = kind === "bump" ? 0.7 : 1;
+  for (let i = 0; i < 30; i++) {
+    const x = next() * width;
+    const y = next() * height;
+    const len = 2 + next() * (kind === "bump" ? 16 : 28);
+    ctx.strokeStyle = kind === "bump"
+      ? (i % 2 ? "rgba(245,250,255,.26)" : "rgba(0,0,0,.24)")
+      : (i % 2 ? "rgba(255,255,255,.18)" : "rgba(0,0,0,.16)");
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + len, y + (next() - 0.5) * 2);
+    ctx.stroke();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.NoColorSpace;
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.anisotropy = 4;
+  return texture;
+}
+
+function microSurfaceTexture(def: BallDef, kind: "bump" | "roughness"): THREE.CanvasTexture {
+  return proceduralMicroTexture(def.id + ":" + def.visual.pattern, kind);
+}
+
+function arenaPanelTexture(): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = 256;
-  canvas.height = 128;
+  canvas.height = 256;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return new THREE.CanvasTexture(canvas);
+  const sheen = ctx.createLinearGradient(0, 0, 256, 256);
+  sheen.addColorStop(0, "#b9c2cc");
+  sheen.addColorStop(0.45, "#8b96a2");
+  sheen.addColorStop(1, "#646f7b");
+  ctx.fillStyle = sheen;
+  ctx.fillRect(0, 0, 256, 256);
+
+  // Recessed panel perimeter, brushed grain, seam ticks and four machine fasteners.
+  ctx.strokeStyle = "rgba(15,24,35,.58)";
+  ctx.lineWidth = 5;
+  ctx.strokeRect(5, 5, 246, 246);
+  ctx.strokeStyle = "rgba(238,246,255,.16)";
+  ctx.lineWidth = 1;
+  for (let y = 15; y < 250; y += 5) {
+    ctx.beginPath();
+    ctx.moveTo(12, y);
+    ctx.lineTo(244, y);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = "rgba(13,22,31,.24)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(17, 17, 222, 222);
+  for (const [x, y] of [[13, 13], [243, 13], [13, 243], [243, 243]] as const) {
+    const bolt = ctx.createRadialGradient(x - 1, y - 1, 0.5, x, y, 4.5);
+    bolt.addColorStop(0, "#e3e9ee");
+    bolt.addColorStop(0.4, "#7d8894");
+    bolt.addColorStop(1, "#252f3b");
+    ctx.fillStyle = bolt;
+    ctx.beginPath();
+    ctx.arc(x, y, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(7,13,20,.7)";
+    ctx.beginPath();
+    ctx.moveTo(x - 2.2, y + 1.8);
+    ctx.lineTo(x + 2.2, y - 1.8);
+    ctx.stroke();
+  }
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 4;
+  return texture;
+}
+
+function patternTexture(def: BallDef): THREE.CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 256;
   const g = canvas.getContext("2d");
   if (!g) return new THREE.CanvasTexture(canvas);
+
+  let state = 2166136261;
+  for (let i = 0; i < def.id.length; i++) state = Math.imul(state ^ def.id.charCodeAt(i), 16777619) >>> 0;
+  const next = () => {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+
   g.fillStyle = def.visual.baseColor;
   g.fillRect(0, 0, canvas.width, canvas.height);
+  const highlight = g.createLinearGradient(24, 0, 470, 256);
+  highlight.addColorStop(0, "rgba(255,255,255,.30)");
+  highlight.addColorStop(0.32, "rgba(255,255,255,.055)");
+  highlight.addColorStop(0.72, "rgba(5,8,15,.12)");
+  highlight.addColorStop(1, "rgba(0,0,0,.36)");
+  g.fillStyle = highlight;
+  g.fillRect(0, 0, 512, 256);
+
   const p = def.visual.pattern;
+  g.save();
+  g.scale(2, 2);
+  g.globalAlpha = 0.42;
   g.fillStyle = def.visual.accentColor;
   g.strokeStyle = def.visual.accentColor;
-  g.lineWidth = 3;
+  g.lineWidth = 2.2;
   if (p === "stripes") {
     for (let i = 0; i < 16; i++) if (i % 2 === 0) g.fillRect(i * 16, 0, 8, 128);
   } else if (p === "dots") {
@@ -332,26 +456,79 @@ function patternTexture(def: BallDef): THREE.CanvasTexture {
     for (let y = 0; y < 8; y++) for (let x = 0; x < 16; x++) if ((x + y) % 2 === 0) g.fillRect(x * 16, y * 16, 16, 16);
   } else if (p === "hex") {
     for (let y = -8; y < 136; y += 22) for (let x = -8; x < 264; x += 24) {
-      g.beginPath(); for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; const px = x + Math.cos(a) * 10; const py = y + Math.sin(a) * 10; if (!k) g.moveTo(px, py); else g.lineTo(px, py); } g.closePath(); g.stroke();
+      g.beginPath();
+      for (let k = 0; k < 6; k++) {
+        const a = k * Math.PI / 3;
+        const px = x + Math.cos(a) * 10;
+        const py = y + Math.sin(a) * 10;
+        if (!k) g.moveTo(px, py); else g.lineTo(px, py);
+      }
+      g.closePath();
+      g.stroke();
     }
   } else if (p === "stars") {
     for (let i = 0; i < 24; i++) {
       const x = (i * 73 + 19) % 256, y = (i * 41 + 13) % 128;
-      g.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5; const r = k % 2 ? 3 : 8; if (!k) g.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r); else g.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); } g.closePath(); g.fill();
+      g.beginPath();
+      for (let k = 0; k < 10; k++) {
+        const a = -Math.PI / 2 + k * Math.PI / 5;
+        const r = k % 2 ? 3 : 8;
+        if (!k) g.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+        else g.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+      }
+      g.closePath();
+      g.fill();
     }
   } else if (p === "spiral") {
-    for (let n = 0; n < 4; n++) { g.beginPath(); for (let i = 0; i < 180; i++) { const a = i * 0.12 + n * Math.PI / 2; const r = i * 0.22; const x = 32 + n * 62 + Math.cos(a) * r; const y = 64 + Math.sin(a) * r; if (!i) g.moveTo(x, y); else g.lineTo(x, y); } g.stroke(); }
+    for (let n = 0; n < 4; n++) {
+      g.beginPath();
+      for (let i = 0; i < 180; i++) {
+        const a = i * 0.12 + n * Math.PI / 2;
+        const r = i * 0.22;
+        const x = 32 + n * 62 + Math.cos(a) * r;
+        const y = 64 + Math.sin(a) * r;
+        if (!i) g.moveTo(x, y); else g.lineTo(x, y);
+      }
+      g.stroke();
+    }
   } else if (p === "runes") {
-    g.font = "bold 26px sans-serif"; g.textAlign = "center";
+    g.font = "bold 26px sans-serif";
+    g.textAlign = "center";
     for (let i = 0; i < 12; i++) g.fillText(["◇", "△", "⌁", "✦"][i % 4], 16 + (i % 6) * 44, 24 + Math.floor(i / 6) * 62);
   } else {
-    for (let i = 0; i < 9; i++) { g.globalAlpha = 0.35; g.beginPath(); g.arc((i * 47 + 21) % 256, (i * 31 + 18) % 128, 10 + (i % 3) * 5, 0, Math.PI * 2); g.fill(); }
+    for (let i = 0; i < 9; i++) {
+      g.globalAlpha = 0.23;
+      g.beginPath();
+      g.arc((i * 47 + 21) % 256, (i * 31 + 18) % 128, 10 + (i % 3) * 5, 0, Math.PI * 2);
+      g.fill();
+    }
   }
+  g.restore();
+
+  // Deterministic micro-scratches and faint clearcoat scuffs make each shell feel handled.
+  for (let i = 0; i < 82; i++) {
+    const x = next() * 512;
+    const y = next() * 256;
+    const length = 1.5 + next() * 14;
+    g.lineWidth = 0.45 + next() * 0.75;
+    g.strokeStyle = i % 3 === 0 ? "rgba(255,255,255,.11)" : "rgba(0,0,0,.095)";
+    g.beginPath();
+    g.moveTo(x, y);
+    g.lineTo(x + length, y + (next() - 0.5) * 2.6);
+    g.stroke();
+  }
+  const vignette = g.createRadialGradient(256, 112, 16, 256, 128, 300);
+  vignette.addColorStop(0, "rgba(255,255,255,.09)");
+  vignette.addColorStop(0.58, "rgba(20,25,35,.025)");
+  vignette.addColorStop(1, "rgba(0,0,0,.24)");
+  g.fillStyle = vignette;
+  g.fillRect(0, 0, 512, 256);
+
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
   return tex;
 }
-
 function makeBall(def: BallDef): THREE.Group {
   const group = new THREE.Group();
   const id = def.id.toLowerCase();
@@ -371,11 +548,18 @@ function makeBall(def: BallDef): THREE.Group {
   else if (shape === "spiky") geo = new THREE.IcosahedronGeometry(1, 1);
   else geo = new THREE.SphereGeometry(1, 32, 24);
 
-  const mat = new THREE.MeshLambertMaterial({
+  const mat = new THREE.MeshPhysicalMaterial({
     map: patternTexture(def),
+    bumpMap: microSurfaceTexture(def, "bump"),
+    bumpScale: shape === "crystal" ? 0.012 : 0.028,
+    roughnessMap: microSurfaceTexture(def, "roughness"),
     color: "#ffffff",
     emissive: def.visual.accentColor,
-    emissiveIntensity: def.visual.emissive * 0.35,
+    emissiveIntensity: def.visual.emissive * 0.28,
+    roughness: shape === "crystal" ? 0.22 : 0.36,
+    metalness: def.rarity === "common" ? 0.28 : 0.42,
+    clearcoat: shape === "crystal" ? 0.82 : 0.52,
+    clearcoatRoughness: 0.2,
   });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.castShadow = true;
@@ -1294,8 +1478,24 @@ export class World {
 
   private buildArena(): void {
     const tile = new THREE.BoxGeometry(2, 0.12, 2);
-    const a = lambert("#1a2030");
-    const b = lambert("#121722");
+    const tileAlbedo = arenaPanelTexture();
+    const tileBump = proceduralMicroTexture("arena-machined-floor", "bump", 256, 256);
+    const a = new THREE.MeshStandardMaterial({
+      color: "#1a2030",
+      map: tileAlbedo,
+      bumpMap: tileBump,
+      bumpScale: 0.018,
+      roughness: 0.48,
+      metalness: 0.48,
+    });
+    const b = new THREE.MeshStandardMaterial({
+      color: "#121722",
+      map: tileAlbedo,
+      bumpMap: tileBump,
+      bumpScale: 0.018,
+      roughness: 0.52,
+      metalness: 0.4,
+    });
     const instA = new THREE.InstancedMesh(tile, a, 72);
     const instB = new THREE.InstancedMesh(tile, b, 72);
     const dummy = new THREE.Object3D();
