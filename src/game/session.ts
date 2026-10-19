@@ -61,6 +61,7 @@ export interface PublicView {
   hearts: [number, number];
   timer: number;
   offers: string[];
+  poolCount: number;
   picked: number;
   confirmed: boolean;
   oppStatus: "choosing" | "locked";
@@ -526,6 +527,7 @@ export function publicView(s: Session): PublicView {
     hearts: [s.hearts[0], s.hearts[1]],
     timer: s.timer,
     offers: s.offers[me].slice(),
+    poolCount: s.pool[me].length,
     picked: s.picked[me],
     confirmed: s.confirmed[me],
     oppStatus: s.confirmed[opp] || (s.flow !== "pick" && s.aimLocked[opp]) ? "locked" : "choosing",
