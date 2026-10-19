@@ -99,12 +99,10 @@ interface Rig {
   eyeR: THREE.Object3D;
   mouth: THREE.Mesh;
   cape: THREE.Group;
-  hat: THREE.Mesh;
   mats: {
     skin: THREE.MeshStandardMaterial;
     shirt: THREE.MeshStandardMaterial;
     pants: THREE.MeshStandardMaterial;
-    hat: THREE.MeshStandardMaterial;
   };
   blink: number;
   modelRoot: THREE.Group | null;
@@ -124,7 +122,6 @@ function makeRig(c: AvatarColors): Rig {
   const skin = new THREE.MeshStandardMaterial({ color: c.skin, roughness: 0.48, metalness: 0.02 });
   const shirt = new THREE.MeshStandardMaterial({ color: c.shirt, roughness: 0.7, metalness: 0.06 });
   const pants = new THREE.MeshStandardMaterial({ color: c.pants, roughness: 0.76, metalness: 0.04 });
-  const hatMat = new THREE.MeshStandardMaterial({ color: c.hat, roughness: 0.4, metalness: 0.28 });
   const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.27, 0.4, 6, 14), shirt);
   torso.position.y = 1.12;
   torso.castShadow = true;
@@ -133,10 +130,6 @@ function makeRig(c: AvatarColors): Rig {
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.23, 24, 18), skin);
   head.position.y = 1.7;
   head.scale.set(0.96, 1.06, 0.94);
-  const hat = new THREE.Mesh(new THREE.SphereGeometry(0.25, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.55), hatMat);
-  // The generated cap is intentionally disabled: character appearance belongs to the authored GLB.
-  hat.visible = false;
-  hat.position.y = 1.84;
   const eyeWhite = new THREE.MeshStandardMaterial({ color: "#f7f4ee", roughness: 0.25 });
   const iris = new THREE.MeshStandardMaterial({ color: "#142033", roughness: 0.2, emissive: "#3ee0ff", emissiveIntensity: 0.25 });
   const eyeL = new THREE.Group();
@@ -196,11 +189,11 @@ function makeRig(c: AvatarColors): Rig {
     seg.position.y = -0.08 - i * 0.15;
     cape.add(seg);
   }
-  group.add(torso, neck, head, hat, eyeL, eyeR, browL, browR, mouth, armL, armR, legL, legR, cape);
+  group.add(torso, neck, head, eyeL, eyeR, browL, browR, mouth, armL, armR, legL, legR, cape);
   return {
     group, armL, armR, legL, legR, torso, head, phase: Math.random() * 2,
-    foreL, foreR, eyeL, eyeR, mouth, cape, hat,
-    mats: { skin, shirt, pants, hat: hatMat },
+    foreL, foreR, eyeL, eyeR, mouth, cape,
+    mats: { skin, shirt, pants },
     blink: Math.random() * 2,
     modelRoot: null,
     mixer: null,
