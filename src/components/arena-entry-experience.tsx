@@ -74,6 +74,15 @@ export function ArenaEntryExperience() {
   }, [reportProgress]);
 
   useEffect(() => {
+    document.documentElement.dataset.arenaEntry = visible ? "locked" : "open";
+    window.dispatchEvent(new Event("ball-arena-entry-state"));
+    return () => {
+      delete document.documentElement.dataset.arenaEntry;
+      window.dispatchEvent(new Event("ball-arena-entry-state"));
+    };
+  }, [visible]);
+
+  useEffect(() => {
     const controller = new AbortController();
     let active = true;
     const timeout = window.setTimeout(() => controller.abort(), 15000);
@@ -137,6 +146,7 @@ export function ArenaEntryExperience() {
     })();
 
     void Promise.allSettled([brandTask, fontTask, avatarTask, engineTask]).then(() => {
+      window.clearTimeout(timeout);
       if (active) setAssetsSettled(true);
     });
 
