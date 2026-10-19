@@ -1236,3 +1236,315 @@
   .draft-inventory-copy small { font-size: 8px; }
   .draft-inventory-strip > b { font-size: 17px; }
 }
+
+
+/* BALL ARENA · unified premium surfaces across the entire game hub */
+.portal-topbar {
+  border-bottom-color: rgba(157, 208, 237, .22);
+  background:
+    repeating-linear-gradient(0deg, rgba(225,242,255,.018) 0, rgba(225,242,255,.018) 1px, transparent 1px, transparent 4px),
+    linear-gradient(110deg, rgba(8,15,25,.97), rgba(15,25,38,.94) 52%, rgba(8,13,22,.98));
+  box-shadow: 0 9px 30px rgba(0,0,0,.2), inset 0 1px rgba(255,255,255,.045);
+}
+.portal-brand-orb {
+  border: 1px solid rgba(211,245,255,.62);
+  background:
+    radial-gradient(circle at 28% 18%, rgba(255,255,255,.75), transparent 26%),
+    linear-gradient(145deg, #8eeeff, #408dbc 52%, #9c8eed);
+  box-shadow: inset 0 1px rgba(255,255,255,.5), 0 7px 24px rgba(54,186,229,.15);
+}
+.portal-nav-link {
+  border-color: rgba(157,194,221,.07);
+  background: linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.005));
+}
+.portal-nav-link:hover, .portal-nav-link.active {
+  border-color: rgba(115,222,247,.35);
+  background:
+    repeating-linear-gradient(135deg, rgba(255,255,255,.018) 0, rgba(255,255,255,.018) 1px, transparent 1px, transparent 5px),
+    linear-gradient(145deg, rgba(22,77,100,.48), rgba(21,31,52,.72));
+  box-shadow: inset 0 1px rgba(255,255,255,.055), 0 4px 16px rgba(29,128,163,.08);
+}
+.portal-content { text-rendering: optimizeLegibility; }
+.portal-page-heading h1 { text-wrap: balance; }
+.portal-page-heading p { max-width: 68ch; }
+
+.portal-panel,
+.portal-stat,
+.shop-ball-card,
+.profile-frame-card,
+.profile-xp-panel,
+.settings-panel {
+  position: relative;
+  isolation: isolate;
+  border-color: rgba(156,194,223,.19);
+  background-color: #0b121d;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(220,239,255,.018) 0, rgba(220,239,255,.018) 1px, transparent 1px, transparent 5px),
+    repeating-linear-gradient(90deg, rgba(220,239,255,.012) 0, rgba(220,239,255,.012) 1px, transparent 1px, transparent 7px),
+    radial-gradient(ellipse at 5% 0%, rgba(69,155,195,.12), transparent 48%),
+    linear-gradient(145deg, rgba(23,35,49,.97), rgba(8,14,23,.985) 72%);
+  box-shadow:
+    0 18px 48px rgba(0,0,0,.24),
+    inset 0 1px rgba(255,255,255,.065),
+    inset 0 -1px rgba(0,0,0,.35);
+}
+.portal-panel::after,
+.shop-ball-card::after,
+.profile-frame-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(118deg, rgba(255,255,255,.045), transparent 28%, transparent 72%, rgba(109,190,228,.025));
+}
+.portal-panel:hover {
+  border-color: rgba(151,207,235,.27);
+}
+.portal-stat {
+  border-radius: 6px 15px 6px 15px;
+  transition: border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.portal-stat:hover {
+  border-color: rgba(124,213,243,.27);
+  box-shadow: inset 0 1px rgba(255,255,255,.075), 0 13px 27px rgba(0,0,0,.2);
+}
+.portal-stat strong, .wallet-values strong { text-shadow: 0 1px 0 rgba(255,255,255,.04); }
+.portal-kicker { text-shadow: 0 0 18px rgba(91,214,247,.12); }
+
+.portal-button {
+  border-radius: 8px 12px 8px 12px;
+  box-shadow: inset 0 1px rgba(255,255,255,.07), 0 6px 18px rgba(0,0,0,.12);
+  transition: transform .16s ease, filter .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.portal-button.primary {
+  color: #07141e;
+  border-color: rgba(207,248,255,.88);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.28), transparent 45%),
+    linear-gradient(105deg, #83edfa, #63c9e8 55%, #a5b8ff);
+  box-shadow: inset 0 1px rgba(255,255,255,.72), inset 0 -1px rgba(9,49,68,.2), 0 8px 24px rgba(63,191,225,.12);
+}
+.portal-button.secondary {
+  border-color: rgba(157,196,221,.25);
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.02) 0, rgba(255,255,255,.02) 1px, transparent 1px, transparent 4px),
+    linear-gradient(145deg, #1c2b3b, #0d1825);
+  box-shadow: inset 0 1px rgba(255,255,255,.065), 0 7px 18px rgba(0,0,0,.13);
+}
+.portal-button.owned {
+  background: linear-gradient(145deg, rgba(22,93,72,.52), rgba(9,34,31,.9));
+  box-shadow: inset 0 1px rgba(255,255,255,.05);
+}
+.portal-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px rgba(255,255,255,.11), 0 10px 25px rgba(0,0,0,.2);
+}
+.portal-button:focus-visible,
+.portal-nav-link:focus-visible,
+.shop-ball-card button:focus-visible,
+.profile-frame-card button:focus-visible {
+  outline: 2px solid #9beeff;
+  outline-offset: 3px;
+}
+
+.shop-wallet {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(220,239,255,.02) 0, rgba(220,239,255,.02) 1px, transparent 1px, transparent 5px),
+    radial-gradient(ellipse at 0 50%, rgba(36,130,157,.15), transparent 55%),
+    linear-gradient(110deg, #142436, #0a121e 68%, #1c1820);
+}
+.wallet-values strong { font-variant-numeric: tabular-nums; }
+.shop-save-state {
+  padding: 7px 9px;
+  border: 1px solid rgba(143,190,220,.19);
+  border-radius: 6px;
+  background: rgba(3,9,16,.46);
+  box-shadow: inset 0 1px rgba(255,255,255,.035);
+}
+.shop-feature-panel {
+  border-color: rgba(105,210,239,.28);
+  background-image:
+    repeating-linear-gradient(135deg, rgba(255,255,255,.025) 0, rgba(255,255,255,.025) 1px, transparent 1px, transparent 8px),
+    radial-gradient(ellipse at 4% 40%, rgba(52,171,203,.21), transparent 54%),
+    linear-gradient(125deg, #112538, #0a121e 68%, #1c1720);
+}
+.shop-feature-icon {
+  border: 1px solid rgba(126,226,250,.36);
+  border-radius: 11px;
+  background: linear-gradient(145deg, rgba(76,183,214,.25), rgba(34,54,84,.35));
+  box-shadow: inset 0 1px rgba(255,255,255,.14), 0 8px 22px rgba(0,0,0,.18);
+}
+.shop-ball-grid { align-items: stretch; }
+.shop-ball-card {
+  overflow: hidden;
+  border-radius: 8px 17px 8px 17px;
+  padding: 15px;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(224,241,255,.024) 0, rgba(224,241,255,.024) 1px, transparent 1px, transparent 5px),
+    radial-gradient(ellipse at 50% -12%, rgba(134,204,231,.16), transparent 56%),
+    linear-gradient(153deg, #1a2a3a, #0b121d 75%);
+  box-shadow: inset 0 1px rgba(255,255,255,.075), 0 10px 25px rgba(0,0,0,.2);
+}
+.shop-ball-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(118,222,247,.55);
+  box-shadow: inset 0 1px rgba(255,255,255,.1), 0 17px 36px rgba(0,0,0,.28), 0 0 22px rgba(49,171,211,.08);
+}
+.shop-ball-orb {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(236,247,255,.72);
+  box-shadow: inset -13px -17px 25px rgba(1,6,13,.44), inset 3px 4px 11px rgba(255,255,255,.3), 0 13px 25px rgba(0,0,0,.38);
+}
+.shop-ball-orb::after {
+  content: "";
+  position: absolute;
+  width: 70%;
+  height: 28%;
+  top: 7%;
+  left: 13%;
+  border-radius: 50%;
+  transform: rotate(-28deg);
+  background: linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,.02));
+  filter: blur(2px);
+  pointer-events: none;
+}
+.shop-ball-card h3 { min-height: 2.25em; text-wrap: balance; }
+.shop-ball-card p { line-height: 1.55; }
+.shop-ball-card .portal-button { min-height: 39px; }
+.inventory-ball {
+  border-color: rgba(129,197,225,.23);
+}
+.inventory-ball.is-favorite {
+  border-color: rgba(255,206,113,.58);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,242,213,.025) 0, rgba(255,242,213,.025) 1px, transparent 1px, transparent 5px),
+    radial-gradient(ellipse at 50% -10%, rgba(255,191,87,.17), transparent 60%),
+    linear-gradient(150deg, #30291e, #0d141c 74%);
+  box-shadow: inset 0 1px rgba(255,244,216,.09), 0 12px 27px rgba(0,0,0,.22);
+}
+.inventory-grid .shop-ball-card { min-height: 100%; }
+.crate-panel {
+  border-color: rgba(118,211,239,.28);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(225,244,255,.022) 0, rgba(225,244,255,.022) 1px, transparent 1px, transparent 5px),
+    radial-gradient(ellipse at 7% 50%, rgba(40,153,186,.2), transparent 48%),
+    linear-gradient(140deg, #142637, #0a121d 70%, #1b1720);
+}
+.crate-art {
+  border-color: rgba(147,226,248,.52);
+  background:
+    repeating-linear-gradient(0deg, rgba(225,242,255,.03) 0, rgba(225,242,255,.03) 1px, transparent 1px, transparent 5px),
+    radial-gradient(circle at 40% 30%, rgba(64,153,185,.5), transparent 58%),
+    linear-gradient(145deg, #102536, #06101a);
+  box-shadow: inset 0 1px rgba(255,255,255,.11), inset 0 -14px 28px rgba(0,0,0,.25), 0 12px 32px rgba(0,0,0,.22);
+}
+
+.profile-hero-premium {
+  border-color: rgba(126,211,242,.33);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(225,243,255,.022) 0, rgba(225,243,255,.022) 1px, transparent 1px, transparent 5px),
+    radial-gradient(ellipse at 0 0, rgba(53,154,196,.19), transparent 55%),
+    linear-gradient(135deg, #172738, #0a121e 72%, #171823);
+}
+.profile-avatar {
+  border: 1px solid rgba(231,248,255,.6);
+  box-shadow: inset 0 1px rgba(255,255,255,.45), inset -9px -13px 22px rgba(6,18,33,.12), 0 12px 30px rgba(0,0,0,.26);
+}
+.profile-frame-card {
+  overflow: hidden;
+  border-radius: 7px 14px 7px 14px;
+}
+.profile-frame-card.is-equipped {
+  border-color: rgba(117,229,255,.65);
+  box-shadow: inset 0 1px rgba(255,255,255,.12), 0 0 0 1px rgba(95,219,247,.16), 0 14px 32px rgba(0,0,0,.25);
+}
+.profile-frame-preview {
+  background:
+    repeating-linear-gradient(0deg, rgba(222,241,255,.03) 0, rgba(222,241,255,.03) 1px, transparent 1px, transparent 5px),
+    radial-gradient(circle at 45% 35%, rgba(52,133,176,.2), transparent 60%),
+    linear-gradient(145deg, #151f2b, #070c13);
+}
+.profile-frame-preview img { filter: drop-shadow(0 8px 16px rgba(0,0,0,.35)); }
+.profile-xp-panel {
+  border-color: rgba(104,211,241,.27);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(222,241,255,.022) 0, rgba(222,241,255,.022) 1px, transparent 1px, transparent 5px),
+    radial-gradient(ellipse at 0 0, rgba(42,147,190,.17), transparent 57%),
+    linear-gradient(145deg, #152738, #09121d 72%);
+}
+.profile-xp-track {
+  height: 9px;
+  border-color: rgba(173,219,238,.24);
+  background: linear-gradient(180deg, #050a10, #0d1824);
+  box-shadow: inset 0 2px 5px rgba(0,0,0,.45);
+}
+.profile-xp-track > span { box-shadow: 0 0 14px rgba(90,217,249,.36), inset 0 1px rgba(255,255,255,.34); }
+
+.settings-panel {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(224,241,255,.02) 0, rgba(224,241,255,.02) 1px, transparent 1px, transparent 5px),
+    radial-gradient(ellipse at 2% 0, rgba(53,133,176,.14), transparent 45%),
+    linear-gradient(145deg, #131f2d, #090f18 75%);
+}
+.setting-row {
+  border-color: rgba(157,194,220,.15);
+  transition: background .16s ease, border-color .16s ease;
+}
+.setting-row:hover { background: linear-gradient(90deg, rgba(112,205,235,.045), transparent); }
+.setting-row:focus-within {
+  outline: 1px solid rgba(137,223,247,.34);
+  outline-offset: 3px;
+}
+.setting-row select, .portal-form select, .portal-form input:not([type="checkbox"]),
+.shop-filters input, .shop-filters select {
+  border-color: rgba(155,199,223,.24);
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0, rgba(255,255,255,.015) 1px, transparent 1px, transparent 4px),
+    linear-gradient(145deg, #111e2d, #070d15);
+}
+.setting-row select:focus, .portal-form select:focus, .portal-form input:not([type="checkbox"]):focus,
+.shop-filters input:focus, .shop-filters select:focus {
+  border-color: rgba(129,224,247,.64);
+  box-shadow: 0 0 0 3px rgba(65,182,215,.08);
+}
+.rank-row {
+  transition: background .16s ease, border-color .16s ease;
+}
+.rank-row:hover { background: linear-gradient(90deg, rgba(98,190,226,.07), transparent); }
+.rank-row.is-me {
+  border-inline-start: 2px solid #77e2fa;
+  background:
+    repeating-linear-gradient(0deg, rgba(225,244,255,.018) 0, rgba(225,244,255,.018) 1px, transparent 1px, transparent 5px),
+    linear-gradient(90deg, rgba(37,127,157,.14), transparent);
+}
+.portal-history-row {
+  transition: background .16s ease;
+}
+.portal-history-row:hover { background: linear-gradient(90deg, rgba(104,199,232,.055), transparent); }
+.portal-notice {
+  border-color: rgba(122,215,241,.28);
+  background:
+    repeating-linear-gradient(135deg, rgba(255,255,255,.016) 0, rgba(255,255,255,.016) 1px, transparent 1px, transparent 6px),
+    linear-gradient(145deg, rgba(13,42,57,.56), rgba(7,15,24,.88));
+  box-shadow: inset 0 1px rgba(255,255,255,.045);
+}
+.portal-empty {
+  border: 1px dashed rgba(148,192,218,.22);
+  border-radius: 9px 15px 9px 15px;
+  background: repeating-linear-gradient(135deg, rgba(195,225,246,.012) 0, rgba(195,225,246,.012) 1px, transparent 1px, transparent 7px);
+}
+@media (max-width: 640px) {
+  .portal-panel { border-radius: 8px 14px 8px 14px; }
+  .portal-stat { padding: 13px; }
+  .shop-ball-card { padding: 11px; }
+  .shop-ball-card .portal-button { min-height: 37px; font-size: 8px; }
+  .portal-button { border-radius: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-button, .portal-stat, .shop-ball-card, .portal-history-row, .setting-row {
+    transition: none !important;
+  }
+}
