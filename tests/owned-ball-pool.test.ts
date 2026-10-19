@@ -30,8 +30,9 @@ describe("buildOwnedBallPool", () => {
       .toEqual([ownedA, starterA, starterB]);
   });
 
-  it("keeps a playable fallback when starter definitions are unavailable", () => {
-    expect(buildOwnedBallPool([], [ownedA], ["missing-a"], [ownedA])).toEqual([ownedA]);
+  it("uses the full fallback catalog when starter definitions are unavailable", () => {
+    expect(buildOwnedBallPool([], [ownedA, ownedB], ["missing-a"], [ownedA, ownedB]))
+      .toEqual([ownedA, ownedB]);
   });
 
   it("rerolls offers from the full owned inventory pool, not just the starter set", () => {
