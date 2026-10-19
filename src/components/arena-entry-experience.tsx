@@ -3,6 +3,7 @@ import { ArrowUpRight, Check, Cpu, Download, Layers3, LoaderCircle, ShieldCheck 
 
 const BRAND_ASSET = "/brand/ball-arena-wordmark.svg";
 const AVATAR_ASSET = "/assets/avatars/MVM_BOPPO_v5.glb";
+const BOOT_ASSET_CACHE = "ball-arena-core-v1";
 type BootTask = "brand" | "fonts" | "avatar" | "engine" | "preview";
 const BOOT_PROGRESS_WEIGHT: Record<BootTask, number> = { brand: 0.08, fonts: 0.12, avatar: 0.46, engine: 0.24, preview: 0.1 };
 
@@ -11,6 +12,21 @@ async function readAsset(
   signal: AbortSignal,
   onProgress?: (fraction: number) => void,
 ): Promise<ArrayBuffer> {
+  let assetCache: Cache | null = null;
+  try {
+    if ("caches" in window) {
+      assetCache = await window.caches.open(BOOT_ASSET_CACHE);
+      const cached = await assetCache.match(url);
+      if (cached?.ok) {
+        const buffer = await cached.arrayBuffer();
+        onProgress?.(1);
+        return buffer;
+      }
+    }
+  } catch {
+    assetCache = null;
+  }
+
   const response = await fetch(url, { signal, cache: "default" });
   if (!response.ok) throw new Error("Asset request failed: " + response.status);
 
@@ -41,6 +57,12 @@ async function readAsset(
     offset += chunk.byteLength;
   }
   onProgress?.(1);
+  if (assetCache) {
+    const cacheResponse = new Response(bytes.slice().buffer, {
+      headers: { "Content-Type": "model/gltf-binary" },
+    });
+    void assetCache.put(url, cacheResponse).catch(() => undefined);
+  }
   return bytes.buffer;
 }
 
