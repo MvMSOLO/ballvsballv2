@@ -900,9 +900,9 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         <i className="intro-spinner" aria-hidden="true" /><span>CHALLENGE ACCEPTED</span><strong>You vs {view.names[1]}</strong><small>Preparing arena · Loading ball selections…</small>
       </div>}
 
-      {view && flow !== "intro" && (
+      {view && view.flow !== "intro" && (
         <MatchPhaseUI
-          flow={flow}
+          flow={view.flow}
           view={view as any}
           aim={aim}
           setAim={setAim}
