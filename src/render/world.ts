@@ -127,7 +127,12 @@ function arenaEnvironmentTexture(): THREE.CanvasTexture {
   canvas.width = 512;
   canvas.height = 256;
   const ctx = canvas.getContext("2d");
-  if (!ctx) return new THREE.CanvasTexture(canvas);
+  if (!ctx) {
+    const fallback = new THREE.CanvasTexture(canvas);
+    fallback.mapping = THREE.EquirectangularReflectionMapping;
+    fallback.colorSpace = THREE.SRGBColorSpace;
+    return fallback;
+  }
 
   const base = ctx.createLinearGradient(0, 0, 0, 256);
   base.addColorStop(0, "#101b29");
