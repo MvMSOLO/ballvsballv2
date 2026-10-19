@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
+import { ArenaEntryExperience } from "@/components/arena-entry-experience";
 import { loadSave, type Save } from "@/economy/save";
 import { setAudioLevels, setMuted } from "@/audio/synth";
 import appCss from "../styles.css?url";
@@ -80,6 +81,7 @@ export const Route = createRootRoute({
         <SavedPreferenceRuntime />
         <PreviewHostBridge />
         <AuthProvider><Outlet /></AuthProvider>
+        <ArenaEntryExperience />
         <Scripts />
       </body>
     </html>
