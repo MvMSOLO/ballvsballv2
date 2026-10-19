@@ -259,7 +259,7 @@ export function ArenaEntryExperience() {
             <div className="ba-entry-crosshair ba-entry-crosshair--top" aria-hidden="true" />
             <div className="ba-entry-crosshair ba-entry-crosshair--bottom" aria-hidden="true" />
             {modelBuffer ? (
-              <AvatarPreview buffer={modelBuffer} onReady={onPreviewReady} />
+              <AvatarPreview buffer={modelBuffer} enabled={ready} onReady={onPreviewReady} />
             ) : (
               <div className="ba-entry-avatar-fallback" aria-hidden="true"><span>MVM</span><i /></div>
             )}
@@ -297,9 +297,16 @@ export function ArenaEntryExperience() {
   );
 }
 
-function AvatarPreview({ buffer, onReady }: { buffer: ArrayBuffer; onReady: (available: boolean) => void }) {
+function AvatarPreview({ buffer, enabled, onReady }: { buffer: ArrayBuffer; enabled: boolean; onReady: (available: boolean) => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [renderable, setRenderable] = useState(false);
+  const enabledRef = useRef(enabled);
+  const kickRef = useRef<(() => void) | null>(null);
+  enabledRef.current = enabled;
+
+  useEffect(() => {
+    if (enabled) kickRef.current?.();
+  }, [enabled]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -403,7 +410,16 @@ function AvatarPreview({ buffer, onReady }: { buffer: ArrayBuffer; onReady: (ava
             if (disposed || !renderer || !scene || !camera) return;
             if (avatar && !reducedMotion) avatar.rotation.y = 0.32 + (now - startedAt) * 0.00022;
             renderer.render(scene, camera);
-            if (!reducedMotion) frame = requestAnimationFrame(draw);
+            frame = 0;
+            if (!reducedMotion && enabledRef.current) frame = requestAnimationFrame(draw);
+          };
+          kickRef.current = () => {
+            if (disposed || !renderer || !scene || !camera) return;
+            if (reducedMotion) {
+              renderer.render(scene, camera);
+              return;
+            }
+            if (!frame) draw(performance.now());
           };
           draw(startedAt);
           onReady(true);
@@ -424,6 +440,7 @@ function AvatarPreview({ buffer, onReady }: { buffer: ArrayBuffer; onReady: (ava
     void mount();
     return () => {
       disposed = true;
+      kickRef.current = null;
       window.removeEventListener("resize", resize);
       release();
     };
