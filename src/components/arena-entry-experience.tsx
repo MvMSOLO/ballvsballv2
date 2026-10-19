@@ -3,6 +3,8 @@ import { ArrowUpRight, Check, Cpu, Download, Layers3, LoaderCircle, ShieldCheck 
 
 const BRAND_ASSET = "/brand/ball-arena-wordmark.svg";
 const AVATAR_ASSET = "/assets/avatars/MVM_BOPPO_v5.glb";
+type BootTask = "brand" | "fonts" | "avatar" | "engine" | "preview";
+const BOOT_PROGRESS_WEIGHT: Record<BootTask, number> = { brand: 0.08, fonts: 0.12, avatar: 0.46, engine: 0.24, preview: 0.1 };
 
 async function readAsset(
   url: string,
@@ -52,17 +54,24 @@ export function ArenaEntryExperience() {
   const [previewAvailable, setPreviewAvailable] = useState(false);
   const [fallbackMode, setFallbackMode] = useState(false);
   const exitTimer = useRef<number | null>(null);
+  const progressTasks = useRef<Record<BootTask, number>>({ brand: 0, fonts: 0, avatar: 0, engine: 0, preview: 0 });
 
-  const advance = useCallback((next: number) => {
-    setProgress((current) => Math.max(current, Math.min(100, Math.round(next))));
+  const reportProgress = useCallback((task: BootTask, fraction: number) => {
+    progressTasks.current[task] = Math.max(
+      progressTasks.current[task],
+      Math.max(0, Math.min(1, Number.isFinite(fraction) ? fraction : 0)),
+    );
+    const total = (Object.keys(BOOT_PROGRESS_WEIGHT) as BootTask[])
+      .reduce((sum, key) => sum + BOOT_PROGRESS_WEIGHT[key] * progressTasks.current[key], 0);
+    setProgress((current) => Math.max(current, Math.min(99, Math.round(3 + 97 * total))));
   }, []);
 
   const onPreviewReady = useCallback((available: boolean) => {
     setPreviewAvailable(available);
     setPreviewSettled(true);
     if (!available) setFallbackMode(true);
-    advance(96);
-  }, [advance]);
+    reportProgress("preview", 1);
+  }, [reportProgress]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -77,7 +86,7 @@ export function ArenaEntryExperience() {
       } catch {
         if (active) setFallbackMode(true);
       } finally {
-        if (active) advance(18);
+        if (active) reportProgress("brand", 1);
       }
     })();
 
@@ -91,33 +100,44 @@ export function ArenaEntryExperience() {
       } catch {
         if (active) setFallbackMode(true);
       } finally {
-        if (active) advance(29);
+        if (active) reportProgress("fonts", 1);
       }
     })();
 
     const avatarTask = (async () => {
       try {
         const buffer = await readAsset(AVATAR_ASSET, controller.signal, (fraction) => {
-          if (active) advance(29 + fraction * 60);
+          if (active) reportProgress("avatar", fraction);
         });
         if (active) {
           setModelBuffer(buffer);
-          advance(91);
+          reportProgress("avatar", 1);
         }
       } catch {
         if (active) {
           setFallbackMode(true);
           setPreviewSettled(true);
-          advance(79);
+          reportProgress("avatar", 1);
+          reportProgress("preview", 1);
         }
       }
     })();
 
-    void Promise.allSettled([brandTask, fontTask, avatarTask]).then(() => {
-      if (active) {
-        setAssetsSettled(true);
-        advance(94);
+    const engineTask = (async () => {
+      try {
+        await Promise.all([
+          import("three"),
+          import("three/examples/jsm/loaders/GLTFLoader.js"),
+        ]);
+      } catch {
+        if (active) setFallbackMode(true);
+      } finally {
+        if (active) reportProgress("engine", 1);
       }
+    })();
+
+    void Promise.allSettled([brandTask, fontTask, avatarTask, engineTask]).then(() => {
+      if (active) setAssetsSettled(true);
     });
 
     return () => {
@@ -126,12 +146,12 @@ export function ArenaEntryExperience() {
       window.clearTimeout(timeout);
       if (exitTimer.current !== null) window.clearTimeout(exitTimer.current);
     };
-  }, [advance]);
+  }, [reportProgress]);
 
   useEffect(() => {
     if (!assetsSettled || !previewSettled) return;
     const readyTimer = window.setTimeout(() => {
-      advance(100);
+      setProgress(100);
     }, 220);
     return () => window.clearTimeout(readyTimer);
   }, [assetsSettled, previewSettled, advance]);
