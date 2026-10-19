@@ -185,13 +185,49 @@ export function ArenaEntryExperience() {
 
   return (
     <section
-      className={"ba-entry" + (leaving ? " ba-entry--leaving" : "")}
+      className={"ba-entry" + (leaving ? " ba-entry--leaving" : "") + (ready ? " ba-entry--intro" : " ba-entry--loading")}
       aria-label="Ball Arena startup"
       aria-busy={!ready}
     >
       <div className="ba-entry-noise" aria-hidden="true" />
       <div className="ba-entry-grid" aria-hidden="true" />
       <div className="ba-entry-sweep" aria-hidden="true" />
+
+      {!ready && (
+        <div className="ba-entry-loader" role="status" aria-live="polite">
+          <div className="ba-entry-loader-shell">
+            <header className="ba-entry-loader-header">
+              <img src={BRAND_ASSET} alt="BALL ARENA" />
+              <span><i /> INITIALIZING SECURE CLIENT</span>
+            </header>
+            <div className="ba-entry-loader-center">
+              <div className="ba-entry-reactor" aria-hidden="true">
+                <span className="ba-entry-reactor-ring ba-entry-reactor-ring--one" />
+                <span className="ba-entry-reactor-ring ba-entry-reactor-ring--two" />
+                <span className="ba-entry-reactor-ring ba-entry-reactor-ring--three" />
+                <span className="ba-entry-reactor-core">BA</span>
+              </div>
+              <div className="ba-entry-loader-kicker">BOOT SEQUENCE <span>01 / 03</span></div>
+              <h1>ASSEMBLING<br /><em>THE ARENA.</em></h1>
+              <p>Synchronizing the physics core, loading the avatar package, and preparing the render pipeline.</p>
+            </div>
+            <div className="ba-entry-loader-progress">
+              <div className="ba-entry-load-heading">
+                <span className="ba-entry-load-status"><LoaderCircle size={13} className="ba-entry-spinner" /> {stage}</span>
+                <span className="ba-entry-percent">{String(progress).padStart(2, "0")}<small>%</small></span>
+              </div>
+              <div className="ba-entry-progress" role="progressbar" aria-label="Startup progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
+                <span style={{ transform: "scaleX(" + progress / 100 + ")" }} />
+              </div>
+              <div className="ba-entry-load-meta">
+                <span><Download size={12} /> CORE ASSETS</span>
+                <span><ShieldCheck size={12} /> {fallbackMode ? "ADAPTIVE MODE AVAILABLE" : "VERIFYING RUNTIME"}</span>
+              </div>
+            </div>
+            <div className="ba-entry-loader-footer"><span>BALL ARENA <i>©</i> 2026</span><span>NO ACCOUNT REQUIRED TO BOOT</span></div>
+          </div>
+        </div>
+      )}
 
       <div className="ba-entry-frame">
         <header className="ba-entry-header">
