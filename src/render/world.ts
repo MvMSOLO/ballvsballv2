@@ -1278,6 +1278,7 @@ export class World {
   private environmentAssetFailed = new Set<string>();
   private environmentAssetLoadingIds = new Set<string>();
   private environmentAssetPackCheck: Promise<boolean> | null = null;
+  private environmentAssetPackAvailable: boolean | null = null;
   private environmentAssetQueueRunning = false;
   finisherBall = new THREE.Vector3();
 
@@ -1370,7 +1371,13 @@ export class World {
       this.environmentAssetPackCheck = fetch(getEnvironmentAssetUrl("Spawn_Beacon_Platform.glb"), {
         method: "HEAD",
         cache: "force-cache",
-      }).then((response) => response.ok).catch(() => false);
+      }).then((response) => {
+        this.environmentAssetPackAvailable = response.ok;
+        return response.ok;
+      }).catch(() => {
+        this.environmentAssetPackAvailable = false;
+        return false;
+      });
     }
     return this.environmentAssetPackCheck;
   }
@@ -1396,7 +1403,7 @@ export class World {
         }
       } finally {
         this.environmentAssetQueueRunning = false;
-        if (!this.destroyed && getEnvironmentAssetsForQuality(this.quality).some(
+        if (!this.destroyed && this.environmentAssetPackAvailable === true && getEnvironmentAssetsForQuality(this.quality).some(
           (asset) => !this.environmentAssetLoaded.has(asset.id)
             && !this.environmentAssetFailed.has(asset.id),
         )) {
