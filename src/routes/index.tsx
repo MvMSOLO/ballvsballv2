@@ -869,7 +869,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "3D renderer could not start on this device.");
     }
-  }, [adminMode]);
+  }, [adminMode, toggleActiveMap]);
 
   useEffect(() => {
     qualityRef.current = quality;
