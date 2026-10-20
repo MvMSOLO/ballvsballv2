@@ -17,15 +17,40 @@ function fail(message) {
 }
 
 function validateGlb(filename, bytes) {
-  if (bytes.length < 12) throw new Error(`${filename}: file is too short to be a GLB.`);
+  if (bytes.length < 20) throw new Error(`${filename}: file is too short to contain a GLB JSON chunk.`);
   const magic = bytes.readUInt32LE(0);
   const version = bytes.readUInt32LE(4);
   const declaredLength = bytes.readUInt32LE(8);
+  const jsonChunkLength = bytes.readUInt32LE(12);
+  const jsonChunkType = bytes.readUInt32LE(16);
   if (magic !== 0x46546c67) throw new Error(`${filename}: invalid GLB magic header.`);
   if (version !== 2) throw new Error(`${filename}: expected GLB version 2, got ${version}.`);
   if (declaredLength !== bytes.length) {
     throw new Error(`${filename}: header says ${declaredLength} bytes but file has ${bytes.length}.`);
   }
+  if (jsonChunkType !== 0x4e4f534a || 20 + jsonChunkLength > bytes.length) {
+    throw new Error(`${filename}: malformed GLB JSON chunk.`);
+  }
+
+  let document;
+  try {
+    document = JSON.parse(bytes.subarray(20, 20 + jsonChunkLength).toString("utf8").trimEnd());
+  } catch {
+    throw new Error(`${filename}: GLB JSON chunk is not valid JSON.`);
+  }
+  if (document.asset?.version !== "2.0") {
+    throw new Error(`${filename}: glTF asset.version must be 2.0.`);
+  }
+  if (!Array.isArray(document.materials) || !document.materials.some((material) => material.pbrMetallicRoughness)) {
+    throw new Error(`${filename}: no PBR metallic/roughness material was found.`);
+  }
+  if (!Array.isArray(document.images) || document.images.length === 0) {
+    throw new Error(`${filename}: expected embedded image textures.`);
+  }
+  if (!Array.isArray(document.animations) || !document.animations.some((animation) => animation.name === "Idle_Showcase_Loop")) {
+    throw new Error(`${filename}: expected the authored Idle_Showcase_Loop clip.`);
+  }
+  return document;
 }
 
 async function main() {
