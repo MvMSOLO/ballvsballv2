@@ -63,7 +63,12 @@ assert.ok(worldRenderer.includes("antialias: false"), "WebGL renderer must avoid
 assert.ok(worldRenderer.includes("update(dt: number, draw: DrawState, frameDeltaMs = dt * 1000)"), "Adaptive quality must receive the real animation-frame interval");
 assert.ok(worldRenderer.includes("Math.min(50, Math.max(updateCostMs, Math.max(0, frameDeltaMs)))"), "Adaptive quality must account for GPU-bound pacing and cap resume spikes");
 assert.ok(worldRenderer.includes("if (this.battleTrailsActive)"), "Idle lobby frames must not reset the full battle-trail pool");
-assert.ok(worldRenderer.includes('if (draw.mode === "lobby") {\n      // The free-roam avatar and five rivals belong only to the lobby.'), "Hidden lobby rigs must not animate during duel frames");
+assert.ok(
+  worldRenderer.includes('if (draw.mode === "lobby" || draw.mode === "rift") {\n      this.player.group.position.set(draw.px, 0, draw.pz);')
+    && worldRenderer.includes('if (draw.mode === "lobby") {\n        // Social rivals only live in the lobby; the Rift is a separate exploration map.'),
+  "Free-roam avatar must work in both exploration maps while social rivals stay in the lobby",
+);
+assert.ok(worldRenderer.includes('this.rift.visible = draw.mode === "rift"') && worldRenderer.includes('this.buildRiftExpanse()'), "Rift Expanse must be a separate renderable world, not lobby props");
 assert.ok(worldRenderer.includes("this.lobbyWater = this.lobby.getObjectByName(\"water\")"), "Static decorative scene nodes should be cached once");
 assert.ok(tokens.includes(".match-hud .lobby-button { position: relative; top: -3px; }"), "Short landscape duel lobby button must stay inside the viewport");
 assert.ok(worldRenderer.includes("collectResources(this.scene)"), "Scene resources must be explicitly disposed on route teardown");
