@@ -1414,6 +1414,49 @@ export class World {
     })();
   }
 
+  private disposeEnvironmentObject(object: THREE.Object3D): void {
+    const geometries = new Set<THREE.BufferGeometry>();
+    const materials = new Set<THREE.Material>();
+    const textures = new Set<THREE.Texture>();
+    object.traverse((node) => {
+      const renderable = node as THREE.Object3D & {
+        geometry?: THREE.BufferGeometry;
+        material?: THREE.Material | THREE.Material[];
+      };
+      if (renderable.geometry instanceof THREE.BufferGeometry) geometries.add(renderable.geometry);
+      const nodeMaterials = Array.isArray(renderable.material)
+        ? renderable.material
+        : renderable.material
+          ? [renderable.material]
+          : [];
+      for (const material of nodeMaterials) {
+        materials.add(material);
+        for (const value of Object.values(material)) {
+          if (value instanceof THREE.Texture) textures.add(value);
+        }
+      }
+    });
+    for (const texture of textures) texture.dispose();
+    for (const material of materials) material.dispose();
+    for (const geometry of geometries) geometry.dispose();
+  }
+
+  private releaseEnvironmentAsset(assetId: string, asset: {
+    root: THREE.Group;
+    mixer: THREE.AnimationMixer | null;
+    animationRoot: THREE.Object3D | null;
+    zone: "lobby" | "arena";
+    minQuality: "low" | "medium" | "high";
+    spinSpeed: number;
+  }): void {
+    asset.mixer?.stopAllAction();
+    if (asset.mixer && asset.animationRoot) asset.mixer.uncacheRoot(asset.animationRoot);
+    asset.root.removeFromParent();
+    this.disposeEnvironmentObject(asset.root);
+    this.environmentAssetRecords.delete(assetId);
+    this.environmentAssetLoaded.delete(assetId);
+  }
+
   private async loadEnvironmentAsset(definition: EnvironmentAssetDefinition): Promise<void> {
     const url = getEnvironmentAssetUrl(definition.file);
     this.environmentAssetLoadingIds.add(definition.id);
@@ -1423,26 +1466,13 @@ export class World {
       loader.setMeshoptDecoder(MeshoptDecoder);
       const gltf = await loader.loadAsync(url);
       if (this.destroyed) {
-        const geometries = new Set<THREE.BufferGeometry>();
-        const materials = new Set<THREE.Material>();
-        const textures = new Set<THREE.Texture>();
-        gltf.scene.traverse((node) => {
-          const mesh = node as THREE.Object3D & {
-            geometry?: THREE.BufferGeometry;
-            material?: THREE.Material | THREE.Material[];
-          };
-          if (mesh.geometry instanceof THREE.BufferGeometry) geometries.add(mesh.geometry);
-          const nodeMaterials = Array.isArray(mesh.material) ? mesh.material : mesh.material ? [mesh.material] : [];
-          for (const material of nodeMaterials) {
-            materials.add(material);
-            for (const value of Object.values(material)) {
-              if (value instanceof THREE.Texture) textures.add(value);
-            }
-          }
-        });
-        for (const texture of textures) texture.dispose();
-        for (const material of materials) material.dispose();
-        for (const geometry of geometries) geometry.dispose();
+        this.disposeEnvironmentObject(gltf.scene);
+        return;
+      }
+      // Quality can change while a GLB is in flight. Discard out-of-tier downloads
+      // immediately instead of keeping expensive textures in memory on a low preset.
+      if (!getEnvironmentAssetsForQuality(this.quality).some((asset) => asset.id === definition.id)) {
+        this.disposeEnvironmentObject(gltf.scene);
         return;
       }
 
@@ -1602,8 +1632,14 @@ export class World {
     if (!preserveAdaptiveState) this.adaptiveQualityState = createAdaptiveQualityState();
     const high = q === "high";
     const qualityAllowedAssetIds = new Set(getEnvironmentAssetsForQuality(q).map((definition) => definition.id));
-    for (const [assetId, asset] of this.environmentAssetRecords) {
-      asset.root.visible = qualityAllowedAssetIds.has(assetId);
+    for (const [assetId, asset] of [...this.environmentAssetRecords.entries()]) {
+      if (!qualityAllowedAssetIds.has(assetId)) {
+        // A quality downgrade should release textures and geometry, not merely hide
+        // models and keep their GPU allocations alive on a memory-constrained phone.
+        this.releaseEnvironmentAsset(assetId, asset);
+        continue;
+      }
+      asset.root.visible = true;
       asset.root.traverse((node) => {
         if (node instanceof THREE.Mesh) {
           node.castShadow = high;
