@@ -13,16 +13,35 @@ describe("MVM environment asset registry", () => {
     expect(MVM_ENVIRONMENT_ASSETS.every((asset) => asset.file.endsWith(".glb"))).toBe(true);
   });
 
-  it("keeps tiered loading bounded for lower-end devices", () => {
-    expect(getEnvironmentAssetsForQuality("low")).toHaveLength(4);
-    expect(getEnvironmentAssetsForQuality("medium")).toHaveLength(10);
+  it("keeps tiered loading bounded while retaining the authored expansion entry and centerpiece", () => {
+    // Low includes both worlds' minimum landmarks, but not all of the expensive perimeter kit.
+    expect(getEnvironmentAssetsForQuality("low")).toHaveLength(6);
+    expect(getEnvironmentAssetsForQuality("low").some((asset) => asset.id === "Spawn_Beacon_Platform")).toBe(true);
+    expect(getEnvironmentAssetsForQuality("low").some((asset) => asset.id === "Eclipse_Ring_Arena")).toBe(true);
+    expect(getEnvironmentAssetsForQuality("medium")).toHaveLength(12);
     expect(getEnvironmentAssetsForQuality("high")).toHaveLength(18);
   });
 
-  it("places both lobby landmarks and arena scenery in the scene plan", () => {
-    expect(MVM_ENVIRONMENT_ASSETS.some((asset) => asset.zone === "lobby")).toBe(true);
-    expect(MVM_ENVIRONMENT_ASSETS.some((asset) => asset.zone === "arena")).toBe(true);
-    expect(MVM_ENVIRONMENT_ASSETS.every((asset) => asset.targetExtent > 0)).toBe(true);
+  it("assigns all models to intentional world zones with a gameplay purpose", () => {
+    const lobby = MVM_ENVIRONMENT_ASSETS.filter((asset) => asset.zone === "lobby");
+    const arena = MVM_ENVIRONMENT_ASSETS.filter((asset) => asset.zone === "arena");
+    const rift = MVM_ENVIRONMENT_ASSETS.filter((asset) => asset.zone === "rift");
+
+    expect(lobby).toHaveLength(6);
+    expect(arena).toHaveLength(0);
+    expect(rift).toHaveLength(12);
+    expect(MVM_ENVIRONMENT_ASSETS.every((asset) => asset.targetExtent >= 3)).toBe(true);
+    expect(MVM_ENVIRONMENT_ASSETS.every((asset) => asset.purpose.trim().length > 35)).toBe(true);
+    expect(MVM_ENVIRONMENT_ASSETS.every((asset) => asset.feature.trim().length > 3)).toBe(true);
+    expect(new Set(MVM_ENVIRONMENT_ASSETS.map((asset) => asset.purpose)).size).toBe(18);
+    expect(MVM_ENVIRONMENT_ASSETS.filter((asset) => asset.zone === "rift").every((asset) => asset.feature.startsWith("Rift Expanse"))).toBe(true);
+  });
+
+  it("uses the world scale and authored motion only for explicitly designated assets", () => {
+    expect(MVM_ENVIRONMENT_ASSETS.find((asset) => asset.id === "Eclipse_Ring_Arena")?.targetExtent).toBeGreaterThanOrEqual(17);
+    expect(MVM_ENVIRONMENT_ASSETS.find((asset) => asset.id === "Rift_Rail_Bridge")?.targetExtent).toBeGreaterThanOrEqual(10);
+    expect(MVM_ENVIRONMENT_ASSETS.find((asset) => asset.id === "Voidstone_Meteor")?.motion).toBe("spin");
+    expect(MVM_ENVIRONMENT_ASSETS.find((asset) => asset.id === "Rift_Gate_Arch")?.motion).toBe("static");
   });
 
   it("serves each asset from the public arena directory", () => {
