@@ -232,6 +232,8 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   const [stickOffset, setStickOffset] = useState({ x: 0, y: 0 });
   const [nearbyRival, setNearbyRival] = useState<number | null>(null);
   const nearbyRivalRef = useRef<number | null>(null);
+  const [riftGateNearby, setRiftGateNearby] = useState(false);
+  const riftGateNearbyRef = useRef(false);
   const [opponentName, setOpponentName] = useState("NovaByte");
   const [adminBallA, setAdminBallA] = useState("chatgpt_ember_ledger");
   const [adminBallB, setAdminBallB] = useState("chatgpt_void_covenant");
@@ -278,6 +280,8 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
     facingRef.current = nextMap === "rift" ? Math.PI : 0;
     nearbyRivalRef.current = null;
     setNearbyRival(null);
+    riftGateNearbyRef.current = false;
+    setRiftGateNearby(false);
     sfx("click");
     setNotice(nextMap === "rift"
       ? "Rift Expanse loaded · free-roam map. Duels still use the dedicated combat arena."
@@ -618,6 +622,11 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         const target = e.target;
         const editingText = target instanceof HTMLElement &&
           (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+        if (!editingText && key === "e" && riftGateNearbyRef.current && !sessionRef.current) {
+          e.preventDefault();
+          toggleActiveMap();
+          return;
+        }
         if (!editingText && key === "h" && !sessionRef.current) {
           e.preventDefault();
           hiEmoteUntilRef.current = performance.now() + 2400;
@@ -689,11 +698,17 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
               sfx("footstep");
             }
             const mapLimit = activeMapRef.current === "rift" ? 18.6 : 13;
-          const mapDepth = activeMapRef.current === "rift" ? 18.6 : 12;
+          const mapDepth = activeMapRef.current === "rift" ? 18.6 : 15.5;
           playerPosRef.current = {
             x: Math.max(-mapLimit, Math.min(mapLimit, playerPosRef.current.x + dx * dt * 5.5)),
             z: Math.max(-mapDepth, Math.min(mapDepth, playerPosRef.current.z + dz * dt * 5.5)),
           };
+          }
+          const gateZ = activeMapRef.current === "lobby" ? -12.6 : -17.0;
+          const gateNearby = Math.hypot(playerPosRef.current.x, playerPosRef.current.z - gateZ) <= 3.3;
+          if (riftGateNearbyRef.current !== gateNearby) {
+            riftGateNearbyRef.current = gateNearby;
+            setRiftGateNearby(gateNearby);
           }
           let near = -1;
           if (activeMapRef.current === "lobby") {
@@ -948,7 +963,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
               <span aria-hidden="true" style={{ display: "grid", placeItems: "center", width: 38, height: 38, flex: "0 0 38px", borderRadius: 7, background: "#0a1420", border: "1px solid #2b5165", color: "#73e7fa", fontSize: 20 }}>{activeMap === "rift" ? "⌂" : "⟁"}</span>
               <span style={{ display: "grid", gap: 4, minWidth: 0 }}>
                 <strong style={{ fontSize: 11, letterSpacing: ".08em" }}>{activeMap === "rift" ? "RETURN TO SOCIAL LOBBY" : "EXPLORE RIFT EXPANSE"}</strong>
-                <small style={{ color: "#9bafc4", fontSize: 10, lineHeight: 1.35 }}>{activeMap === "rift" ? "Back to the spawn deck and rivals" : "New authored map · 12 world landmarks"}</small>
+                <small style={{ color: "#9bafc4", fontSize: 10, lineHeight: 1.35 }}>{riftGateNearby ? "PRESS E TO USE THE NEARBY GATE" : activeMap === "rift" ? "Return via the Titan Gate or switch maps here" : "New authored map · 12 world landmarks"}</small>
               </span>
             </span>
             <span aria-hidden="true" style={{ color: "#7deaff", fontSize: 20 }}>↗</span>
