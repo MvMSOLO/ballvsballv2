@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
+import { getEnvironmentAssetUrl, getEnvironmentAssetsForQuality, type EnvironmentAssetDefinition } from "./arena-assets";
 import type { BallDef } from "../sim/types";
 import type { FrameEnt, FrameFx } from "../game/session";
 import { previewAim } from "../sim/engine";
@@ -1265,6 +1267,18 @@ export class World {
   host: HTMLElement;
   private clock = 0;
   private destroyed = false;
+  private environmentAssetRecords = new Map<string, {
+    root: THREE.Group;
+    mixer: THREE.AnimationMixer | null;
+    animationRoot: THREE.Object3D | null;
+    zone: "lobby" | "arena";
+    spinSpeed: number;
+  }>();
+  private environmentAssetLoaded = new Set<string>();
+  private environmentAssetFailed = new Set<string>();
+  private environmentAssetLoadingIds = new Set<string>();
+  private environmentAssetPackCheck: Promise<boolean> | null = null;
+  private environmentAssetQueueRunning = false;
   finisherBall = new THREE.Vector3();
 
   constructor(host: HTMLElement) {
@@ -1346,6 +1360,150 @@ export class World {
     this.aimLine.visible = false;
     this.arena.add(this.aimLine);
     this.resize();
+    this.syncEnvironmentAssetsForQuality();
+  }
+
+  private hasEnvironmentAssetPack(): Promise<boolean> {
+    if (!this.environmentAssetPackCheck) {
+      // One tiny HEAD probe avoids firing a wall of 404 requests when a deployment
+      // has not received the optional GLB pack yet.
+      this.environmentAssetPackCheck = fetch(getEnvironmentAssetUrl("Spawn_Beacon_Platform.glb"), {
+        method: "HEAD",
+        cache: "force-cache",
+      }).then((response) => response.ok).catch(() => false);
+    }
+    return this.environmentAssetPackCheck;
+  }
+
+  private syncEnvironmentAssetsForQuality(): void {
+    if (this.destroyed || this.environmentAssetQueueRunning) return;
+    this.environmentAssetQueueRunning = true;
+
+    void (async () => {
+      try {
+        if (!(await this.hasEnvironmentAssetPack()) || this.destroyed) return;
+
+        // Keep loading serial: mobile browsers should decode one textured GLB at a
+        // time instead of competing for memory with the rest of the initial scene.
+        while (!this.destroyed) {
+          const next = getEnvironmentAssetsForQuality(this.quality).find(
+            (asset) => !this.environmentAssetLoaded.has(asset.id)
+              && !this.environmentAssetFailed.has(asset.id)
+              && !this.environmentAssetLoadingIds.has(asset.id),
+          );
+          if (!next) break;
+          await this.loadEnvironmentAsset(next);
+        }
+      } finally {
+        this.environmentAssetQueueRunning = false;
+        if (!this.destroyed && getEnvironmentAssetsForQuality(this.quality).some(
+          (asset) => !this.environmentAssetLoaded.has(asset.id)
+            && !this.environmentAssetFailed.has(asset.id),
+        )) {
+          queueMicrotask(() => this.syncEnvironmentAssetsForQuality());
+        }
+      }
+    })();
+  }
+
+  private async loadEnvironmentAsset(definition: EnvironmentAssetDefinition): Promise<void> {
+    const url = getEnvironmentAssetUrl(definition.file);
+    this.environmentAssetLoadingIds.add(definition.id);
+
+    try {
+      const loader = new GLTFLoader();
+      loader.setMeshoptDecoder(MeshoptDecoder);
+      const gltf = await loader.loadAsync(url);
+      if (this.destroyed) {
+        const geometries = new Set<THREE.BufferGeometry>();
+        const materials = new Set<THREE.Material>();
+        const textures = new Set<THREE.Texture>();
+        gltf.scene.traverse((node) => {
+          const mesh = node as THREE.Object3D & {
+            geometry?: THREE.BufferGeometry;
+            material?: THREE.Material | THREE.Material[];
+          };
+          if (mesh.geometry instanceof THREE.BufferGeometry) geometries.add(mesh.geometry);
+          const nodeMaterials = Array.isArray(mesh.material) ? mesh.material : mesh.material ? [mesh.material] : [];
+          for (const material of nodeMaterials) {
+            materials.add(material);
+            for (const value of Object.values(material)) {
+              if (value instanceof THREE.Texture) textures.add(value);
+            }
+          }
+        });
+        for (const texture of textures) texture.dispose();
+        for (const material of materials) material.dispose();
+        for (const geometry of geometries) geometry.dispose();
+        return;
+      }
+
+      const model = gltf.scene;
+      model.name = `mvm-environment-model:${definition.id}`;
+      model.updateMatrixWorld(true);
+      const bounds = new THREE.Box3().setFromObject(model);
+      const dimensions = bounds.getSize(new THREE.Vector3());
+      const sourceExtent = Math.max(dimensions.x, dimensions.y, dimensions.z);
+      if (!Number.isFinite(sourceExtent) || sourceExtent < 0.01) {
+        throw new Error(`GLB has no measurable geometry: ${definition.file}`);
+      }
+
+      // Every source is normalized by its actual bounds, rather than trusting an
+      // assumed unit scale. This also handles the untouched meshopt BOPPO source.
+      const scale = definition.targetExtent / sourceExtent;
+      const center = bounds.getCenter(new THREE.Vector3());
+      const fit = new THREE.Group();
+      fit.name = `mvm-environment-fit:${definition.id}`;
+      fit.scale.setScalar(scale);
+      fit.position.set(-center.x * scale, -bounds.min.y * scale, -center.z * scale);
+      fit.add(model);
+
+      const root = new THREE.Group();
+      root.name = `mvm-environment:${definition.id}`;
+      root.position.set(...definition.position);
+      root.rotation.y = definition.rotationY;
+      root.add(fit);
+
+      model.traverse((node) => {
+        if (node instanceof THREE.Mesh) {
+          node.castShadow = this.quality === "high";
+          node.receiveShadow = this.quality === "high";
+          node.frustumCulled = true;
+        }
+      });
+
+      const zone = definition.zone === "lobby" ? this.lobby : this.arena;
+      zone.add(root);
+
+      // Large scenery pieces use a subtle parent spin instead of a scaled hover
+      // clip. Small objects can safely play their authored 4-second showcase loop.
+      const clip = gltf.animations.find((candidate) => candidate.name === "Idle_Showcase_Loop");
+      let mixer: THREE.AnimationMixer | null = null;
+      let animationRoot: THREE.Object3D | null = null;
+      const canPlayShowcase = definition.motion === "showcase" && Boolean(clip) && scale <= 1.55;
+      if (canPlayShowcase && clip) {
+        mixer = new THREE.AnimationMixer(model);
+        mixer.clipAction(clip).setLoop(THREE.LoopRepeat, Infinity).play();
+        animationRoot = model;
+      }
+
+      this.environmentAssetRecords.set(definition.id, {
+        root,
+        mixer,
+        animationRoot,
+        zone: definition.zone,
+        spinSpeed: definition.motion === "spin" || (definition.motion === "showcase" && !canPlayShowcase)
+          ? definition.spinSpeed ?? 0.025
+          : 0,
+      });
+      this.environmentAssetLoaded.add(definition.id);
+      console.info("[Ball Arena] MVM environment asset ready.", { id: definition.id, zone: definition.zone, quality: this.quality });
+    } catch (error) {
+      this.environmentAssetFailed.add(definition.id);
+      console.warn("[Ball Arena] Optional MVM environment asset could not load.", { id: definition.id, url, error });
+    } finally {
+      this.environmentAssetLoadingIds.delete(definition.id);
+    }
   }
 
   private loadBoppoAvatar(rig: Rig): void {
@@ -1432,6 +1590,16 @@ export class World {
     this.quality = q;
     this.auto = auto;
     if (!preserveAdaptiveState) this.adaptiveQualityState = createAdaptiveQualityState();
+    const high = q === "high";
+    for (const asset of this.environmentAssetRecords.values()) {
+      asset.root.traverse((node) => {
+        if (node instanceof THREE.Mesh) {
+          node.castShadow = high;
+          node.receiveShadow = high;
+        }
+      });
+    }
+    this.syncEnvironmentAssetsForQuality();
     const high = q === "high";
     this.renderer.shadowMap.enabled = high;
     this.key.castShadow = high;
@@ -1930,6 +2098,13 @@ export class World {
     if (!draw.reduceMotion && draw.mode === "arena" && this.arenaCenterSignal) {
       this.arenaCenterSignal.material.opacity = 0.52 + (Math.sin(this.clock * 2.1) + 1) * 0.07;
     }
+    // Environment motion is presentation-only: it never enters deterministic combat
+    // state and runs only for assets belonging to the currently visible scene.
+    for (const asset of this.environmentAssetRecords.values()) {
+      if (asset.zone !== draw.mode) continue;
+      if (!draw.reduceMotion && asset.mixer) asset.mixer.update(Math.min(dt, 0.05));
+      else if (!draw.reduceMotion && asset.spinSpeed) asset.root.rotation.y += dt * asset.spinSpeed;
+    }
     if (draw.showcase && draw.mode === "lobby") {
       if (this.lobbyBallId !== draw.showcase.id || !this.lobbyBall) {
         if (this.lobbyBall) this.lobby.remove(this.lobbyBall);
@@ -2412,6 +2587,11 @@ export class World {
 
   destroy(): void {
     this.destroyed = true;
+    for (const asset of this.environmentAssetRecords.values()) {
+      asset.mixer?.stopAllAction();
+      if (asset.mixer && asset.animationRoot) asset.mixer.uncacheRoot(asset.animationRoot);
+    }
+    this.environmentAssetRecords.clear();
     // Dispose scene and cached templates explicitly on route teardown. Mesh clones share
     // resources, so Sets ensure that each GPU-backed object is disposed only once.
     const geometries = new Set<THREE.BufferGeometry>();
