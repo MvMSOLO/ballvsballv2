@@ -2007,7 +2007,7 @@ export class World {
       [14.2, 1.0, 2.45, cyanLineMaterial],
     ] as const) {
       const pad = new THREE.Mesh(
-        new THREE.CylinderGeometry(radius, radius + 0.24, 0.2, 8),
+        new THREE.CylinderGeometry(radius, radius + 0.24, 0.06, 8),
         new THREE.MeshStandardMaterial({
           color: "#20213a",
           roughness: 0.38,
@@ -2016,14 +2016,16 @@ export class World {
           emissiveIntensity: 0.18,
         }),
       );
-      pad.position.set(x, 0.12, z);
+      // Keep each pad just below the GLB's normalized base so the asset itself
+      // remains visible; a raised disk here would cut through the model floor.
+      pad.position.set(x, -0.02, z);
       pad.castShadow = true;
       pad.receiveShadow = true;
       this.rift.add(pad);
 
       const padRing = new THREE.Mesh(new THREE.RingGeometry(radius - 0.1, radius, 8), material);
       padRing.rotation.x = -Math.PI / 2;
-      padRing.position.set(x, 0.225, z);
+      padRing.position.set(x, 0.013, z);
       this.rift.add(padRing);
     }
 
