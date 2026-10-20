@@ -1451,7 +1451,7 @@ export class World {
     root: THREE.Group;
     mixer: THREE.AnimationMixer | null;
     animationRoot: THREE.Object3D | null;
-    zone: "lobby" | "arena";
+    zone: "lobby" | "arena" | "rift";
     minQuality: "low" | "medium" | "high";
     spinSpeed: number;
   }): void {
