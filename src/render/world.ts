@@ -1514,7 +1514,6 @@ export class World {
       });
 
       const zone = definition.zone === "lobby" ? this.lobby : this.arena;
-      zone.add(root);
 
       // Large scenery pieces use a subtle parent spin instead of a scaled hover
       // clip. Small objects can safely play their authored 4-second showcase loop.
@@ -1528,6 +1527,9 @@ export class World {
         animationRoot = model;
       }
 
+      // Attach only after geometry bounds, materials and optional animation setup
+      // are complete, so an initialization error cannot leave a half-added model.
+      zone.add(root);
       root.visible = getEnvironmentAssetsForQuality(this.quality).some((asset) => asset.id === definition.id);
       this.environmentAssetRecords.set(definition.id, {
         root,
