@@ -1600,7 +1600,6 @@ export class World {
       });
     }
     this.syncEnvironmentAssetsForQuality();
-    const high = q === "high";
     this.renderer.shadowMap.enabled = high;
     this.key.castShadow = high;
     if (high) {
