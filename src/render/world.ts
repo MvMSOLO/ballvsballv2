@@ -2112,7 +2112,7 @@ export class World {
     // Environment motion is presentation-only: it never enters deterministic combat
     // state and runs only for assets belonging to the currently visible scene.
     for (const asset of this.environmentAssetRecords.values()) {
-      if (asset.zone !== draw.mode) continue;
+      if (!asset.root.visible || asset.zone !== draw.mode) continue;
       if (!draw.reduceMotion && asset.mixer) asset.mixer.update(Math.min(dt, 0.05));
       else if (!draw.reduceMotion && asset.spinSpeed) asset.root.rotation.y += dt * asset.spinSpeed;
     }
