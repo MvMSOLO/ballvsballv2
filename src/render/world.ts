@@ -1272,6 +1272,7 @@ export class World {
     mixer: THREE.AnimationMixer | null;
     animationRoot: THREE.Object3D | null;
     zone: "lobby" | "arena";
+    minQuality: "low" | "medium" | "high";
     spinSpeed: number;
   }>();
   private environmentAssetLoaded = new Set<string>();
@@ -1494,11 +1495,13 @@ export class World {
         animationRoot = model;
       }
 
+      root.visible = getEnvironmentAssetsForQuality(this.quality).some((asset) => asset.id === definition.id);
       this.environmentAssetRecords.set(definition.id, {
         root,
         mixer,
         animationRoot,
         zone: definition.zone,
+        minQuality: definition.minQuality,
         spinSpeed: definition.motion === "spin" || (definition.motion === "showcase" && !canPlayShowcase)
           ? definition.spinSpeed ?? 0.025
           : 0,
@@ -1598,7 +1601,9 @@ export class World {
     this.auto = auto;
     if (!preserveAdaptiveState) this.adaptiveQualityState = createAdaptiveQualityState();
     const high = q === "high";
-    for (const asset of this.environmentAssetRecords.values()) {
+    const qualityAllowedAssetIds = new Set(getEnvironmentAssetsForQuality(q).map((definition) => definition.id));
+    for (const [assetId, asset] of this.environmentAssetRecords) {
+      asset.root.visible = qualityAllowedAssetIds.has(assetId);
       asset.root.traverse((node) => {
         if (node instanceof THREE.Mesh) {
           node.castShadow = high;
