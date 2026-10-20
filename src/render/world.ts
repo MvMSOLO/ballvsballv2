@@ -30,7 +30,7 @@ export interface DrawBot {
 }
 
 export interface DrawState {
-  mode: "lobby" | "arena";
+  mode: "lobby" | "arena" | "rift";
   px: number;
   pz: number;
   face: number;
@@ -1231,6 +1231,7 @@ export class World {
   camera = new THREE.PerspectiveCamera(48, 1, 0.1, 180);
   lobby = new THREE.Group();
   arena = new THREE.Group();
+  rift = new THREE.Group();
   player: Rig;
   crowd: Rig[] = [];
   pads: THREE.Mesh[] = [];
@@ -1271,7 +1272,7 @@ export class World {
     root: THREE.Group;
     mixer: THREE.AnimationMixer | null;
     animationRoot: THREE.Object3D | null;
-    zone: "lobby" | "arena";
+    zone: "lobby" | "arena" | "rift";
     minQuality: "low" | "medium" | "high";
     spinSpeed: number;
   }>();
@@ -1319,6 +1320,7 @@ export class World {
     this.loadBoppoAvatar(this.player);
     this.buildLobby();
     this.buildArena();
+    this.buildRiftExpanse();
     this.lobbyWater = this.lobby.getObjectByName("water") as THREE.Mesh | null;
     this.lobbyCrownRing = this.lobby.getObjectByName("lobby-crown-ring") as THREE.Mesh<
       THREE.TorusGeometry,
@@ -1342,8 +1344,9 @@ export class World {
       this.trailPool.push({ mesh, material, age: 0, duration: 0.3, active: false, baseOpacity: 0.2, baseScale: 1 });
       this.arena.add(mesh);
     }
-    this.scene.add(this.lobby, this.arena);
+    this.scene.add(this.lobby, this.arena, this.rift);
     this.arena.visible = false;
+    this.rift.visible = false;
     const blobGeo = new THREE.CircleGeometry(1, 16);
     const blobMat = new THREE.MeshBasicMaterial({ map: blobTexture(), transparent: true, depthWrite: false });
     this.blob = new THREE.Mesh(blobGeo, blobMat);
@@ -1448,7 +1451,7 @@ export class World {
     root: THREE.Group;
     mixer: THREE.AnimationMixer | null;
     animationRoot: THREE.Object3D | null;
-    zone: "lobby" | "arena";
+    zone: "lobby" | "arena" | "rift";
     minQuality: "low" | "medium" | "high";
     spinSpeed: number;
   }): void {
@@ -1513,7 +1516,7 @@ export class World {
         }
       });
 
-      const zone = definition.zone === "lobby" ? this.lobby : this.arena;
+      const zone = definition.zone === "lobby" ? this.lobby : definition.zone === "arena" ? this.arena : this.rift;
 
       // Large scenery pieces use a subtle parent spin instead of a scaled hover
       // clip. Small objects can safely play their authored 4-second showcase loop.
@@ -1704,12 +1707,8 @@ export class World {
     rim.rotation.x = -Math.PI / 2;
     rim.position.y = 0.02;
     this.lobby.add(rim);
-    const podium = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.35, 1.6, 0.28, 28),
-      new THREE.MeshStandardMaterial({ color: "#1c212c", roughness: 0.28, metalness: 0.7, emissive: "#ff7a45", emissiveIntensity: 0.18 }),
-    );
-    podium.position.y = 0.14;
-    this.lobby.add(podium);
+    // Spawn_Beacon_Platform.glb owns the central arrival deck now.
+    // Do not stack the old procedural podium through the authored platform.
     const standMat = new THREE.MeshStandardMaterial({ color: "#1a1f2b", roughness: 0.7, metalness: 0.2 });
     for (let tier = 0; tier < 3; tier++) {
       const geo = new THREE.RingGeometry(16.6 + tier * 1.15, 17.5 + tier * 1.15, 48);
@@ -1900,6 +1899,191 @@ export class World {
       this.crowd.push(rig);
       this.lobby.add(rig.group);
     }
+  }
+
+  /**
+   * Rift Expanse is a separate authored world, not a pile of spare lobby props.
+   * Its own floor, route markings, perimeter pylons and landmarks make the 12
+   * Rift-owned GLBs read as one environment. Movement is free-roam; duels still
+   * transition into the deterministic combat arena.
+   */
+  private buildRiftExpanse(): void {
+    this.rift.name = "MVM Rift Expanse";
+    const floor = new THREE.Mesh(
+      new THREE.CircleGeometry(22, 8),
+      new THREE.MeshStandardMaterial({
+        color: "#111625",
+        roughness: 0.42,
+        metalness: 0.72,
+        emissive: "#0a1024",
+        emissiveIntensity: 0.22,
+      }),
+    );
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    floor.name = "rift-expanse-floor";
+    this.rift.add(floor);
+
+    const floorInset = new THREE.Mesh(
+      new THREE.CircleGeometry(18.6, 8),
+      new THREE.MeshStandardMaterial({
+        color: "#17182a",
+        roughness: 0.55,
+        metalness: 0.58,
+        emissive: "#171034",
+        emissiveIntensity: 0.16,
+      }),
+    );
+    floorInset.rotation.x = -Math.PI / 2;
+    floorInset.position.y = 0.018;
+    this.rift.add(floorInset);
+
+    const outerRimMaterial = new THREE.MeshStandardMaterial({
+      color: "#322750",
+      emissive: "#7047bd",
+      emissiveIntensity: 0.52,
+      roughness: 0.3,
+      metalness: 0.66,
+    });
+    const cyanLineMaterial = new THREE.MeshBasicMaterial({
+      color: "#58dff8",
+      transparent: true,
+      opacity: 0.72,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const violetLineMaterial = new THREE.MeshBasicMaterial({
+      color: "#ab78ff",
+      transparent: true,
+      opacity: 0.68,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+
+    const outerRim = new THREE.Mesh(new THREE.RingGeometry(20.15, 20.46, 8), outerRimMaterial);
+    outerRim.rotation.x = -Math.PI / 2;
+    outerRim.position.y = 0.045;
+    this.rift.add(outerRim);
+
+    for (const [inner, outer, material] of [
+      [15.2, 15.28, cyanLineMaterial],
+      [9.25, 9.34, violetLineMaterial],
+      [4.9, 4.96, cyanLineMaterial],
+    ] as const) {
+      const ring = new THREE.Mesh(new THREE.RingGeometry(inner, outer, 96), material);
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.y = 0.06;
+      this.rift.add(ring);
+    }
+
+    // Twelve radial guide rails orient players toward the Eclipse Ring without
+    // painting over the model or creating a visually noisy floor.
+    const guide = new THREE.InstancedMesh(
+      new THREE.BoxGeometry(0.055, 0.018, 5.5),
+      cyanLineMaterial,
+      12,
+    );
+    const transform = new THREE.Object3D();
+    for (let i = 0; i < 12; i++) {
+      const angle = (i / 12) * Math.PI * 2;
+      transform.position.set(Math.cos(angle) * 12.0, 0.065, Math.sin(angle) * 12.0);
+      transform.rotation.set(0, -angle, 0);
+      transform.updateMatrix();
+      guide.setMatrixAt(i, transform.matrix);
+    }
+    guide.instanceMatrix.needsUpdate = true;
+    this.rift.add(guide);
+
+    // Deliberate raised pads underneath the two secondary landmarks give them
+    // a believable installation site, rather than leaving them on arbitrary points.
+    for (const [x, z, radius, material] of [
+      [-7.6, 2.7, 4.1, violetLineMaterial],
+      [7.6, -4.5, 3.7, cyanLineMaterial],
+      [-14.4, -6.4, 2.6, violetLineMaterial],
+      [14.3, -5.7, 2.8, cyanLineMaterial],
+      [-14.1, 8.2, 2.75, cyanLineMaterial],
+      [14.1, 8.4, 2.8, violetLineMaterial],
+      [-10.7, 1.2, 2.25, violetLineMaterial],
+      [14.2, 1.0, 2.45, cyanLineMaterial],
+    ] as const) {
+      const pad = new THREE.Mesh(
+        new THREE.CylinderGeometry(radius, radius + 0.24, 0.06, 8),
+        new THREE.MeshStandardMaterial({
+          color: "#20213a",
+          roughness: 0.38,
+          metalness: 0.76,
+          emissive: "#2b1b45",
+          emissiveIntensity: 0.18,
+        }),
+      );
+      // Keep each pad just below the GLB's normalized base so the asset itself
+      // remains visible; a raised disk here would cut through the model floor.
+      pad.position.set(x, -0.02, z);
+      pad.castShadow = true;
+      pad.receiveShadow = true;
+      this.rift.add(pad);
+
+      const padRing = new THREE.Mesh(new THREE.RingGeometry(radius - 0.1, radius, 8), material);
+      padRing.rotation.x = -Math.PI / 2;
+      padRing.position.set(x, 0.013, z);
+      this.rift.add(padRing);
+    }
+
+    // Faceted perimeter pylons provide scale against the larger GLBs. Their
+    // count is fixed and low so this remains usable on lower-end phones.
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2 + Math.PI / 8;
+      const x = Math.cos(angle) * 19.05;
+      const z = Math.sin(angle) * 19.05;
+      const pylon = new THREE.Group();
+      pylon.position.set(x, 0, z);
+      const base = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.42, 0.56, 0.28, 6),
+        new THREE.MeshStandardMaterial({ color: "#22253a", metalness: 0.7, roughness: 0.38 }),
+      );
+      base.position.y = 0.14;
+      const shaft = new THREE.Mesh(
+        new THREE.BoxGeometry(0.18, 2.2, 0.18),
+        new THREE.MeshStandardMaterial({
+          color: "#26243d",
+          metalness: 0.68,
+          roughness: 0.33,
+          emissive: "#321f57",
+          emissiveIntensity: 0.42,
+        }),
+      );
+      shaft.position.y = 1.32;
+      const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.34, 0), i % 2 ? violetLineMaterial : cyanLineMaterial);
+      crystal.position.y = 2.56;
+      pylon.add(base, shaft, crystal);
+      this.rift.add(pylon);
+    }
+
+    // Very sparse distant stars establish this as an open-world expansion,
+    // visually distinct from the enclosed, machined duel arena.
+    const starPositions = new Float32Array(260 * 3);
+    for (let i = 0; i < 260; i++) {
+      const angle = i * 2.399963229728653;
+      const radius = 26 + (i % 13) * 2.25;
+      starPositions[i * 3] = Math.cos(angle) * radius;
+      starPositions[i * 3 + 1] = 5 + (i % 17) * 1.2;
+      starPositions[i * 3 + 2] = Math.sin(angle) * radius;
+    }
+    const starsGeometry = new THREE.BufferGeometry();
+    starsGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
+    const stars = new THREE.Points(
+      starsGeometry,
+      new THREE.PointsMaterial({
+        color: "#a4a9ff",
+        size: 0.13,
+        transparent: true,
+        opacity: 0.72,
+        sizeAttenuation: true,
+        depthWrite: false,
+      }),
+    );
+    stars.name = "rift-expanse-distant-stars";
+    this.rift.add(stars);
   }
 
   private buildArena(): void {
@@ -2119,33 +2303,53 @@ export class World {
     this.impactShake = draw.reduceMotion ? 0 : Math.max(0, this.impactShake - dt * 0.85);
     this.lobby.visible = draw.mode === "lobby";
     this.arena.visible = draw.mode === "arena";
-    if (draw.mode === "lobby") {
-      // The free-roam avatar and five rivals belong only to the lobby. Updating their
-      // articulated rigs while the entire lobby is hidden wastes CPU during every duel.
+    this.rift.visible = draw.mode === "rift";
+
+    // The controllable avatar moves between the lobby and the expansion map,
+    // rather than being trapped inside the hidden lobby group.
+    const playerParent = draw.mode === "rift" ? this.rift : this.lobby;
+    if (this.player.group.parent !== playerParent) {
+      this.player.group.removeFromParent();
+      playerParent.add(this.player.group);
+    }
+
+    if (draw.mode === "lobby" || draw.mode === "rift") {
       this.player.group.position.set(draw.px, 0, draw.pz);
       this.player.group.rotation.y = draw.face;
       this.paintAvatar(this.player, draw.colors);
-      if (!draw.reduceMotion || draw.moving || draw.emote || draw.running) tickRig(this.player, dt, draw.moving, draw.emote, draw.running === true);
-      this.updateNameTagFacing(this.player, true);
-      for (let i = 0; i < this.crowd.length; i++) {
-        const b = draw.bots[i];
-        const rig = this.crowd[i];
-        if (!b) {
-          rig.group.visible = false;
-          continue;
-        }
-        rig.group.visible = true;
-        rig.group.position.set(b.x, 0, b.z);
-        rig.group.rotation.y = b.yaw;
-        if (b.name && !rig.nameTag) {
-          rig.nameTag = makeNameTag(b.name, b.shirt);
-          rig.group.add(rig.nameTag);
-        }
-        if (!draw.reduceMotion || b.moving || b.emote) tickRig(rig, dt, b.moving, draw.reduceMotion ? "" : b.emote ? "wave" : "");
-        this.updateNameTagFacing(rig, false);
+      if (!draw.reduceMotion || draw.moving || draw.emote || draw.running) {
+        tickRig(this.player, dt, draw.moving, draw.emote, draw.running === true);
       }
-      if (!draw.reduceMotion && this.lobbyWater) this.lobbyWater.position.y = 0.05 + Math.sin(this.clock * 2) * 0.03;
-      if (!draw.reduceMotion && this.lobbyCrownRing) this.lobbyCrownRing.material.opacity = 0.68 + (Math.sin(this.clock * 1.15) + 1) * 0.09;
+      this.updateNameTagFacing(this.player, true);
+
+      if (draw.mode === "lobby") {
+        // Social rivals only live in the lobby; the Rift is a separate exploration map.
+        for (let i = 0; i < this.crowd.length; i++) {
+          const b = draw.bots[i];
+          const rig = this.crowd[i];
+          if (!b) {
+            rig.group.visible = false;
+            continue;
+          }
+          rig.group.visible = true;
+          rig.group.position.set(b.x, 0, b.z);
+          rig.group.rotation.y = b.yaw;
+          if (b.name && !rig.nameTag) {
+            rig.nameTag = makeNameTag(b.name, b.shirt);
+            rig.group.add(rig.nameTag);
+          }
+          if (!draw.reduceMotion || b.moving || b.emote) {
+            tickRig(rig, dt, b.moving, draw.reduceMotion ? "" : b.emote ? "wave" : "");
+          }
+          this.updateNameTagFacing(rig, false);
+        }
+        if (!draw.reduceMotion && this.lobbyWater) this.lobbyWater.position.y = 0.05 + Math.sin(this.clock * 2) * 0.03;
+        if (!draw.reduceMotion && this.lobbyCrownRing) {
+          this.lobbyCrownRing.material.opacity = 0.68 + (Math.sin(this.clock * 1.15) + 1) * 0.09;
+        }
+      } else {
+        for (const rival of this.crowd) rival.group.visible = false;
+      }
     }
     if (!draw.reduceMotion && draw.mode === "arena" && this.arenaCenterSignal) {
       this.arenaCenterSignal.material.opacity = 0.52 + (Math.sin(this.clock * 2.1) + 1) * 0.07;
@@ -2170,22 +2374,26 @@ export class World {
       if (!draw.reduceMotion) this.lobbyBall.rotation.y += dt;
       this.lobbyBall.visible = true;
     } else if (this.lobbyBall) this.lobbyBall.visible = false;
-    if (draw.mode === "lobby") {
-      // Slow, sub-degree camera parallax makes the lobby feel alive without affecting control aim.
-      const orbit = draw.reduceMotion ? 0 : this.clock * 0.12;
-      const dist = 9.2;
-      const desiredX = draw.px + Math.sin(orbit) * (draw.reduceMotion ? 0 : 0.32);
-      const desiredY = 5.15 + (draw.reduceMotion ? 0 : Math.sin(this.clock * 0.38) * 0.045);
-      const desiredZ = draw.pz + dist + Math.cos(orbit) * (draw.reduceMotion ? 0 : 0.18);
+    if (draw.mode === "arena") {
+      this.layoutArena(draw, dt);
+    } else {
+      const inRift = draw.mode === "rift";
+      // The expansion uses a slightly wider, higher follow camera to show its
+      // monumental ring and perimeter structures. It remains player-controlled.
+      const orbit = !inRift && !draw.reduceMotion ? this.clock * 0.12 : 0;
+      const dist = inRift ? 12.0 : 9.2;
+      const desiredX = draw.px + (inRift ? 0 : Math.sin(orbit) * (draw.reduceMotion ? 0 : 0.32));
+      const desiredY = (inRift ? 6.1 : 5.15) + (draw.reduceMotion ? 0 : Math.sin(this.clock * (inRift ? 0.22 : 0.38)) * 0.045);
+      const desiredZ = draw.pz + dist + (inRift ? 0 : Math.cos(orbit) * (draw.reduceMotion ? 0 : 0.18));
       this.camera.position.x += (desiredX - this.camera.position.x) * (1 - Math.exp(-2.8 * dt));
       this.camera.position.y += (desiredY - this.camera.position.y) * (1 - Math.exp(-2.8 * dt));
       this.camera.position.z += (desiredZ - this.camera.position.z) * (1 - Math.exp(-2.8 * dt));
-      this.camera.lookAt(draw.px + Math.sin(orbit) * 0.08, 1.25, draw.pz);
-      this.paintSpectate(draw.spectate);
+      this.camera.lookAt(draw.px + (inRift ? 0 : Math.sin(orbit) * 0.08), inRift ? 1.55 : 1.25, draw.pz);
+      if (draw.mode === "lobby") this.paintSpectate(draw.spectate);
       this.aimLine.visible = false;
       for (const g of this.ballGroups) g.visible = false;
-    } else {
-      this.layoutArena(draw, dt);
+      this.blob.visible = false;
+      for (const blob of this.blobs) blob.visible = false;
     }
     this.updateCombatEffects(draw.effects, dt, Boolean(draw.reduceMotion));
     this.updateBattleTrails(draw, dt);

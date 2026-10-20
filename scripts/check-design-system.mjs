@@ -63,7 +63,12 @@ assert.ok(worldRenderer.includes("antialias: false"), "WebGL renderer must avoid
 assert.ok(worldRenderer.includes("update(dt: number, draw: DrawState, frameDeltaMs = dt * 1000)"), "Adaptive quality must receive the real animation-frame interval");
 assert.ok(worldRenderer.includes("Math.min(50, Math.max(updateCostMs, Math.max(0, frameDeltaMs)))"), "Adaptive quality must account for GPU-bound pacing and cap resume spikes");
 assert.ok(worldRenderer.includes("if (this.battleTrailsActive)"), "Idle lobby frames must not reset the full battle-trail pool");
-assert.ok(worldRenderer.includes('if (draw.mode === "lobby") {\n      // The free-roam avatar and five rivals belong only to the lobby.'), "Hidden lobby rigs must not animate during duel frames");
+assert.ok(
+  worldRenderer.includes('if (draw.mode === "lobby" || draw.mode === "rift") {\n      this.player.group.position.set(draw.px, 0, draw.pz);')
+    && worldRenderer.includes('if (draw.mode === "lobby") {\n        // Social rivals only live in the lobby; the Rift is a separate exploration map.'),
+  "Free-roam avatar must work in both exploration maps while social rivals stay in the lobby",
+);
+assert.ok(worldRenderer.includes('this.rift.visible = draw.mode === "rift"') && worldRenderer.includes('this.buildRiftExpanse()'), "Rift Expanse must be a separate renderable world, not lobby props");
 assert.ok(worldRenderer.includes("this.lobbyWater = this.lobby.getObjectByName(\"water\")"), "Static decorative scene nodes should be cached once");
 assert.ok(tokens.includes(".match-hud .lobby-button { position: relative; top: -3px; }"), "Short landscape duel lobby button must stay inside the viewport");
 assert.ok(worldRenderer.includes("collectResources(this.scene)"), "Scene resources must be explicitly disposed on route teardown");
@@ -101,7 +106,12 @@ assert.ok(worldRenderer.includes("new THREE.PointsMaterial"), "Background stars 
 assert.ok(worldRenderer.includes('name = "arena-force-field"'), "Arena force field must stay above, not intersect, fighters");
 assert.ok(worldRenderer.includes('name = "arena-graphic-inlays"'), "Arena floor needs broadcast-style spatial markings");
 assert.ok(worldRenderer.includes('name = "arena-center-signal"'), "Arena center signal should have a controlled pulse");
-assert.ok(worldRenderer.includes("const orbit = draw.reduceMotion ? 0 : this.clock * 0.12") && worldRenderer.includes("draw.reduceMotion ? 0 : Math.sin(this.clock * 0.38)"), "Lobby camera must use subtle parallax and disable ornamental motion when reduced motion is active");
+assert.ok(
+  worldRenderer.includes("const orbit = !inRift && !draw.reduceMotion ? this.clock * 0.12 : 0")
+    && worldRenderer.includes("const desiredY = (inRift ? 6.1 : 5.15)")
+    && worldRenderer.includes("draw.reduceMotion ? 0 : Math.sin(this.clock * (inRift ? 0.22 : 0.38))"),
+  "Lobby camera keeps subtle parallax while Rift uses a wider camera and both respect reduced-motion preferences",
+);
 assert.ok(homeRoute.includes('x: -1.8, z: 3.7'), "Front-left rival must stay inside the lobby safe framing");
 assert.ok(homeRoute.includes('x: 4.2, z: 3.7'), "Front-right rival must stay inside the lobby safe framing");
 assert.ok(homeRoute.includes('x: -1.8, z: -2.4'), "Rear-left rival must stay inside the lobby safe framing");
