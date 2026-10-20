@@ -223,6 +223,9 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
   const [autoQuality, setAutoQuality] = useState(true);
   const qualityRef = useRef(quality);
   const autoQualityRef = useRef(true);
+  const [activeMap, setActiveMap] = useState<"lobby" | "rift">("lobby");
+  const activeMapRef = useRef<"lobby" | "rift">("lobby");
+  activeMapRef.current = activeMap;
   const playerPosRef = useRef({ x: 0, z: 0 });
   const touchMoveRef = useRef({ x: 0, y: 0 });
   const stickPointerRef = useRef<number | null>(null);
@@ -261,6 +264,24 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
       saveHydrationRef.current = tracked;
     }
     return saveHydrationRef.current ?? Promise.resolve(null);
+  }, []);
+
+  const toggleActiveMap = useCallback(() => {
+    if (sessionRef.current) {
+      setNotice("Finish the current duel before changing maps.");
+      return;
+    }
+    const nextMap = activeMapRef.current === "lobby" ? "rift" : "lobby";
+    activeMapRef.current = nextMap;
+    setActiveMap(nextMap);
+    playerPosRef.current = nextMap === "rift" ? { x: 0, z: 8.2 } : { x: 0, z: -10.4 };
+    facingRef.current = nextMap === "rift" ? Math.PI : 0;
+    nearbyRivalRef.current = null;
+    setNearbyRival(null);
+    sfx("click");
+    setNotice(nextMap === "rift"
+      ? "Rift Expanse loaded · free-roam map. Duels still use the dedicated combat arena."
+      : "Returned to the social lobby.");
   }, []);
 
   const requestLandscape = useCallback(() => {
@@ -667,17 +688,21 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
               stepAudioRef.current = now;
               sfx("footstep");
             }
-            playerPosRef.current = {
-              x: Math.max(-13, Math.min(13, playerPosRef.current.x + dx * dt * 5.5)),
-              z: Math.max(-12, Math.min(12, playerPosRef.current.z + dz * dt * 5.5)),
-            };
+            const mapLimit = activeMapRef.current === "rift" ? 18.6 : 13;
+          const mapDepth = activeMapRef.current === "rift" ? 18.6 : 12;
+          playerPosRef.current = {
+            x: Math.max(-mapLimit, Math.min(mapLimit, playerPosRef.current.x + dx * dt * 5.5)),
+            z: Math.max(-mapDepth, Math.min(mapDepth, playerPosRef.current.z + dz * dt * 5.5)),
+          };
           }
           let near = -1;
-          for (let i = 0; i < RIVALS.length; i++) {
-            const rival = RIVALS[i];
-            if (Math.hypot(playerPosRef.current.x - rival.x, playerPosRef.current.z - rival.z) <= 2.9) {
-              near = i;
-              break;
+          if (activeMapRef.current === "lobby") {
+            for (let i = 0; i < RIVALS.length; i++) {
+              const rival = RIVALS[i];
+              if (Math.hypot(playerPosRef.current.x - rival.x, playerPosRef.current.z - rival.z) <= 2.9) {
+                near = i;
+                break;
+              }
             }
           }
           const nearState = near >= 0 ? near : null;
@@ -776,7 +801,7 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
         const mine = adminMode && adminAId ? ballMapRef.current.get(adminAId) ?? null : v?.myBall ? ballMapRef.current.get(v.myBall) ?? null : null;
         const opponent = adminMode && adminBId ? ballMapRef.current.get(adminBId) ?? null : v?.oppBall ? ballMapRef.current.get(v.oppBall) ?? null : null;
         const draw: DrawState = {
-          mode: current ? "arena" : "lobby",
+          mode: current ? "arena" : activeMapRef.current === "rift" ? "rift" : "lobby",
           px: playerPosRef.current.x,
           pz: playerPosRef.current.z,
           face: facingRef.current,
@@ -891,20 +916,51 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
 
       {!view && mode === "free-roam" && <section className="world-guide" aria-label="Arena briefing">
         <div className="world-guide-topline">
-          <span className="eyebrow">ARENA FORGE <i> / 001</i></span>
+          <span className="eyebrow">{activeMap === "rift" ? "MVM WORLD EXPANSION" : "ARENA FORGE"} <i> / {activeMap === "rift" ? "002" : "001"}</i></span>
           <span className="world-guide-live"><i className="status-dot" /> ARENA READY</span>
         </div>
-        <h1>ENTER THE <em>ARENA.</em></h1>
-        <p>One ball. One launch. No second chances. Find a rival and let physics decide.</p>
+        <h1>{activeMap === "rift" ? <>ENTER THE <em>RIFT EXPANSE.</em></> : <>ENTER THE <em>ARENA.</em></>}</h1>
+        <p>{activeMap === "rift" ? "A new MVM world built around the Eclipse Ring, a fractured portal, a rail bridge and twelve purpose-placed landmarks. Explore freely; start duels from the social lobby." : "One ball. One launch. No second chances. Find a rival and let physics decide."}</p>
         <div className="world-guide-metrics">
           <div><strong>{String(RIVALS.length).padStart(2, "0")}</strong><span>RIVALS</span></div>
           <div><strong>{String(availablePacks.reduce((count, pack) => count + pack.balls.length, 0)).padStart(2, "0")}</strong><span>BALL TYPES</span></div>
-          <div><strong>1V1</strong><span>DUEL MODE</span></div>
+          <div><strong>{activeMap === "rift" ? "RIFT" : "1V1"}</strong><span>{activeMap === "rift" ? "NEW MAP" : "DUEL MODE"}</span></div>
         </div>
         <div className="world-guide-objective">
           <span className="world-guide-step">01</span>
-          <span><b>FIND YOUR TARGET</b><small>Move close to a rival to unlock the challenge.</small></span>
+          <span><b>{activeMap === "rift" ? "EXPLORE THE LANDMARKS" : "FIND YOUR TARGET"}</b><small>{activeMap === "rift" ? "Walk the ring, inspect the relics and follow the perimeter route." : "Move close to a rival to unlock the challenge."}</small></span>
           <span className="world-guide-arrow" aria-hidden="true">↗</span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: 8, marginTop: 12 }}>
+          <button
+            type="button"
+            onClick={toggleActiveMap}
+            aria-label={activeMap === "rift" ? "Return to the social lobby" : "Explore the new Rift Expanse map"}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14,
+              width: "100%", minWidth: 0, textAlign: "left", padding: "12px 14px",
+              color: "#e7f4ff", background: activeMap === "rift" ? "linear-gradient(110deg,#182034,#111a27)" : "linear-gradient(110deg,#122e3a,#17182e)",
+              border: "1px solid " + (activeMap === "rift" ? "#394762" : "#2f7d91"), borderRadius: 8,
+              cursor: "pointer", font: "inherit",
+            }}
+          >
+            <span style={{ display: "flex", gap: 12, alignItems: "center", minWidth: 0 }}>
+              <span aria-hidden="true" style={{ display: "grid", placeItems: "center", width: 38, height: 38, flex: "0 0 38px", borderRadius: 7, background: "#0a1420", border: "1px solid #2b5165", color: "#73e7fa", fontSize: 20 }}>{activeMap === "rift" ? "⌂" : "⟁"}</span>
+              <span style={{ display: "grid", gap: 4, minWidth: 0 }}>
+                <strong style={{ fontSize: 11, letterSpacing: ".08em" }}>{activeMap === "rift" ? "RETURN TO SOCIAL LOBBY" : "EXPLORE RIFT EXPANSE"}</strong>
+                <small style={{ color: "#9bafc4", fontSize: 10, lineHeight: 1.35 }}>{activeMap === "rift" ? "Back to the spawn deck and rivals" : "New authored map · 12 world landmarks"}</small>
+              </span>
+            </span>
+            <span aria-hidden="true" style={{ color: "#7deaff", fontSize: 20 }}>↗</span>
+          </button>
+          <a
+            href="/mvm-model-lab"
+            style={{ display: "grid", alignContent: "center", gap: 5, padding: "10px 12px", minWidth: 92, borderRadius: 8, border: "1px solid #2b3549", background: "#0b111b", color: "#b8c8dd", textDecoration: "none", textAlign: "center", fontSize: 10, fontWeight: 900, letterSpacing: ".08em" }}
+          >
+            <span aria-hidden="true" style={{ fontSize: 17, color: "#b59aff" }}>◈</span>
+            MODEL LAB
+            <small style={{ color: "#74889f", fontSize: 9, fontWeight: 700 }}>18 GLBs</small>
+          </a>
         </div>
         <div className="world-guide-controls" aria-label="Movement controls">
           <span className="world-guide-controls-label">MOVE</span>
