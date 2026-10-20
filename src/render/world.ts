@@ -1373,8 +1373,11 @@ export class World {
         method: "HEAD",
         cache: "force-cache",
       }).then((response) => {
-        this.environmentAssetPackAvailable = response.ok;
-        return response.ok;
+        // A broad SPA rewrite can answer a missing static asset with HTML and 200.
+        const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
+        const available = response.ok && !contentType.includes("text/html");
+        this.environmentAssetPackAvailable = available;
+        return available;
       }).catch(() => {
         this.environmentAssetPackAvailable = false;
         return false;
