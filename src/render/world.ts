@@ -1707,12 +1707,8 @@ export class World {
     rim.rotation.x = -Math.PI / 2;
     rim.position.y = 0.02;
     this.lobby.add(rim);
-    const podium = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.35, 1.6, 0.28, 28),
-      new THREE.MeshStandardMaterial({ color: "#1c212c", roughness: 0.28, metalness: 0.7, emissive: "#ff7a45", emissiveIntensity: 0.18 }),
-    );
-    podium.position.y = 0.14;
-    this.lobby.add(podium);
+    // Spawn_Beacon_Platform.glb owns the central arrival deck now.
+    // Do not stack the old procedural podium through the authored platform.
     const standMat = new THREE.MeshStandardMaterial({ color: "#1a1f2b", roughness: 0.7, metalness: 0.2 });
     for (let tier = 0; tier < 3; tier++) {
       const geo = new THREE.RingGeometry(16.6 + tier * 1.15, 17.5 + tier * 1.15, 48);
@@ -2007,6 +2003,8 @@ export class World {
       [14.3, -5.7, 2.8, cyanLineMaterial],
       [-14.1, 8.2, 2.75, cyanLineMaterial],
       [14.1, 8.4, 2.8, violetLineMaterial],
+      [-10.7, 1.2, 2.25, violetLineMaterial],
+      [14.2, 1.0, 2.45, cyanLineMaterial],
     ] as const) {
       const pad = new THREE.Mesh(
         new THREE.CylinderGeometry(radius, radius + 0.24, 0.2, 8),
