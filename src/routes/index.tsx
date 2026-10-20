@@ -18,6 +18,7 @@ import { MatchPhaseUI } from "@/components/MatchPhaseUI";
 import { PLAYER_HUB_NAV, canAccessOwnerTools } from "@/lib/player-navigation";
 import { shouldReduceMotion } from "@/lib/motion-policy";
 import { createArenaLifecycleState, shouldRunArenaLoop, transitionArenaLifecycle, type ArenaLifecycleEvent } from "@/lib/session-lifecycle-policy";
+import { clampRiftPosition } from "@/lib/rift-map";
 
 export const Route = createFileRoute("/")({ component: BallArenaPage });
 
@@ -697,12 +698,12 @@ export function BallArenaPage({ mode = "free-roam" }: { mode?: ArenaRouteMode } 
               stepAudioRef.current = now;
               sfx("footstep");
             }
-            const mapLimit = activeMapRef.current === "rift" ? 18.6 : 13;
-          const mapDepth = activeMapRef.current === "rift" ? 18.6 : 15.5;
-          playerPosRef.current = {
-            x: Math.max(-mapLimit, Math.min(mapLimit, playerPosRef.current.x + dx * dt * 5.5)),
-            z: Math.max(-mapDepth, Math.min(mapDepth, playerPosRef.current.z + dz * dt * 5.5)),
-          };
+            const isRift = activeMapRef.current === "rift";
+          const mapLimit = isRift ? 18.6 : 13;
+          const mapDepth = isRift ? 18.6 : 15.5;
+          const nextX = Math.max(-mapLimit, Math.min(mapLimit, playerPosRef.current.x + dx * dt * 5.5));
+          const nextZ = Math.max(-mapDepth, Math.min(mapDepth, playerPosRef.current.z + dz * dt * 5.5));
+          playerPosRef.current = isRift ? clampRiftPosition(nextX, nextZ) : { x: nextX, z: nextZ };
           }
           const gateZ = activeMapRef.current === "lobby" ? -12.6 : -17.0;
           const gateNearby = Math.hypot(playerPosRef.current.x, playerPosRef.current.z - gateZ) <= 3.3;
