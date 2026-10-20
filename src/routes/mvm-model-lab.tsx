@@ -214,14 +214,20 @@ function MvmModelLab() {
       runtime.scene.add(fit);
       runtime.model = fit;
 
-      const distance = Math.max(8.5, Math.min(24, asset.targetExtent * 1.35 + 5));
+      // The inspection stage normalizes every source GLB to five units.
+      // Camera framing must use that normalized bounding box, not the different
+      // in-game targetExtent; otherwise big low-profile rings are aimed over or
+      // framed too far away, while tall gates receive inconsistent zoom.
+      const normalizedSize = size.clone().multiplyScalar(scale);
+      const visibleExtent = Math.max(normalizedSize.x, normalizedSize.y, normalizedSize.z);
+      const distance = Math.max(7.5, visibleExtent * 1.9);
       runtime.camera.position.set(distance * 0.88, distance * 0.62, distance * 1.02);
       runtime.camera.near = Math.max(0.025, distance / 600);
       runtime.camera.far = 240;
       runtime.camera.updateProjectionMatrix();
-      runtime.controls.target.set(0, Math.min(2.7, asset.targetExtent * 0.31), 0);
-      runtime.controls.minDistance = Math.max(2.2, asset.targetExtent * 0.3);
-      runtime.controls.maxDistance = Math.max(24, asset.targetExtent * 4.3);
+      runtime.controls.target.set(0, Math.max(0.1, Math.min(2.5, normalizedSize.y * 0.5)), 0);
+      runtime.controls.minDistance = Math.max(1.7, visibleExtent * 0.35);
+      runtime.controls.maxDistance = Math.max(24, visibleExtent * 5);
       runtime.controls.update();
 
       const materialSet = new Set<THREE.Material>();
