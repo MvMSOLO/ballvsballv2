@@ -160,7 +160,7 @@ async function main() {
       pbrSlots: row.materials,
     }));
   }
-  await writeFile(outputPath, lines.join("\\n") + "\\n");
+  await writeFile(outputPath, lines.join("\n") + "\n");
   console.log("Audited " + rows.length + "/18 GLBs; wrote docs/3d/asset-inventory.md; total " + mib(rows.reduce((sum, row) => sum + row.fileBytes, 0)) + ".");
 }
 main().catch((error) => { console.error("[MVM GLB audit]", error instanceof Error ? error.message : String(error)); process.exitCode = 1; });
