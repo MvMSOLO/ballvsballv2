@@ -30,6 +30,9 @@ jobs:
       - name: Install locked dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Audit all registered MVM GLB files and referenced images
+        run: npm run assets:mvm:audit
+
       - name: Generate route tree and verify app compilation
         run: npm run build:dev
 
