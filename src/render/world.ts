@@ -1484,6 +1484,29 @@ export class World {
 
       const model = gltf.scene;
       model.name = `mvm-environment-model:${definition.id}`;
+
+      // Preserve the authored GLB maps; tune PBR factors per asset without flattening textures.
+      const tunedMaterials = new Set<THREE.Material>();
+      const tint = new THREE.Color(definition.material.tint);
+      model.traverse((node) => {
+        if (!(node instanceof THREE.Mesh)) return;
+        const materials = Array.isArray(node.material) ? node.material : [node.material];
+        for (const material of materials) {
+          if (tunedMaterials.has(material)) continue;
+          tunedMaterials.add(material);
+          if (!(material instanceof THREE.MeshStandardMaterial)) continue;
+          material.color.multiply(tint);
+          material.roughness = definition.material.roughness;
+          material.metalness = definition.material.metalness;
+          material.envMapIntensity = definition.material.envMapIntensity;
+          if (definition.material.emissiveIntensity > 0) {
+            material.emissive.set(definition.material.emissive);
+            material.emissiveIntensity = definition.material.emissiveIntensity;
+          }
+          material.needsUpdate = true;
+        }
+      });
+
       model.updateMatrixWorld(true);
       const bounds = new THREE.Box3().setFromObject(model);
       const dimensions = bounds.getSize(new THREE.Vector3());

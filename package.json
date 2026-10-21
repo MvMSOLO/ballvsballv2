@@ -23,7 +23,8 @@
     "simulate": "vite-node --config vitest.config.ts scripts/simulate.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "check:design": "node scripts/check-design-system.mjs"
+    "check:design": "node scripts/check-design-system.mjs",
+    "assets:mvm:audit": "node scripts/audit-mvm-glb-assets.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",
