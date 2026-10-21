@@ -90,7 +90,7 @@ function inspectGlb(buffer, filename) {
 
 function parseRegistry(source) {
   const entries = [];
-  for (const match of source.matchAll(/\{\n    id: "([^"]+)",([\s\S]*?)\n  \},/g)) {
+  for (const match of source.matchAll(/\{\n {4}id: "([^"]+)",([\s\S]*?)\n {2}\},/g)) {
     const block = match[2];
     const field = (key) => block.match(new RegExp("\\b" + key + ": \"([^\"]+)\""))?.[1] ?? "not documented";
     entries.push({
