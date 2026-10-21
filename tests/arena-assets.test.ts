@@ -13,6 +13,14 @@ describe("MVM environment asset registry", () => {
     expect(new Set(MVM_ENVIRONMENT_ASSETS.map((asset) => asset.file)).size).toBe(18);
     expect(new Set(MVM_ENVIRONMENT_ASSETS.map((asset) => asset.id)).size).toBe(18);
     expect(MVM_ENVIRONMENT_ASSETS.every((asset) => asset.file.endsWith(".glb"))).toBe(true);
+    expect(MVM_ENVIRONMENT_ASSETS.every((asset) =>
+      /^#[0-9a-f]{6}$/i.test(asset.material.tint)
+      && /^#[0-9a-f]{6}$/i.test(asset.material.emissive)
+      && asset.material.roughness >= 0 && asset.material.roughness <= 1
+      && asset.material.metalness >= 0 && asset.material.metalness <= 1
+      && asset.material.emissiveIntensity >= 0 && asset.material.envMapIntensity >= 0
+    )).toBe(true);
+    expect(new Set(MVM_ENVIRONMENT_ASSETS.map((asset) => asset.material.tint)).size).toBe(18);
   });
 
   it("keeps tiered loading bounded while retaining the authored expansion entry and centerpiece", () => {
@@ -79,6 +87,15 @@ describe("MVM environment asset registry", () => {
     expect(new Set(positionKeys).size).toBe(18);
     expect(MVM_ENVIRONMENT_ASSETS.every((asset) => asset.position.length === 3 && asset.position.every(Number.isFinite))).toBe(true);
     expect(MVM_ENVIRONMENT_ASSETS.every((asset) => Number.isFinite(asset.rotationY))).toBe(true);
+  });
+
+  it("assigns a distinct authored PBR treatment to every GLB", () => {
+    expect(new Set(MVM_ENVIRONMENT_ASSETS.map((asset) =>
+      [asset.material.tint, asset.material.roughness, asset.material.metalness, asset.material.emissive].join(":"),
+    )).size).toBe(18);
+    expect(MVM_ENVIRONMENT_ASSETS.find((asset) => asset.id === "MVM_Boppo_Mascot")?.material.metalness).toBeLessThan(0.1);
+    expect(MVM_ENVIRONMENT_ASSETS.find((asset) => asset.id === "Voidstone_Meteor")?.material.roughness).toBeGreaterThan(0.8);
+    expect(MVM_ENVIRONMENT_ASSETS.find((asset) => asset.id === "Magma_Reactor_Tower")?.material.emissive).toBe("#a83213");
   });
 
   it("serves each asset from the public arena directory", () => {
