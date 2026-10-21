@@ -149,7 +149,18 @@ async function main() {
       "",
     );
   }
-  await writeFile(outputPath, lines.join("\n") + "\n");
+  for (const row of rows) {
+    console.log("MVM_GLB_METRIC " + JSON.stringify({
+      file: row.file, sizeBytes: row.fileBytes, nodes: row.nodes, meshes: row.meshes,
+      primitives: row.primitives, materials: row.materials.length, textures: row.textures,
+      images: row.images.length, uv0Primitives: row.uv0, totalPrimitives: row.primitives,
+      bounds: row.bounds, rootTransforms: row.roots, animations: row.animations,
+      imageDetails: row.images.map((image) => ({ name: image.name, source: image.source, sizeBytes: image.size, width: image.width, height: image.height })),
+      decodedPngBytes: row.decodedPngBytes,
+      pbrSlots: row.materials,
+    }));
+  }
+  await writeFile(outputPath, lines.join("\\n") + "\\n");
   console.log("Audited " + rows.length + "/18 GLBs; wrote docs/3d/asset-inventory.md; total " + mib(rows.reduce((sum, row) => sum + row.fileBytes, 0)) + ".");
 }
 main().catch((error) => { console.error("[MVM GLB audit]", error instanceof Error ? error.message : String(error)); process.exitCode = 1; });
